@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>装修客户跟进工具</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      margin: 0;
+      background: #f5f6f8;
+      color: #222;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 24px 40px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      color: #cbd5e1;
+    }
+
+    main {
+      padding: 32px 40px;
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    button {
+      background: #ea580c;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: #c2410c;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .stat-box {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .stat-box strong {
+      display: block;
+      font-size: 26px;
+      color: #ea580c;
+      margin-top: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #f9fafb;
+    }
+
+    .tag {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>装修客户跟进工具</h1>
+    <p>用于登记客户、跟进量房、定金、签单等关键转化节点</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>新增客户</h2>
+
+      <div class="form-grid">
+        <div>
+          <label>客户姓名</label>
+          <input id="name" placeholder="例如：张先生" />
+        </div>
+
+        <div>
+          <label>联系电话</label>
+          <input id="phone" placeholder="例如：13800000000" />
+        </div>
+
+        <div>
+          <label>小区名称</label>
+          <input id="community" placeholder="例如：XX小区" />
+        </div>
+
+        <div>
+          <label>房屋面积</label>
+          <input id="area" placeholder="例如：120㎡" />
+        </div>
+
+        <div>
+          <label>客户来源</label>
+          <select id="source">
+            <option>经纪人推荐</option>
+            <option>新媒体留资</option>
+            <option>门店自然进店</option>
+            <option>老客户转介绍</option>
+            <option>其他</option>
+          </select>
+        </div>
+
+        <div>
+          <label>跟进状态</label>
+          <select id="status">
+            <option>待联系</option>
+            <option>已联系</option>
+            <option>已量房</option>
+            <option>已交定金</option>
+            <option>已签单</option>
+            <option>暂缓</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label>装修需求</label>
+        <textarea id="need" placeholder="例如：整装、旧改、局改、橱柜、衣柜、预算区间等"></textarea>
+      </div>
+
+      <div style="margin-top:18px;">
+        <button onclick="addCustomer()">添加客户</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>数据统计</h2>
+      <div class="stats">
+        <div class="stat-box">客户总数<strong id="total">0</strong></div>
+        <div class="stat-box">已量房<strong id="measured">0</strong></div>
+        <div class="stat-box">已交定金<strong id="deposit">0</strong></div>
+        <div class="stat-box">已签单<strong id="signed">0</strong></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>客户列表</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>客户</th>
+            <th>电话</th>
+            <th>小区</th>
+            <th>面积</th>
+            <th>来源</th>
+            <th>状态</th>
+            <th>需求</th>
+          </tr>
+        </thead>
+        <tbody id="customerList"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const customers = [];
+
+    function addCustomer() {
+      const customer = {
+        name: document.getElementById("name").value,
+        phone: document.getElementById("phone").value,
+        community: document.getElementById("community").value,
+        area: document.getElementById("area").value,
+        source: document.getElementById("source").value,
+        status: document.getElementById("status").value,
+        need: document.getElementById("need").value
+      };
+
+      if (!customer.name || !customer.phone) {
+        alert("客户姓名和联系电话必须填写");
+        return;
+      }
+
+      customers.push(customer);
+      renderCustomers();
+      clearForm();
+    }
+
+    function renderCustomers() {
+      const list = document.getElementById("customerList");
+      list.innerHTML = "";
+
+      customers.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.name}</td>
+          <td>${item.phone}</td>
+          <td>${item.community}</td>
+          <td>${item.area}</td>
+          <td>${item.source}</td>
+          <td><span class="tag">${item.status}</span></td>
+          <td>${item.need}</td>
+        `;
+        list.appendChild(row);
+      });
+
+      document.getElementById("total").innerText = customers.length;
+      document.getElementById("measured").innerText = customers.filter(c => c.status === "已量房").length;
+      document.getElementById("deposit").innerText = customers.filter(c => c.status === "已交定金").length;
+      document.getElementById("signed").innerText = customers.filter(c => c.status === "已签单").length;
+    }
+
+    function clearForm() {
+      document.getElementById("name").value = "";
+      document.getElementById("phone").value = "";
+      document.getElementById("community").value = "";
+      document.getElementById("area").value = "";
+      document.getElementById("need").value = "";
+      document.getElementById("status").value = "待联系";
+    }
+  </script>
+</body>
+</html>
