@@ -208,19 +208,23 @@
 
     <section class="card">
       <h2>客户列表</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>客户</th>
-            <th>电话</th>
-            <th>小区</th>
-            <th>面积</th>
-            <th>来源</th>
-            <th>状态</th>
-            <th>需求</th>
-            <th>操作</th>
-          </tr>
-        </thead>
+      <section class="card">
+  <h2>客户列表</h2>
+
+  <div style="margin-bottom:16px; max-width:240px;">
+    <label>按状态筛选</label>
+    <select id="filterStatus" onchange="renderCustomers()">
+      <option>全部客户</option>
+      <option>待联系</option>
+      <option>已联系</option>
+      <option>已量房</option>
+      <option>已交定金</option>
+      <option>已签单</option>
+      <option>暂缓</option>
+    </select>
+  </div>
+
+  <table>
         <tbody id="customerList"></tbody>
       </table>
     </section>
@@ -259,10 +263,19 @@
   clearForm();
 }
     function renderCustomers() {
-      const list = document.getElementById("customerList");
-      list.innerHTML = "";
+  const list = document.getElementById("customerList");
+  list.innerHTML = "";
 
-      customers.forEach((item, index) => {
+  const filterStatus = document.getElementById("filterStatus") 
+    ? document.getElementById("filterStatus").value 
+    : "全部客户";
+
+  const displayCustomers = filterStatus === "全部客户"
+    ? customers
+    : customers.filter(customer => customer.status === filterStatus);
+
+  displayCustomers.forEach((item) => {
+    const index = customers.indexOf(item);
     const row = document.createElement("tr");
     row.innerHTML = `
         <td>${item.name}</td>
