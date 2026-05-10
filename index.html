@@ -327,7 +327,8 @@ main {
       <section class="card">
   <h2>客户列表</h2>
 
-    <div style="margin-bottom:16px; display:flex; gap:16px; flex-wrap:wrap; align-items:end;">
+
+  <div style="margin-bottom:16px; display:flex; gap:16px; flex-wrap:wrap; align-items:end;">
   <div style="max-width:240px; flex:1;">
     <label>按状态筛选</label>
     <select id="filterStatus" onchange="renderCustomers()">
@@ -348,6 +349,14 @@ main {
       placeholder="输入姓名、电话或小区" 
       oninput="renderCustomers()" 
     />
+  </div>
+
+  <div>
+    <button onclick="showTodayFollow()" style="background:#0f766e;">今日待跟进</button>
+  </div>
+
+  <div>
+    <button onclick="resetFilters()" style="background:#6b7280;">显示全部</button>
   </div>
 </div>
 
@@ -393,7 +402,8 @@ main {
 
   <script>
     let customers = JSON.parse(localStorage.getItem("customers")) || [];
-    let editingIndex = -1;
+let editingIndex = -1;
+let onlyTodayFollow = false;
 
     function saveCustomer() {
   const customer = {
@@ -448,6 +458,13 @@ if (searchKeyword) {
       customer.phone.includes(searchKeyword) ||
       customer.community.includes(searchKeyword)
     );
+  });
+}
+if (onlyTodayFollow) {
+  const today = new Date().toISOString().split("T")[0];
+
+  displayCustomers = displayCustomers.filter(customer => {
+    return customer.nextFollowDate === today;
   });
 }
 
@@ -572,6 +589,27 @@ function clearAllCustomers() {
   renderCustomers();
 
   alert("客户数据已清空");
+}
+function showTodayFollow() {
+  onlyTodayFollow = true;
+  renderCustomers();
+}
+
+function resetFilters() {
+  onlyTodayFollow = false;
+
+  const filterStatus = document.getElementById("filterStatus");
+  const searchKeyword = document.getElementById("searchKeyword");
+
+  if (filterStatus) {
+    filterStatus.value = "全部客户";
+  }
+
+  if (searchKeyword) {
+    searchKeyword.value = "";
+  }
+
+  renderCustomers();
 }
   </script>
 </body>
