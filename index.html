@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>装修客户跟进工具</title>
   <style>
+    .need-cell,
+.note-cell {
+  width: 220px;
+  max-width: 220px;
+  white-space: normal;
+  line-height: 1.6;
+}
+
+.action-cell {
+  width: 140px;
+  white-space: nowrap;
+}
+    .table-wrapper {
+  width: 100%;
+  overflow-x: visible;
+}
+
+.table-wrapper table {
+  width: 100%;
+  table-layout: fixed;
+}
     body {
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
       margin: 0;
@@ -111,10 +132,20 @@
     }
 
     th, td {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 12px;
-      text-align: left;
-    }
+
+  border-bottom: 1px solid #e5e7eb;
+
+  padding: 10px;
+
+  text-align: left;
+
+  vertical-align: top;
+
+  word-break: break-word;
+
+  font-size: 14px;
+
+}
 
     th {
       background: #f9fafb;
@@ -127,6 +158,81 @@
       color: #0369a1;
       font-size: 12px;
     }
+    /* ===== 客户列表表格最终修复样式 ===== */
+
+main {
+
+  max-width: 1400px;
+
+}
+
+.table-wrapper {
+
+  width: 100%;
+
+  overflow-x: auto;
+
+}
+
+.table-wrapper table {
+
+  width: 100%;
+
+  min-width: 1250px;
+
+  table-layout: auto;
+
+  border-collapse: collapse;
+
+}
+
+.table-wrapper th,
+
+.table-wrapper td {
+
+  border-bottom: 1px solid #e5e7eb;
+
+  padding: 12px;
+
+  text-align: left;
+
+  vertical-align: top;
+
+  font-size: 14px;
+
+  white-space: nowrap;
+
+}
+
+.table-wrapper th {
+
+  background: #f9fafb;
+
+  font-weight: 700;
+
+}
+
+.need-cell,
+
+.note-cell {
+
+  width: 220px;
+
+  max-width: 220px;
+
+  white-space: normal !important;
+
+  line-height: 1.6;
+
+}
+
+.action-cell {
+
+  width: 150px;
+
+  white-space: nowrap !important;
+
+}
   </style>
 </head>
 
@@ -186,9 +292,19 @@
       </div>
 
       <div style="margin-top:16px;">
-        <label>装修需求</label>
-        <textarea id="need" placeholder="例如：整装、旧改、局改、橱柜、衣柜、预算区间等"></textarea>
-      </div>
+  <label>装修需求</label>
+  <textarea id="need" placeholder="例如：整装、旧改、局改、橱柜、衣柜、预算区间等"></textarea>
+</div>
+
+<div style="margin-top:16px;">
+  <label>跟进备注</label>
+  <textarea id="followNote" placeholder="例如：客户关注价格，想先看套餐明细；已约明天下午量房"></textarea>
+</div>
+
+<div style="margin-top:16px; max-width:240px;">
+  <label>下次跟进时间</label>
+  <input id="nextFollowDate" type="date" />
+</div>
       <div style="margin-top:18px; display:flex; gap:12px; flex-wrap:wrap;">
        <button id="saveButton" onclick="saveCustomer()">添加客户</button>
        <button onclick="exportCustomers()" style="background:#2563eb;">导出客户表</button>
@@ -235,9 +351,43 @@
   </div>
 </div>
 
+  <div class="table-wrapper">
+
   <table>
-        <tbody id="customerList"></tbody>
-      </table>
+
+    <thead>
+
+      <tr>
+
+        <th>客户</th>
+
+        <th>电话</th>
+
+        <th>小区</th>
+
+        <th>面积</th>
+
+        <th>来源</th>
+
+        <th>状态</th>
+
+        <th>需求</th>
+
+        <th>跟进备注</th>
+
+        <th>下次跟进</th>
+
+        <th>操作</th>
+
+      </tr>
+
+    </thead>
+
+    <tbody id="customerList"></tbody>
+
+  </table>
+
+</div>
     </section>
   </main>
 
@@ -247,14 +397,16 @@
 
     function saveCustomer() {
   const customer = {
-    name: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    community: document.getElementById("community").value,
-    area: document.getElementById("area").value,
-    source: document.getElementById("source").value,
-    status: document.getElementById("status").value,
-    need: document.getElementById("need").value
-  };
+  name: document.getElementById("name").value,
+  phone: document.getElementById("phone").value,
+  community: document.getElementById("community").value,
+  area: document.getElementById("area").value,
+  source: document.getElementById("source").value,
+  status: document.getElementById("status").value,
+  need: document.getElementById("need").value,
+  followNote: document.getElementById("followNote").value,
+  nextFollowDate: document.getElementById("nextFollowDate").value
+};
 
   if (!customer.name || !customer.phone) {
     alert("客户姓名和联系电话必须填写");
@@ -303,19 +455,20 @@ if (searchKeyword) {
     const index = customers.indexOf(item);
     const row = document.createElement("tr");
     row.innerHTML = `
-        <td>${item.name}</td>
-        <td>${item.phone}</td>
-        <td>${item.community}</td>
-        <td>${item.area}</td>
-        <td>${item.source}</td>
-        <td><span class="tag">${item.status}</span></td>
-        <td>${item.need}</td>
-        <td>
-        <td>
-          <button onclick="editCustomer(${index})" style="background:#16a34a; padding:6px 10px; font-size:12px;">编辑</button>
-          <button onclick="deleteCustomer(${index})" style="background:#dc2626; padding:6px 10px; font-size:12px; margin-left:6px;">删除</button>
-        </td>
-    `;
+  <td>${item.name || ""}</td>
+  <td>${item.phone || ""}</td>
+  <td>${item.community || ""}</td>
+  <td>${item.area || ""}</td>
+  <td>${item.source || ""}</td>
+  <td><span class="tag">${item.status || ""}</span></td>
+  <td class="need-cell">${item.need || ""}</td>
+  <td class="note-cell">${item.followNote || ""}</td>
+  <td>${item.nextFollowDate || ""}</td>
+  <td class="action-cell">
+    <button onclick="editCustomer(${index})" style="background:#16a34a; padding:6px 10px; font-size:12px;">编辑</button>
+    <button onclick="deleteCustomer(${index})" style="background:#dc2626; padding:6px 10px; font-size:12px; margin-left:6px;">删除</button>
+  </td>
+`;
     list.appendChild(row);
     });
 
@@ -393,7 +546,8 @@ function editCustomer(index) {
   document.getElementById("source").value = customer.source;
   document.getElementById("status").value = customer.status;
   document.getElementById("need").value = customer.need;
-
+  document.getElementById("followNote").value = customer.followNote || "";
+document.getElementById("nextFollowDate").value = customer.nextFollowDate || "";
   editingIndex = index;
   document.getElementById("saveButton").innerText = "更新客户";
 }
