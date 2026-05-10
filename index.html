@@ -189,10 +189,10 @@
         <label>装修需求</label>
         <textarea id="need" placeholder="例如：整装、旧改、局改、橱柜、衣柜、预算区间等"></textarea>
       </div>
-
-      <div style="margin-top:18px;">
-        <button onclick="addCustomer()">添加客户</button>
-      </div>
+      <div style="margin-top:18px; display:flex; gap:12px;">
+      <button id="saveButton" onclick="saveCustomer()">添加客户</button>
+      <button onclick="exportCustomers()" style="background:#2563eb;">导出客户表</button>
+     </div>
     </section>
 
     <section class="card">
@@ -217,6 +217,7 @@
             <th>来源</th>
             <th>状态</th>
             <th>需求</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody id="customerList"></tbody>
@@ -225,46 +226,59 @@
   </main>
 
   <script>
-    const customers = [];
+    let customers = JSON.parse(localStorage.getItem("customers")) || [];
+    let editingIndex = -1;
 
-    function addCustomer() {
-      const customer = {
-        name: document.getElementById("name").value,
-        phone: document.getElementById("phone").value,
-        community: document.getElementById("community").value,
-        area: document.getElementById("area").value,
-        source: document.getElementById("source").value,
-        status: document.getElementById("status").value,
-        need: document.getElementById("need").value
-      };
+    function saveCustomer() {
+  const customer = {
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
+    community: document.getElementById("community").value,
+    area: document.getElementById("area").value,
+    source: document.getElementById("source").value,
+    status: document.getElementById("status").value,
+    need: document.getElementById("need").value
+  };
 
-      if (!customer.name || !customer.phone) {
-        alert("客户姓名和联系电话必须填写");
-        return;
-      }
+  if (!customer.name || !customer.phone) {
+    alert("客户姓名和联系电话必须填写");
+    return;
+  }
 
-      customers.push(customer);
-      renderCustomers();
-      clearForm();
-    }
+  if (editingIndex === -1) {
+    customers.push(customer);
+  } else {
+    customers[editingIndex] = customer;
+    editingIndex = -1;
+    document.getElementById("saveButton").innerText = "添加客户";
+  }
 
+  saveToLocalStorage();
+  renderCustomers();
+  clearForm();
+}
     function renderCustomers() {
       const list = document.getElementById("customerList");
       list.innerHTML = "";
 
-      customers.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${item.name}</td>
-          <td>${item.phone}</td>
-          <td>${item.community}</td>
-          <td>${item.area}</td>
-          <td>${item.source}</td>
-          <td><span class="tag">${item.status}</span></td>
-          <td>${item.need}</td>
-        `;
-        list.appendChild(row);
-      });
+      customers.forEach((item, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.phone}</td>
+        <td>${item.community}</td>
+        <td>${item.area}</td>
+        <td>${item.source}</td>
+        <td><span class="tag">${item.status}</span></td>
+        <td>${item.need}</td>
+        <td>
+        <td>
+          <button onclick="editCustomer(${index})" style="background:#16a34a; padding:6px 10px; font-size:12px;">编辑</button>
+          <button onclick="deleteCustomer(${index})" style="background:#dc2626; padding:6px 10px; font-size:12px; margin-left:6px;">删除</button>
+        </td>
+    `;
+    list.appendChild(row);
+    });
 
       document.getElementById("total").innerText = customers.length;
       document.getElementById("measured").innerText = customers.filter(c => c.status === "已量房").length;
@@ -280,6 +294,74 @@
       document.getElementById("need").value = "";
       document.getElementById("status").value = "待联系";
     }
+  function exportCustomers() {
+  if (customers.length === 0) {
+    alert("当前还没有客户数据，无法导出");
+    return;
+  }
+
+  const headers = ["客户姓名", "联系电话", "小区名称", "房屋面积", "客户来源", "跟进状态", "装修需求"];
+
+  const rows = customers.map(item => [
+    item.name,
+    item.phone,
+    item.community,
+    item.area,
+    item.source,
+    item.status,
+    item.need
+  ]);
+
+  let csvContent = "\uFEFF" + headers.join(",") + "\n";
+
+  rows.forEach(row => {
+    csvContent += row.map(value => {
+      const text = String(value || "").replace(/"/g, '""');
+      return `"${text}"`;
+    }).join(",") + "\n";
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "装修客户跟进表.csv";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+}
+function deleteCustomer(index) {
+  const confirmDelete = confirm("确定要删除这个客户吗？");
+
+  if (!confirmDelete) {
+    return;
+  }
+
+  customers.splice(index, 1);
+saveToLocalStorage();
+renderCustomers();
+}
+function editCustomer(index) {
+  const customer = customers[index];
+
+  document.getElementById("name").value = customer.name;
+  document.getElementById("phone").value = customer.phone;
+  document.getElementById("community").value = customer.community;
+  document.getElementById("area").value = customer.area;
+  document.getElementById("source").value = customer.source;
+  document.getElementById("status").value = customer.status;
+  document.getElementById("need").value = customer.need;
+
+  editingIndex = index;
+  document.getElementById("saveButton").innerText = "更新客户";
+}
+function saveToLocalStorage() {
+  localStorage.setItem("customers", JSON.stringify(customers));
+}
+renderCustomers();
   </script>
 </body>
 </html>
