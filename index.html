@@ -211,7 +211,8 @@
       <section class="card">
   <h2>客户列表</h2>
 
-  <div style="margin-bottom:16px; max-width:240px;">
+    <div style="margin-bottom:16px; display:flex; gap:16px; flex-wrap:wrap; align-items:end;">
+  <div style="max-width:240px; flex:1;">
     <label>按状态筛选</label>
     <select id="filterStatus" onchange="renderCustomers()">
       <option>全部客户</option>
@@ -223,6 +224,16 @@
       <option>暂缓</option>
     </select>
   </div>
+
+  <div style="max-width:320px; flex:1;">
+    <label>搜索客户</label>
+    <input 
+      id="searchKeyword" 
+      placeholder="输入姓名、电话或小区" 
+      oninput="renderCustomers()" 
+    />
+  </div>
+</div>
 
   <table>
         <tbody id="customerList"></tbody>
@@ -267,12 +278,26 @@
   list.innerHTML = "";
 
   const filterStatus = document.getElementById("filterStatus") 
-    ? document.getElementById("filterStatus").value 
-    : "全部客户";
+  ? document.getElementById("filterStatus").value 
+  : "全部客户";
 
-  const displayCustomers = filterStatus === "全部客户"
-    ? customers
-    : customers.filter(customer => customer.status === filterStatus);
+const searchKeyword = document.getElementById("searchKeyword")
+  ? document.getElementById("searchKeyword").value.trim()
+  : "";
+
+let displayCustomers = filterStatus === "全部客户"
+  ? customers
+  : customers.filter(customer => customer.status === filterStatus);
+
+if (searchKeyword) {
+  displayCustomers = displayCustomers.filter(customer => {
+    return (
+      customer.name.includes(searchKeyword) ||
+      customer.phone.includes(searchKeyword) ||
+      customer.community.includes(searchKeyword)
+    );
+  });
+}
 
   displayCustomers.forEach((item) => {
     const index = customers.indexOf(item);
