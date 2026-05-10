@@ -189,10 +189,11 @@
         <label>装修需求</label>
         <textarea id="need" placeholder="例如：整装、旧改、局改、橱柜、衣柜、预算区间等"></textarea>
       </div>
-      <div style="margin-top:18px; display:flex; gap:12px;">
-      <button id="saveButton" onclick="saveCustomer()">添加客户</button>
-      <button onclick="exportCustomers()" style="background:#2563eb;">导出客户表</button>
-     </div>
+      <div style="margin-top:18px; display:flex; gap:12px; flex-wrap:wrap;">
+       <button id="saveButton" onclick="saveCustomer()">添加客户</button>
+       <button onclick="exportCustomers()" style="background:#2563eb;">导出客户表</button>
+       <button onclick="clearAllCustomers()" style="background:#6b7280;">清空全部数据</button>
+    </div>
     </section>
 
     <section class="card">
@@ -362,6 +363,24 @@ function saveToLocalStorage() {
   localStorage.setItem("customers", JSON.stringify(customers));
 }
 renderCustomers();
+function clearAllCustomers() {
+  const confirmClear = confirm("确定要清空全部客户数据吗？这个操作不能恢复。");
+
+  if (!confirmClear) {
+    return;
+  }
+
+  customers = [];
+  editingIndex = -1;
+
+  localStorage.removeItem("customers");
+
+  document.getElementById("saveButton").innerText = "添加客户";
+  clearForm();
+  renderCustomers();
+
+  alert("客户数据已清空");
+}
   </script>
 </body>
 </html>
