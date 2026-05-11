@@ -3,29 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>装修客户跟进工具</title>
+  <title>装修客户跟进 CRM 工具</title>
+
   <style>
-    .need-cell,
-.note-cell {
-  width: 220px;
-  max-width: 220px;
-  white-space: normal;
-  line-height: 1.6;
-}
-
-.action-cell {
-  width: 140px;
-  white-space: nowrap;
-}
-    .table-wrapper {
-  width: 100%;
-  overflow-x: visible;
-}
-
-.table-wrapper table {
-  width: 100%;
-  table-layout: fixed;
-}
     body {
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
       margin: 0;
@@ -51,16 +31,21 @@
 
     main {
       padding: 32px 40px;
-      max-width: 1100px;
+      max-width: 1400px;
       margin: auto;
     }
 
     .card {
       background: white;
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 24px;
       margin-bottom: 24px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 24px;
     }
 
     .form-grid {
@@ -70,39 +55,74 @@
     }
 
     label {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 6px;
       display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
     }
 
-    input, select, textarea {
+    input,
+    select,
+    textarea {
       width: 100%;
       box-sizing: border-box;
-      padding: 10px 12px;
+      padding: 11px 12px;
       border: 1px solid #d1d5db;
       border-radius: 8px;
       font-size: 14px;
+      outline: none;
+      background: white;
     }
 
     textarea {
-      min-height: 80px;
+      min-height: 90px;
       resize: vertical;
     }
 
     button {
-      background: #ea580c;
-      color: white;
       border: none;
-      padding: 12px 18px;
+      color: white;
+      padding: 11px 18px;
       border-radius: 8px;
-      font-size: 15px;
+      font-size: 14px;
+      font-weight: 700;
       cursor: pointer;
-      font-weight: 600;
     }
 
-    button:hover {
-      background: #c2410c;
+    .btn-primary {
+      background: #ea580c;
+    }
+
+    .btn-blue {
+      background: #2563eb;
+    }
+
+    .btn-gray {
+      background: #6b7280;
+    }
+
+    .btn-green {
+      background: #16a34a;
+    }
+
+    .btn-red {
+      background: #dc2626;
+    }
+
+    .btn-teal {
+      background: #0f766e;
+    }
+
+    .btn-small {
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
     }
 
     .stats {
@@ -118,128 +138,110 @@
       padding: 18px;
     }
 
+    .stat-box span {
+      display: block;
+      color: #333;
+      font-weight: 700;
+    }
+
     .stat-box strong {
       display: block;
-      font-size: 26px;
+      font-size: 28px;
       color: #ea580c;
       margin-top: 8px;
     }
 
+    .filter-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    .filter-item {
+      max-width: 260px;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+
     table {
       width: 100%;
+      min-width: 1200px;
       border-collapse: collapse;
       font-size: 14px;
     }
 
-    th, td {
-
-  border-bottom: 1px solid #e5e7eb;
-
-  padding: 10px;
-
-  text-align: left;
-
-  vertical-align: top;
-
-  word-break: break-word;
-
-  font-size: 14px;
-
-}
+    th,
+    td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
 
     th {
       background: #f9fafb;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     .tag {
+      display: inline-block;
       padding: 4px 8px;
       border-radius: 999px;
       background: #e0f2fe;
       color: #0369a1;
       font-size: 12px;
+      white-space: nowrap;
     }
-    /* ===== 客户列表表格最终修复样式 ===== */
 
-main {
+    .need-cell,
+    .note-cell {
+      width: 220px;
+      max-width: 220px;
+      white-space: normal;
+      line-height: 1.6;
+      word-break: break-word;
+    }
 
-  max-width: 1400px;
+    .action-cell {
+      width: 150px;
+      white-space: nowrap;
+    }
 
-}
+    .empty-tip {
+      padding: 24px;
+      text-align: center;
+      color: #6b7280;
+      background: #f9fafb;
+    }
 
-.table-wrapper {
+    @media (max-width: 900px) {
+      main {
+        padding: 20px;
+      }
 
-  width: 100%;
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
 
-  overflow-x: auto;
-
-}
-
-.table-wrapper table {
-
-  width: 100%;
-
-  min-width: 1250px;
-
-  table-layout: auto;
-
-  border-collapse: collapse;
-
-}
-
-.table-wrapper th,
-
-.table-wrapper td {
-
-  border-bottom: 1px solid #e5e7eb;
-
-  padding: 12px;
-
-  text-align: left;
-
-  vertical-align: top;
-
-  font-size: 14px;
-
-  white-space: nowrap;
-
-}
-
-.table-wrapper th {
-
-  background: #f9fafb;
-
-  font-weight: 700;
-
-}
-
-.need-cell,
-
-.note-cell {
-
-  width: 220px;
-
-  max-width: 220px;
-
-  white-space: normal !important;
-
-  line-height: 1.6;
-
-}
-
-.action-cell {
-
-  width: 150px;
-
-  white-space: nowrap !important;
-
-}
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
   </style>
 </head>
 
 <body>
   <header>
-    <h1>装修客户跟进工具</h1>
-    <p>用于登记客户、跟进量房、定金、签单等关键转化节点</p>
+    <h1>装修客户跟进 CRM 工具</h1>
+    <p>客户登记、状态跟进、今日待办、数据统计与客户表导出</p>
   </header>
 
   <main>
@@ -292,207 +294,244 @@ main {
       </div>
 
       <div style="margin-top:16px;">
-  <label>装修需求</label>
-  <textarea id="need" placeholder="例如：整装、旧改、局改、橱柜、衣柜、预算区间等"></textarea>
-</div>
+        <label>装修需求</label>
+        <textarea id="need" placeholder="例如：整装、旧改、局改、橱柜、衣柜、预算区间等"></textarea>
+      </div>
 
-<div style="margin-top:16px;">
-  <label>跟进备注</label>
-  <textarea id="followNote" placeholder="例如：客户关注价格，想先看套餐明细；已约明天下午量房"></textarea>
-</div>
+      <div style="margin-top:16px;">
+        <label>跟进备注</label>
+        <textarea id="followNote" placeholder="例如：客户关注价格，想先看套餐明细；已约明天下午量房"></textarea>
+      </div>
 
-<div style="margin-top:16px; max-width:240px;">
-  <label>下次跟进时间</label>
-  <input id="nextFollowDate" type="date" />
-</div>
-      <div style="margin-top:18px; display:flex; gap:12px; flex-wrap:wrap;">
-       <button id="saveButton" onclick="saveCustomer()">添加客户</button>
-       <button onclick="exportCustomers()" style="background:#2563eb;">导出客户表</button>
-       <button onclick="clearAllCustomers()" style="background:#6b7280;">清空全部数据</button>
-    </div>
+      <div style="margin-top:16px; max-width:240px;">
+        <label>下次跟进时间</label>
+        <input id="nextFollowDate" type="date" />
+      </div>
+
+      <div class="button-row">
+        <button id="saveButton" class="btn-primary" onclick="saveCustomer()">添加客户</button>
+        <button class="btn-blue" onclick="exportCustomers()">导出客户表</button>
+        <button class="btn-gray" onclick="clearAllCustomers()">清空全部数据</button>
+      </div>
     </section>
 
     <section class="card">
       <h2>数据统计</h2>
+
       <div class="stats">
-        <div class="stat-box">客户总数<strong id="total">0</strong></div>
-        <div class="stat-box">已量房<strong id="measured">0</strong></div>
-        <div class="stat-box">已交定金<strong id="deposit">0</strong></div>
-        <div class="stat-box">已签单<strong id="signed">0</strong></div>
+        <div class="stat-box">
+          <span>客户总数</span>
+          <strong id="total">0</strong>
+        </div>
+
+        <div class="stat-box">
+          <span>已量房</span>
+          <strong id="measured">0</strong>
+        </div>
+
+        <div class="stat-box">
+          <span>已交定金</span>
+          <strong id="deposit">0</strong>
+        </div>
+
+        <div class="stat-box">
+          <span>已签单</span>
+          <strong id="signed">0</strong>
+        </div>
       </div>
     </section>
 
     <section class="card">
       <h2>客户列表</h2>
-      <section class="card">
-  <h2>客户列表</h2>
 
+      <div class="filter-row">
+        <div class="filter-item">
+          <label>按状态筛选</label>
+          <select id="filterStatus" onchange="renderCustomers()">
+            <option>全部客户</option>
+            <option>待联系</option>
+            <option>已联系</option>
+            <option>已量房</option>
+            <option>已交定金</option>
+            <option>已签单</option>
+            <option>暂缓</option>
+          </select>
+        </div>
 
-  <div style="margin-bottom:16px; display:flex; gap:16px; flex-wrap:wrap; align-items:end;">
-  <div style="max-width:240px; flex:1;">
-    <label>按状态筛选</label>
-    <select id="filterStatus" onchange="renderCustomers()">
-      <option>全部客户</option>
-      <option>待联系</option>
-      <option>已联系</option>
-      <option>已量房</option>
-      <option>已交定金</option>
-      <option>已签单</option>
-      <option>暂缓</option>
-    </select>
-  </div>
+        <div class="filter-item">
+          <label>搜索客户</label>
+          <input id="searchKeyword" placeholder="输入姓名、电话或小区" oninput="renderCustomers()" />
+        </div>
 
-  <div style="max-width:320px; flex:1;">
-    <label>搜索客户</label>
-    <input 
-      id="searchKeyword" 
-      placeholder="输入姓名、电话或小区" 
-      oninput="renderCustomers()" 
-    />
-  </div>
+        <div>
+          <button class="btn-teal" onclick="showTodayFollow()">今日待跟进</button>
+        </div>
 
-  <div>
-    <button onclick="showTodayFollow()" style="background:#0f766e;">今日待跟进</button>
-  </div>
+        <div>
+          <button class="btn-gray" onclick="resetFilters()">显示全部</button>
+        </div>
+      </div>
 
-  <div>
-    <button onclick="resetFilters()" style="background:#6b7280;">显示全部</button>
-  </div>
-</div>
-
-  <div class="table-wrapper">
-
-  <table>
-
-    <thead>
-
-      <tr>
-
-        <th>客户</th>
-
-        <th>电话</th>
-
-        <th>小区</th>
-
-        <th>面积</th>
-
-        <th>来源</th>
-
-        <th>状态</th>
-
-        <th>需求</th>
-
-        <th>跟进备注</th>
-
-        <th>下次跟进</th>
-
-        <th>操作</th>
-
-      </tr>
-
-    </thead>
-
-    <tbody id="customerList"></tbody>
-
-  </table>
-
-</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>客户</th>
+              <th>电话</th>
+              <th>小区</th>
+              <th>面积</th>
+              <th>来源</th>
+              <th>状态</th>
+              <th>需求</th>
+              <th>跟进备注</th>
+              <th>下次跟进</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="customerList"></tbody>
+        </table>
+      </div>
     </section>
   </main>
 
   <script>
     let customers = JSON.parse(localStorage.getItem("customers")) || [];
-let editingIndex = -1;
-let onlyTodayFollow = false;
+    let editingIndex = -1;
+    let onlyTodayFollow = false;
+    let currentDisplayCustomers = [];
 
     function saveCustomer() {
-  const customer = {
-  name: document.getElementById("name").value,
-  phone: document.getElementById("phone").value,
-  community: document.getElementById("community").value,
-  area: document.getElementById("area").value,
-  source: document.getElementById("source").value,
-  status: document.getElementById("status").value,
-  need: document.getElementById("need").value,
-  followNote: document.getElementById("followNote").value,
-  nextFollowDate: document.getElementById("nextFollowDate").value
-};
+      const customer = {
+        name: document.getElementById("name").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        community: document.getElementById("community").value.trim(),
+        area: document.getElementById("area").value.trim(),
+        source: document.getElementById("source").value,
+        status: document.getElementById("status").value,
+        need: document.getElementById("need").value.trim(),
+        followNote: document.getElementById("followNote").value.trim(),
+        nextFollowDate: document.getElementById("nextFollowDate").value
+      };
 
-  if (!customer.name || !customer.phone) {
-    alert("客户姓名和联系电话必须填写");
-    return;
-  }
+      if (!customer.name || !customer.phone) {
+        alert("客户姓名和联系电话必须填写");
+        return;
+      }
 
-  if (editingIndex === -1) {
-    customers.push(customer);
-  } else {
-    customers[editingIndex] = customer;
-    editingIndex = -1;
-    document.getElementById("saveButton").innerText = "添加客户";
-  }
+      if (editingIndex === -1) {
+        customers.push(customer);
+      } else {
+        customers[editingIndex] = customer;
+        editingIndex = -1;
+        document.getElementById("saveButton").innerText = "添加客户";
+      }
 
-  saveToLocalStorage();
-  renderCustomers();
-  clearForm();
-}
+      saveToLocalStorage();
+      renderCustomers();
+      clearForm();
+    }
+
     function renderCustomers() {
-  const list = document.getElementById("customerList");
-  list.innerHTML = "";
+      const list = document.getElementById("customerList");
+      list.innerHTML = "";
 
-  const filterStatus = document.getElementById("filterStatus") 
-  ? document.getElementById("filterStatus").value 
-  : "全部客户";
+      const filterStatus = document.getElementById("filterStatus")
+        ? document.getElementById("filterStatus").value
+        : "全部客户";
 
-const searchKeyword = document.getElementById("searchKeyword")
-  ? document.getElementById("searchKeyword").value.trim()
-  : "";
+      const searchKeyword = document.getElementById("searchKeyword")
+        ? document.getElementById("searchKeyword").value.trim()
+        : "";
 
-let displayCustomers = filterStatus === "全部客户"
-  ? customers
-  : customers.filter(customer => customer.status === filterStatus);
+      let displayCustomers = filterStatus === "全部客户"
+        ? customers
+        : customers.filter(customer => customer.status === filterStatus);
 
-if (searchKeyword) {
-  displayCustomers = displayCustomers.filter(customer => {
-    return (
-      customer.name.includes(searchKeyword) ||
-      customer.phone.includes(searchKeyword) ||
-      customer.community.includes(searchKeyword)
-    );
-  });
-}
-if (onlyTodayFollow) {
-  const today = new Date().toISOString().split("T")[0];
+      if (searchKeyword) {
+        displayCustomers = displayCustomers.filter(customer => {
+          return (
+            (customer.name || "").includes(searchKeyword) ||
+            (customer.phone || "").includes(searchKeyword) ||
+            (customer.community || "").includes(searchKeyword)
+          );
+        });
+      }
 
-  displayCustomers = displayCustomers.filter(customer => {
-    return customer.nextFollowDate === today;
-  });
-}
+      if (onlyTodayFollow) {
+        const today = getTodayString();
+        displayCustomers = displayCustomers.filter(customer => {
+          return customer.nextFollowDate === today;
+        });
+      }
 
-  displayCustomers.forEach((item) => {
-    const index = customers.indexOf(item);
-    const row = document.createElement("tr");
-    row.innerHTML = `
-  <td>${item.name || ""}</td>
-  <td>${item.phone || ""}</td>
-  <td>${item.community || ""}</td>
-  <td>${item.area || ""}</td>
-  <td>${item.source || ""}</td>
-  <td><span class="tag">${item.status || ""}</span></td>
-  <td class="need-cell">${item.need || ""}</td>
-  <td class="note-cell">${item.followNote || ""}</td>
-  <td>${item.nextFollowDate || ""}</td>
-  <td class="action-cell">
-    <button onclick="editCustomer(${index})" style="background:#16a34a; padding:6px 10px; font-size:12px;">编辑</button>
-    <button onclick="deleteCustomer(${index})" style="background:#dc2626; padding:6px 10px; font-size:12px; margin-left:6px;">删除</button>
-  </td>
-`;
-    list.appendChild(row);
-    });
+      currentDisplayCustomers = displayCustomers;
 
-      document.getElementById("total").innerText = customers.length;
-      document.getElementById("measured").innerText = customers.filter(c => c.status === "已量房").length;
-      document.getElementById("deposit").innerText = customers.filter(c => c.status === "已交定金").length;
-      document.getElementById("signed").innerText = customers.filter(c => c.status === "已签单").length;
+      if (displayCustomers.length === 0) {
+        list.innerHTML = `
+          <tr>
+            <td colspan="10" class="empty-tip">当前没有客户数据</td>
+          </tr>
+        `;
+      } else {
+        displayCustomers.forEach(item => {
+          const index = customers.indexOf(item);
+          const row = document.createElement("tr");
+
+          row.innerHTML = `
+            <td>${escapeHtml(item.name)}</td>
+            <td>${escapeHtml(item.phone)}</td>
+            <td>${escapeHtml(item.community)}</td>
+            <td>${escapeHtml(item.area)}</td>
+            <td>${escapeHtml(item.source)}</td>
+            <td><span class="tag">${escapeHtml(item.status)}</span></td>
+            <td class="need-cell">${escapeHtml(item.need)}</td>
+            <td class="note-cell">${escapeHtml(item.followNote)}</td>
+            <td>${escapeHtml(item.nextFollowDate)}</td>
+            <td class="action-cell">
+              <button class="btn-green btn-small" onclick="editCustomer(${index})">编辑</button>
+              <button class="btn-red btn-small" onclick="deleteCustomer(${index})">删除</button>
+            </td>
+          `;
+
+          list.appendChild(row);
+        });
+      }
+
+      updateStats();
+    }
+
+    function editCustomer(index) {
+      const customer = customers[index];
+
+      document.getElementById("name").value = customer.name || "";
+      document.getElementById("phone").value = customer.phone || "";
+      document.getElementById("community").value = customer.community || "";
+      document.getElementById("area").value = customer.area || "";
+      document.getElementById("source").value = customer.source || "经纪人推荐";
+      document.getElementById("status").value = customer.status || "待联系";
+      document.getElementById("need").value = customer.need || "";
+      document.getElementById("followNote").value = customer.followNote || "";
+      document.getElementById("nextFollowDate").value = customer.nextFollowDate || "";
+
+      editingIndex = index;
+      document.getElementById("saveButton").innerText = "更新客户";
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+
+    function deleteCustomer(index) {
+      const confirmDelete = confirm("确定要删除这个客户吗？");
+
+      if (!confirmDelete) {
+        return;
+      }
+
+      customers.splice(index, 1);
+      saveToLocalStorage();
+      renderCustomers();
     }
 
     function clearForm() {
@@ -500,117 +539,140 @@ if (onlyTodayFollow) {
       document.getElementById("phone").value = "";
       document.getElementById("community").value = "";
       document.getElementById("area").value = "";
-      document.getElementById("need").value = "";
+      document.getElementById("source").value = "经纪人推荐";
       document.getElementById("status").value = "待联系";
+      document.getElementById("need").value = "";
+      document.getElementById("followNote").value = "";
+      document.getElementById("nextFollowDate").value = "";
     }
-  function exportCustomers() {
-  if (customers.length === 0) {
-    alert("当前还没有客户数据，无法导出");
-    return;
-  }
 
-  const headers = ["客户姓名", "联系电话", "小区名称", "房屋面积", "客户来源", "跟进状态", "装修需求"];
+    function saveToLocalStorage() {
+      localStorage.setItem("customers", JSON.stringify(customers));
+    }
 
-  const rows = customers.map(item => [
-    item.name,
-    item.phone,
-    item.community,
-    item.area,
-    item.source,
-    item.status,
-    item.need
-  ]);
+    function clearAllCustomers() {
+      const confirmClear = confirm("确定要清空全部客户数据吗？这个操作不能恢复。");
 
-  let csvContent = "\uFEFF" + headers.join(",") + "\n";
+      if (!confirmClear) {
+        return;
+      }
 
-  rows.forEach(row => {
-    csvContent += row.map(value => {
-      const text = String(value || "").replace(/"/g, '""');
-      return `"${text}"`;
-    }).join(",") + "\n";
-  });
+      customers = [];
+      editingIndex = -1;
+      onlyTodayFollow = false;
+      currentDisplayCustomers = [];
 
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+      localStorage.removeItem("customers");
 
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "装修客户跟进表.csv";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+      document.getElementById("saveButton").innerText = "添加客户";
+      clearForm();
+      resetFilters();
 
-  URL.revokeObjectURL(url);
-}
-function deleteCustomer(index) {
-  const confirmDelete = confirm("确定要删除这个客户吗？");
+      alert("客户数据已清空");
+    }
 
-  if (!confirmDelete) {
-    return;
-  }
+    function showTodayFollow() {
+      onlyTodayFollow = true;
+      renderCustomers();
+    }
 
-  customers.splice(index, 1);
-saveToLocalStorage();
-renderCustomers();
-}
-function editCustomer(index) {
-  const customer = customers[index];
+    function resetFilters() {
+      onlyTodayFollow = false;
 
-  document.getElementById("name").value = customer.name;
-  document.getElementById("phone").value = customer.phone;
-  document.getElementById("community").value = customer.community;
-  document.getElementById("area").value = customer.area;
-  document.getElementById("source").value = customer.source;
-  document.getElementById("status").value = customer.status;
-  document.getElementById("need").value = customer.need;
-  document.getElementById("followNote").value = customer.followNote || "";
-document.getElementById("nextFollowDate").value = customer.nextFollowDate || "";
-  editingIndex = index;
-  document.getElementById("saveButton").innerText = "更新客户";
-}
-function saveToLocalStorage() {
-  localStorage.setItem("customers", JSON.stringify(customers));
-}
-renderCustomers();
-function clearAllCustomers() {
-  const confirmClear = confirm("确定要清空全部客户数据吗？这个操作不能恢复。");
+      const filterStatus = document.getElementById("filterStatus");
+      const searchKeyword = document.getElementById("searchKeyword");
 
-  if (!confirmClear) {
-    return;
-  }
+      if (filterStatus) {
+        filterStatus.value = "全部客户";
+      }
 
-  customers = [];
-  editingIndex = -1;
+      if (searchKeyword) {
+        searchKeyword.value = "";
+      }
 
-  localStorage.removeItem("customers");
+      renderCustomers();
+    }
 
-  document.getElementById("saveButton").innerText = "添加客户";
-  clearForm();
-  renderCustomers();
+    function exportCustomers() {
+      const exportData = currentDisplayCustomers.length > 0 ? currentDisplayCustomers : customers;
 
-  alert("客户数据已清空");
-}
-function showTodayFollow() {
-  onlyTodayFollow = true;
-  renderCustomers();
-}
+      if (exportData.length === 0) {
+        alert("当前没有可导出的客户数据");
+        return;
+      }
 
-function resetFilters() {
-  onlyTodayFollow = false;
+      const headers = [
+        "客户姓名",
+        "联系电话",
+        "小区名称",
+        "房屋面积",
+        "客户来源",
+        "跟进状态",
+        "装修需求",
+        "跟进备注",
+        "下次跟进时间"
+      ];
 
-  const filterStatus = document.getElementById("filterStatus");
-  const searchKeyword = document.getElementById("searchKeyword");
+      const rows = exportData.map(item => [
+        item.name || "",
+        item.phone || "",
+        item.community || "",
+        item.area || "",
+        item.source || "",
+        item.status || "",
+        item.need || "",
+        item.followNote || "",
+        item.nextFollowDate || ""
+      ]);
 
-  if (filterStatus) {
-    filterStatus.value = "全部客户";
-  }
+      let csvContent = "\uFEFF" + headers.join(",") + "\n";
 
-  if (searchKeyword) {
-    searchKeyword.value = "";
-  }
+      rows.forEach(row => {
+        csvContent += row.map(value => {
+          const text = String(value || "").replace(/"/g, '""');
+          return `"${text}"`;
+        }).join(",") + "\n";
+      });
 
-  renderCustomers();
-}
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "装修客户跟进表.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+    }
+
+    function updateStats() {
+      document.getElementById("total").innerText = customers.length;
+      document.getElementById("measured").innerText = customers.filter(c => c.status === "已量房").length;
+      document.getElementById("deposit").innerText = customers.filter(c => c.status === "已交定金").length;
+      document.getElementById("signed").innerText = customers.filter(c => c.status === "已签单").length;
+    }
+
+    function getTodayString() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    renderCustomers();
   </script>
 </body>
 </html>
