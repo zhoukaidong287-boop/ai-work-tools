@@ -210,7 +210,7 @@
 
     .dashboard {
       display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 12px;
     }
 
@@ -240,7 +240,7 @@
 
     .filter-grid {
       display: grid;
-      grid-template-columns: 1.6fr repeat(3, minmax(150px, 1fr)) auto auto;
+      grid-template-columns: 1.6fr repeat(4, minmax(150px, 1fr)) auto auto;
       align-items: end;
       gap: 12px;
       margin-bottom: 16px;
@@ -255,7 +255,7 @@
 
     table {
       width: 100%;
-      min-width: 1380px;
+      min-width: 1480px;
       border-collapse: collapse;
       background: #fff;
       font-size: 13px;
@@ -330,6 +330,26 @@
     .tag-status {
       background: var(--blue-bg);
       color: #1d4ed8;
+    }
+
+    .tag-grade-a {
+      background: #fff0e6;
+      color: #b54708;
+    }
+
+    .tag-grade-b {
+      background: #eaf2ff;
+      color: #1d4ed8;
+    }
+
+    .tag-grade-c {
+      background: #edf9f0;
+      color: #16803c;
+    }
+
+    .tag-grade-d {
+      background: #f2f4f7;
+      color: #475467;
     }
 
     .tag-today {
@@ -532,6 +552,22 @@
           <span>签单转化率</span>
           <strong id="statConversion">0%</strong>
         </div>
+        <div class="stat-box">
+          <span>A类客户数量</span>
+          <strong id="statGradeA">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>B类客户数量</span>
+          <strong id="statGradeB">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>C类客户数量</span>
+          <strong id="statGradeC">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>D类客户数量</span>
+          <strong id="statGradeD">0</strong>
+        </div>
       </div>
     </section>
 
@@ -595,6 +631,16 @@
         </div>
 
         <div>
+          <label for="grade">客户等级</label>
+          <select id="grade">
+            <option>A类客户</option>
+            <option>B类客户</option>
+            <option>C类客户</option>
+            <option>D类客户</option>
+          </select>
+        </div>
+
+        <div>
           <label for="status">客户状态</label>
           <select id="status">
             <option>新线索</option>
@@ -639,14 +685,14 @@
       <div class="section-head">
         <div>
           <h2>客户列表</h2>
-          <p class="section-note">支持按客户姓名、手机号、来源、状态、跟进人和小区搜索筛选。</p>
+          <p class="section-note">支持按客户姓名、手机号、来源、状态、等级、跟进人和小区搜索筛选。</p>
         </div>
       </div>
 
       <div class="filter-grid">
         <div>
           <label for="searchKeyword">搜索客户</label>
-          <input id="searchKeyword" placeholder="姓名、手机号、小区、来源、状态、跟进人" oninput="renderCustomers()" />
+          <input id="searchKeyword" placeholder="姓名、手机号、小区、来源、状态、等级、跟进人" oninput="renderCustomers()" />
         </div>
 
         <div>
@@ -660,6 +706,13 @@
           <label for="filterStatus">客户状态</label>
           <select id="filterStatus" onchange="renderCustomers()">
             <option>全部状态</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="filterGrade">客户等级</label>
+          <select id="filterGrade" onchange="renderCustomers()">
+            <option>全部等级</option>
           </select>
         </div>
 
@@ -684,6 +737,7 @@
               <th>小区/房屋</th>
               <th>来源</th>
               <th>预算</th>
+              <th>等级</th>
               <th>状态</th>
               <th>跟进人</th>
               <th>装修需求</th>
@@ -723,6 +777,20 @@
       "活动获客",
       "其他"
     ];
+
+    const GRADE_OPTIONS = [
+      "A类客户",
+      "B类客户",
+      "C类客户",
+      "D类客户"
+    ];
+
+    const GRADE_LABELS = {
+      "A类客户": "重点客户",
+      "B类客户": "意向客户",
+      "C类客户": "培育客户",
+      "D类客户": "低意向客户"
+    };
 
     const STATUS_MAP = {
       "待联系": "新线索",
@@ -788,6 +856,7 @@
         source: customer.source || "门店自然进店",
         need: customer.need || "",
         budget: customer.budget || "待确认",
+        grade: GRADE_OPTIONS.includes(customer.grade) ? customer.grade : "C类客户",
         status: STATUS_OPTIONS.includes(status) ? status : "新线索",
         owner: customer.owner || "",
         nextFollowDate: customer.nextFollowDate || "",
@@ -812,6 +881,7 @@
     function fillFilterOptions() {
       const sourceSelect = document.getElementById("filterSource");
       const statusSelect = document.getElementById("filterStatus");
+      const gradeSelect = document.getElementById("filterGrade");
 
       sourceSelect.innerHTML = "<option>全部来源</option>" + SOURCE_OPTIONS
         .map(source => `<option>${escapeHtml(source)}</option>`)
@@ -819,6 +889,10 @@
 
       statusSelect.innerHTML = "<option>全部状态</option>" + STATUS_OPTIONS
         .map(status => `<option>${escapeHtml(status)}</option>`)
+        .join("");
+
+      gradeSelect.innerHTML = "<option>全部等级</option>" + GRADE_OPTIONS
+        .map(grade => `<option>${escapeHtml(grade)}</option>`)
         .join("");
     }
 
@@ -835,6 +909,7 @@
         source: getValue("source"),
         need: getValue("need"),
         budget: getValue("budget"),
+        grade: getValue("grade"),
         status: getValue("status"),
         owner: getValue("owner"),
         nextFollowDate: getValue("nextFollowDate"),
@@ -864,6 +939,7 @@
       const keyword = getValue("searchKeyword").toLowerCase();
       const source = getValue("filterSource");
       const status = getValue("filterStatus");
+      const grade = getValue("filterGrade");
       const followFilter = getValue("filterFollow");
 
       let displayCustomers = customers.filter(customer => {
@@ -873,25 +949,28 @@
           customer.community,
           customer.source,
           customer.status,
+          customer.grade,
+          getGradeLabel(customer.grade),
           customer.owner
         ].join(" ").toLowerCase();
 
         const matchesKeyword = !keyword || haystack.includes(keyword);
         const matchesSource = source === "全部来源" || customer.source === source;
         const matchesStatus = status === "全部状态" || customer.status === status;
+        const matchesGrade = grade === "全部等级" || customer.grade === grade;
         const followState = getFollowState(customer);
         const matchesFollow = followFilter === "全部客户" ||
           (followFilter === "今日需跟进" && followState === "today") ||
           (followFilter === "已逾期" && followState === "overdue");
 
-        return matchesKeyword && matchesSource && matchesStatus && matchesFollow;
+        return matchesKeyword && matchesSource && matchesStatus && matchesGrade && matchesFollow;
       });
 
       currentDisplayCustomers = displayCustomers;
       list.innerHTML = "";
 
       if (!displayCustomers.length) {
-        list.innerHTML = '<tr><td colspan="11" class="empty-tip">当前没有匹配的客户数据</td></tr>';
+        list.innerHTML = '<tr><td colspan="12" class="empty-tip">当前没有匹配的客户数据</td></tr>';
         updateStats();
         return;
       }
@@ -912,6 +991,7 @@
           </td>
           <td>${escapeHtml(customer.source)}</td>
           <td>${escapeHtml(customer.budget)}</td>
+          <td>${renderGradeTag(customer.grade)}</td>
           <td>${renderStatusTags(customer, followState)}</td>
           <td>${escapeHtml(customer.owner || "-")}</td>
           <td class="text-cell">${escapeHtml(customer.need || "-")}</td>
@@ -935,7 +1015,7 @@
 
         if (expandedId === customer.id) {
           const detailRow = document.createElement("tr");
-          detailRow.innerHTML = `<td colspan="11">${renderDetailPanel(customer)}</td>`;
+          detailRow.innerHTML = `<td colspan="12">${renderDetailPanel(customer)}</td>`;
           list.appendChild(detailRow);
         }
       });
@@ -959,6 +1039,24 @@
       }
 
       return html;
+    }
+
+    function renderGradeTag(grade) {
+      const normalizedGrade = GRADE_OPTIONS.includes(grade) ? grade : "C类客户";
+      const gradeClass = normalizedGrade
+        .replace("A类客户", "tag-grade-a")
+        .replace("B类客户", "tag-grade-b")
+        .replace("C类客户", "tag-grade-c")
+        .replace("D类客户", "tag-grade-d");
+
+      return `
+        <span class="tag ${gradeClass}">${escapeHtml(normalizedGrade)}</span>
+        <span class="tag ${gradeClass}">${escapeHtml(getGradeLabel(normalizedGrade))}</span>
+      `;
+    }
+
+    function getGradeLabel(grade) {
+      return GRADE_LABELS[grade] || GRADE_LABELS["C类客户"];
     }
 
     function renderLatestRecord(record) {
@@ -1011,6 +1109,7 @@
             ${renderDetailItem("户型", customer.layout)}
             ${renderDetailItem("客户来源", customer.source)}
             ${renderDetailItem("预算区间", customer.budget)}
+            ${renderDetailItem("客户等级", `${customer.grade} · ${getGradeLabel(customer.grade)}`)}
             ${renderDetailItem("客户状态", customer.status)}
             ${renderDetailItem("跟进人", customer.owner)}
             ${renderDetailItem("下次跟进时间", customer.nextFollowDate)}
@@ -1149,6 +1248,7 @@
       setValue("layout", customer.layout);
       setValue("source", customer.source);
       setValue("budget", customer.budget);
+      setValue("grade", customer.grade);
       setValue("status", customer.status);
       setValue("owner", customer.owner);
       setValue("nextFollowDate", customer.nextFollowDate);
@@ -1186,6 +1286,7 @@
       ["name", "phone", "community", "area", "layout", "owner", "nextFollowDate", "need"].forEach(id => setValue(id, ""));
       setValue("source", "门店自然进店");
       setValue("budget", "待确认");
+      setValue("grade", "C类客户");
       setValue("status", "新线索");
       editingId = "";
       document.getElementById("formTitle").innerText = "新增客户";
@@ -1223,6 +1324,7 @@
       setValue("searchKeyword", "");
       setValue("filterSource", "全部来源");
       setValue("filterStatus", "全部状态");
+      setValue("filterGrade", "全部等级");
       setValue("filterFollow", "全部客户");
       renderCustomers();
     }
@@ -1244,6 +1346,8 @@
         "客户来源",
         "装修需求",
         "预算区间",
+        "客户等级",
+        "等级说明",
         "客户状态",
         "跟进人",
         "最近跟进记录",
@@ -1264,6 +1368,8 @@
           customer.source,
           customer.need,
           customer.budget,
+          customer.grade,
+          getGradeLabel(customer.grade),
           customer.status,
           customer.owner,
           latest ? `${formatDateTime(latest.followTime)} ${latest.method} ${latest.content}` : "",
@@ -1385,6 +1491,10 @@
       setText("statSigned", signed);
       setText("statLost", customers.filter(customer => customer.status === "已流失").length);
       setText("statConversion", activeTotal ? `${Math.round((signed / activeTotal) * 100)}%` : "0%");
+      setText("statGradeA", customers.filter(customer => customer.grade === "A类客户").length);
+      setText("statGradeB", customers.filter(customer => customer.grade === "B类客户").length);
+      setText("statGradeC", customers.filter(customer => customer.grade === "C类客户").length);
+      setText("statGradeD", customers.filter(customer => customer.grade === "D类客户").length);
     }
 
     function getFollowState(customer) {
