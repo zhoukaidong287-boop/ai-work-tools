@@ -3,236 +3,486 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>装修客户跟进 CRM 工具</title>
+  <title>装修整装门店 CRM</title>
 
   <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --line: #dfe4ea;
+      --text: #1f2933;
+      --muted: #667085;
+      --brand: #d35400;
+      --brand-dark: #a94300;
+      --blue: #1d4ed8;
+      --green: #16803c;
+      --red: #c62828;
+      --teal: #0f766e;
+      --gray: #667085;
+      --amber-bg: #fff7e6;
+      --amber-line: #ffd89a;
+      --blue-bg: #eaf2ff;
+      --red-bg: #fff1f1;
+      --green-bg: #edf9f0;
+      --shadow: 0 8px 24px rgba(31, 41, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
       margin: 0;
-      background: #f5f6f8;
-      color: #222;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
     }
 
     header {
-      background: #111827;
-      color: white;
+      background: #20262e;
+      color: #fff;
       padding: 24px 40px;
     }
 
     header h1 {
       margin: 0;
       font-size: 28px;
+      letter-spacing: 0;
     }
 
     header p {
       margin: 8px 0 0;
-      color: #cbd5e1;
+      color: #cdd5df;
+      line-height: 1.6;
     }
 
     main {
-      padding: 32px 40px;
-      max-width: 1400px;
-      margin: auto;
+      width: min(1480px, 100%);
+      margin: 0 auto;
+      padding: 28px 40px 42px;
     }
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: 0;
     }
 
     h2 {
-      margin-top: 0;
-      font-size: 24px;
+      font-size: 22px;
     }
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+    h3 {
+      font-size: 17px;
     }
 
     label {
       display: block;
-      font-size: 14px;
-      font-weight: 700;
       margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #344054;
     }
 
     input,
     select,
     textarea {
       width: 100%;
-      box-sizing: border-box;
-      padding: 11px 12px;
-      border: 1px solid #d1d5db;
+      border: 1px solid #cfd6df;
       border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
       font-size: 14px;
       outline: none;
-      background: white;
+      padding: 10px 11px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(211, 84, 0, 0.14);
     }
 
     textarea {
-      min-height: 90px;
+      min-height: 88px;
       resize: vertical;
+      line-height: 1.6;
     }
 
     button {
-      border: none;
-      color: white;
-      padding: 11px 18px;
+      min-height: 38px;
+      border: 0;
       border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
       font-size: 14px;
       font-weight: 700;
-      cursor: pointer;
+      padding: 9px 14px;
+      white-space: nowrap;
     }
 
-    .btn-primary {
-      background: #ea580c;
+    button:hover {
+      filter: brightness(0.96);
     }
 
-    .btn-blue {
-      background: #2563eb;
+    .card {
+      background: var(--panel);
+      border: 1px solid #e5e9ef;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+      padding: 22px;
     }
 
-    .btn-gray {
-      background: #6b7280;
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
     }
 
-    .btn-green {
-      background: #16a34a;
+    .section-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 6px 0 0;
     }
 
-    .btn-red {
-      background: #dc2626;
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 15px;
     }
 
-    .btn-teal {
-      background: #0f766e;
+    .wide {
+      grid-column: span 2;
     }
 
-    .btn-small {
-      padding: 7px 10px;
-      font-size: 12px;
+    .full {
+      grid-column: 1 / -1;
     }
 
     .button-row {
       display: flex;
-      gap: 12px;
       flex-wrap: wrap;
-      margin-top: 18px;
+      gap: 10px;
+      margin-top: 16px;
     }
 
-    .stats {
+    .btn-primary {
+      background: var(--brand);
+    }
+
+    .btn-blue {
+      background: var(--blue);
+    }
+
+    .btn-gray {
+      background: var(--gray);
+    }
+
+    .btn-green {
+      background: var(--green);
+    }
+
+    .btn-red {
+      background: var(--red);
+    }
+
+    .btn-teal {
+      background: var(--teal);
+    }
+
+    .btn-light {
+      background: #eef2f6;
+      color: #344054;
+    }
+
+    .btn-small {
+      min-height: 31px;
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+
+    .dashboard {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 12px;
     }
 
     .stat-box {
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      border-radius: 12px;
-      padding: 18px;
+      min-height: 96px;
+      border: 1px solid var(--amber-line);
+      border-radius: 8px;
+      background: var(--amber-bg);
+      padding: 15px;
     }
 
     .stat-box span {
       display: block;
-      color: #333;
+      color: #4b5563;
+      font-size: 13px;
       font-weight: 700;
+      line-height: 1.4;
     }
 
     .stat-box strong {
       display: block;
-      font-size: 28px;
-      color: #ea580c;
-      margin-top: 8px;
+      color: var(--brand-dark);
+      font-size: 27px;
+      line-height: 1.1;
+      margin-top: 9px;
     }
 
-    .filter-row {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1.6fr repeat(3, minmax(150px, 1fr)) auto auto;
       align-items: end;
+      gap: 12px;
       margin-bottom: 16px;
-    }
-
-    .filter-item {
-      max-width: 260px;
-      flex: 1;
-      min-width: 180px;
     }
 
     .table-wrapper {
       width: 100%;
       overflow-x: auto;
+      border: 1px solid #e5e9ef;
+      border-radius: 8px;
     }
 
     table {
       width: 100%;
-      min-width: 1200px;
+      min-width: 1380px;
       border-collapse: collapse;
-      font-size: 14px;
+      background: #fff;
+      font-size: 13px;
     }
 
     th,
     td {
-      border-bottom: 1px solid #e5e7eb;
-      padding: 12px;
+      border-bottom: 1px solid #e8edf2;
+      padding: 11px;
       text-align: left;
       vertical-align: top;
     }
 
     th {
-      background: #f9fafb;
-      font-weight: 700;
+      background: #f8fafc;
+      color: #344054;
+      font-weight: 800;
       white-space: nowrap;
     }
 
-    .tag {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: #e0f2fe;
-      color: #0369a1;
+    tbody tr:hover {
+      background: #fcfcfd;
+    }
+
+    .customer-name {
+      font-weight: 800;
+      color: #111827;
+    }
+
+    .subtle {
+      color: var(--muted);
       font-size: 12px;
-      white-space: nowrap;
+      line-height: 1.7;
     }
 
-    .need-cell,
-    .note-cell {
+    .text-cell {
       width: 220px;
       max-width: 220px;
-      white-space: normal;
       line-height: 1.6;
       word-break: break-word;
+      white-space: normal;
+    }
+
+    .date-cell {
+      min-width: 124px;
+      white-space: nowrap;
     }
 
     .action-cell {
-      width: 150px;
+      width: 210px;
+      min-width: 210px;
+    }
+
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      margin: 0 5px 6px 0;
+      padding: 5px 8px;
       white-space: nowrap;
     }
 
+    .tag-status {
+      background: var(--blue-bg);
+      color: #1d4ed8;
+    }
+
+    .tag-today {
+      background: #fff1c2;
+      color: #8a4b00;
+    }
+
+    .tag-overdue {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .tag-ok {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
     .empty-tip {
-      padding: 24px;
+      padding: 28px;
       text-align: center;
-      color: #6b7280;
+      color: var(--muted);
       background: #f9fafb;
     }
 
-    @media (max-width: 900px) {
-      main {
+    .detail-panel {
+      border: 1px solid #dfe5ec;
+      border-radius: 8px;
+      background: #fbfcfe;
+      margin-top: 14px;
+      padding: 16px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .detail-item {
+      border: 1px solid #e5e9ef;
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+      min-height: 68px;
+    }
+
+    .detail-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .detail-item strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .timeline-item {
+      border-left: 4px solid var(--brand);
+      border-radius: 8px;
+      background: #fff;
+      padding: 11px 12px;
+    }
+
+    .timeline-meta {
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .timeline-content {
+      line-height: 1.65;
+      word-break: break-word;
+    }
+
+    .follow-form {
+      border-top: 1px solid #e5e9ef;
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1180px) {
+      .dashboard {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .form-grid,
+      .detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
         padding: 20px;
       }
 
-      .form-grid {
+      header h1 {
+        font-size: 23px;
+      }
+
+      main {
+        padding: 18px 14px 30px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .dashboard,
+      .form-grid,
+      .detail-grid,
+      .filter-grid {
         grid-template-columns: 1fr;
       }
 
-      .stats {
-        grid-template-columns: repeat(2, 1fr);
+      .wide {
+        grid-column: auto;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .row-actions button,
+      .button-row button {
+        flex: 1 1 120px;
       }
     }
   </style>
@@ -240,136 +490,187 @@
 
 <body>
   <header>
-    <h1>装修客户跟进 CRM 工具</h1>
-    <p>客户登记、状态跟进、今日待办、数据统计与客户表导出</p>
+    <h1>装修/整装门店 CRM</h1>
+    <p>客户档案、销售阶段、跟进历史、今日提醒与门店经营看板</p>
   </header>
 
   <main>
     <section class="card">
-      <h2>新增客户</h2>
+      <div class="section-head">
+        <div>
+          <h2>统计看板</h2>
+          <p class="section-note">按本机浏览器保存的数据实时统计。</p>
+        </div>
+      </div>
+
+      <div class="dashboard">
+        <div class="stat-box">
+          <span>总客户数</span>
+          <strong id="statTotal">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>今日新增</span>
+          <strong id="statTodayNew">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>待跟进客户</span>
+          <strong id="statNeedFollow">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>已量房客户</span>
+          <strong id="statMeasured">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>已签单客户</span>
+          <strong id="statSigned">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>流失客户</span>
+          <strong id="statLost">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>签单转化率</span>
+          <strong id="statConversion">0%</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2 id="formTitle">新增客户</h2>
+          <p class="section-note">客户姓名和手机号必填，其余字段可后续补充。</p>
+        </div>
+      </div>
 
       <div class="form-grid">
         <div>
-          <label>客户姓名</label>
+          <label for="name">客户姓名</label>
           <input id="name" placeholder="例如：张先生" />
         </div>
 
         <div>
-          <label>联系电话</label>
+          <label for="phone">手机号</label>
           <input id="phone" placeholder="例如：13800000000" />
         </div>
 
         <div>
-          <label>小区名称</label>
-          <input id="community" placeholder="例如：XX小区" />
+          <label for="community">所在小区</label>
+          <input id="community" placeholder="例如：滨江花园" />
         </div>
 
         <div>
-          <label>房屋面积</label>
+          <label for="area">房屋面积</label>
           <input id="area" placeholder="例如：120㎡" />
         </div>
 
         <div>
-          <label>客户来源</label>
+          <label for="layout">户型</label>
+          <input id="layout" placeholder="例如：三室两厅一厨两卫" />
+        </div>
+
+        <div>
+          <label for="source">客户来源</label>
           <select id="source">
-            <option>经纪人推荐</option>
-            <option>新媒体留资</option>
             <option>门店自然进店</option>
+            <option>新媒体留资</option>
+            <option>经纪人推荐</option>
             <option>老客户转介绍</option>
+            <option>电话咨询</option>
+            <option>活动获客</option>
             <option>其他</option>
           </select>
         </div>
 
         <div>
-          <label>跟进状态</label>
-          <select id="status">
-            <option>待联系</option>
-            <option>已联系</option>
-            <option>已量房</option>
-            <option>已交定金</option>
-            <option>已签单</option>
-            <option>暂缓</option>
+          <label for="budget">预算区间</label>
+          <select id="budget">
+            <option>待确认</option>
+            <option>5万以下</option>
+            <option>5-10万</option>
+            <option>10-20万</option>
+            <option>20-30万</option>
+            <option>30万以上</option>
           </select>
         </div>
-      </div>
 
-      <div style="margin-top:16px;">
-        <label>装修需求</label>
-        <textarea id="need" placeholder="例如：整装、旧改、局改、橱柜、衣柜、预算区间等"></textarea>
-      </div>
+        <div>
+          <label for="status">客户状态</label>
+          <select id="status">
+            <option>新线索</option>
+            <option>已沟通</option>
+            <option>已量房</option>
+            <option>已出方案</option>
+            <option>已报价</option>
+            <option>已交定金</option>
+            <option>已签单</option>
+            <option>已流失</option>
+          </select>
+        </div>
 
-      <div style="margin-top:16px;">
-        <label>跟进备注</label>
-        <textarea id="followNote" placeholder="例如：客户关注价格，想先看套餐明细；已约明天下午量房"></textarea>
-      </div>
+        <div>
+          <label for="owner">跟进人</label>
+          <input id="owner" placeholder="例如：李顾问" />
+        </div>
 
-      <div style="margin-top:16px; max-width:240px;">
-        <label>下次跟进时间</label>
-        <input id="nextFollowDate" type="date" />
+        <div>
+          <label for="nextFollowDate">下次跟进时间</label>
+          <input id="nextFollowDate" type="date" />
+        </div>
+
+        <div class="wide">
+          <label for="need">装修需求</label>
+          <textarea id="need" placeholder="例如：整装、旧改、局改、风格偏好、重点关注项等"></textarea>
+        </div>
       </div>
 
       <div class="button-row">
         <button id="saveButton" class="btn-primary" onclick="saveCustomer()">添加客户</button>
+        <button class="btn-light" onclick="cancelEdit()">取消编辑</button>
         <button class="btn-blue" onclick="exportCustomers()">导出客户表</button>
         <button class="btn-gray" onclick="clearAllCustomers()">清空全部数据</button>
       </div>
     </section>
 
     <section class="card">
-      <h2>数据统计</h2>
-
-      <div class="stats">
-        <div class="stat-box">
-          <span>客户总数</span>
-          <strong id="total">0</strong>
-        </div>
-
-        <div class="stat-box">
-          <span>已量房</span>
-          <strong id="measured">0</strong>
-        </div>
-
-        <div class="stat-box">
-          <span>已交定金</span>
-          <strong id="deposit">0</strong>
-        </div>
-
-        <div class="stat-box">
-          <span>已签单</span>
-          <strong id="signed">0</strong>
+      <div class="section-head">
+        <div>
+          <h2>客户列表</h2>
+          <p class="section-note">支持按客户姓名、手机号、来源、状态、跟进人和小区搜索筛选。</p>
         </div>
       </div>
-    </section>
 
-    <section class="card">
-      <h2>客户列表</h2>
+      <div class="filter-grid">
+        <div>
+          <label for="searchKeyword">搜索客户</label>
+          <input id="searchKeyword" placeholder="姓名、手机号、小区、来源、状态、跟进人" oninput="renderCustomers()" />
+        </div>
 
-      <div class="filter-row">
-        <div class="filter-item">
-          <label>按状态筛选</label>
-          <select id="filterStatus" onchange="renderCustomers()">
-            <option>全部客户</option>
-            <option>待联系</option>
-            <option>已联系</option>
-            <option>已量房</option>
-            <option>已交定金</option>
-            <option>已签单</option>
-            <option>暂缓</option>
+        <div>
+          <label for="filterSource">客户来源</label>
+          <select id="filterSource" onchange="renderCustomers()">
+            <option>全部来源</option>
           </select>
         </div>
 
-        <div class="filter-item">
-          <label>搜索客户</label>
-          <input id="searchKeyword" placeholder="输入姓名、电话或小区" oninput="renderCustomers()" />
+        <div>
+          <label for="filterStatus">客户状态</label>
+          <select id="filterStatus" onchange="renderCustomers()">
+            <option>全部状态</option>
+          </select>
         </div>
 
         <div>
-          <button class="btn-teal" onclick="showTodayFollow()">今日待跟进</button>
+          <label for="filterFollow">跟进提醒</label>
+          <select id="filterFollow" onchange="renderCustomers()">
+            <option>全部客户</option>
+            <option>今日需跟进</option>
+            <option>已逾期</option>
+          </select>
         </div>
 
-        <div>
-          <button class="btn-gray" onclick="resetFilters()">显示全部</button>
-        </div>
+        <button class="btn-teal" onclick="showNeedFollow()">待跟进客户</button>
+        <button class="btn-gray" onclick="resetFilters()">显示全部</button>
       </div>
 
       <div class="table-wrapper">
@@ -377,14 +678,15 @@
           <thead>
             <tr>
               <th>客户</th>
-              <th>电话</th>
-              <th>小区</th>
-              <th>面积</th>
+              <th>小区/房屋</th>
               <th>来源</th>
+              <th>预算</th>
               <th>状态</th>
-              <th>需求</th>
-              <th>跟进备注</th>
+              <th>跟进人</th>
+              <th>装修需求</th>
+              <th>最近跟进记录</th>
               <th>下次跟进</th>
+              <th>创建/更新</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -395,235 +697,578 @@
   </main>
 
   <script>
-    let customers = JSON.parse(localStorage.getItem("customers")) || [];
-    let editingIndex = -1;
-    let onlyTodayFollow = false;
+    const STORAGE_KEY = "decorationStoreCrmCustomers";
+    const OLD_STORAGE_KEY = "customers";
+
+    const STATUS_OPTIONS = [
+      "新线索",
+      "已沟通",
+      "已量房",
+      "已出方案",
+      "已报价",
+      "已交定金",
+      "已签单",
+      "已流失"
+    ];
+
+    const SOURCE_OPTIONS = [
+      "门店自然进店",
+      "新媒体留资",
+      "经纪人推荐",
+      "老客户转介绍",
+      "电话咨询",
+      "活动获客",
+      "其他"
+    ];
+
+    const STATUS_MAP = {
+      "待联系": "新线索",
+      "已联系": "已沟通",
+      "暂缓": "已流失"
+    };
+
+    let customers = loadCustomers();
+    let editingId = "";
+    let expandedId = "";
     let currentDisplayCustomers = [];
 
+    function loadCustomers() {
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
+
+      if (!saved) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        const normalized = parsed.map(normalizeCustomer);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+        return normalized;
+      } catch (error) {
+        console.error("客户数据读取失败", error);
+        return [];
+      }
+    }
+
+    function normalizeCustomer(customer) {
+      const now = getNowString();
+      const id = customer.id || createId();
+      const status = STATUS_MAP[customer.status] || customer.status || "新线索";
+      const followRecords = Array.isArray(customer.followRecords)
+        ? customer.followRecords.map(normalizeFollowRecord)
+        : [];
+
+      if (!followRecords.length && customer.followNote) {
+        followRecords.push({
+          id: createId(),
+          followTime: customer.updatedAt || customer.createdAt || now,
+          method: "备注",
+          content: customer.followNote,
+          nextFollowDate: customer.nextFollowDate || "",
+          owner: customer.owner || "",
+          createdAt: customer.updatedAt || customer.createdAt || now
+        });
+      }
+
+      return {
+        id,
+        name: customer.name || "",
+        phone: customer.phone || "",
+        community: customer.community || "",
+        area: customer.area || "",
+        layout: customer.layout || "",
+        source: customer.source || "门店自然进店",
+        need: customer.need || "",
+        budget: customer.budget || "待确认",
+        status: STATUS_OPTIONS.includes(status) ? status : "新线索",
+        owner: customer.owner || "",
+        nextFollowDate: customer.nextFollowDate || "",
+        followRecords,
+        createdAt: customer.createdAt || now,
+        updatedAt: customer.updatedAt || now
+      };
+    }
+
+    function normalizeFollowRecord(record) {
+      return {
+        id: record.id || createId(),
+        followTime: record.followTime || record.createdAt || getNowString(),
+        method: record.method || "电话",
+        content: record.content || "",
+        nextFollowDate: record.nextFollowDate || "",
+        owner: record.owner || "",
+        createdAt: record.createdAt || record.followTime || getNowString()
+      };
+    }
+
+    function fillFilterOptions() {
+      const sourceSelect = document.getElementById("filterSource");
+      const statusSelect = document.getElementById("filterStatus");
+
+      sourceSelect.innerHTML = "<option>全部来源</option>" + SOURCE_OPTIONS
+        .map(source => `<option>${escapeHtml(source)}</option>`)
+        .join("");
+
+      statusSelect.innerHTML = "<option>全部状态</option>" + STATUS_OPTIONS
+        .map(status => `<option>${escapeHtml(status)}</option>`)
+        .join("");
+    }
+
     function saveCustomer() {
+      const now = getNowString();
+      const existing = customers.find(customer => customer.id === editingId);
       const customer = {
-        name: document.getElementById("name").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        community: document.getElementById("community").value.trim(),
-        area: document.getElementById("area").value.trim(),
-        source: document.getElementById("source").value,
-        status: document.getElementById("status").value,
-        need: document.getElementById("need").value.trim(),
-        followNote: document.getElementById("followNote").value.trim(),
-        nextFollowDate: document.getElementById("nextFollowDate").value
+        id: existing ? existing.id : createId(),
+        name: getValue("name"),
+        phone: getValue("phone"),
+        community: getValue("community"),
+        area: getValue("area"),
+        layout: getValue("layout"),
+        source: getValue("source"),
+        need: getValue("need"),
+        budget: getValue("budget"),
+        status: getValue("status"),
+        owner: getValue("owner"),
+        nextFollowDate: getValue("nextFollowDate"),
+        followRecords: existing ? existing.followRecords : [],
+        createdAt: existing ? existing.createdAt : now,
+        updatedAt: now
       };
 
       if (!customer.name || !customer.phone) {
-        alert("客户姓名和联系电话必须填写");
+        alert("客户姓名和手机号必须填写");
         return;
       }
 
-      if (editingIndex === -1) {
-        customers.push(customer);
+      if (existing) {
+        customers = customers.map(item => item.id === editingId ? customer : item);
       } else {
-        customers[editingIndex] = customer;
-        editingIndex = -1;
-        document.getElementById("saveButton").innerText = "添加客户";
+        customers.unshift(customer);
       }
 
       saveToLocalStorage();
-      renderCustomers();
       clearForm();
+      renderCustomers();
     }
 
     function renderCustomers() {
       const list = document.getElementById("customerList");
-      list.innerHTML = "";
+      const keyword = getValue("searchKeyword").toLowerCase();
+      const source = getValue("filterSource");
+      const status = getValue("filterStatus");
+      const followFilter = getValue("filterFollow");
 
-      const filterStatus = document.getElementById("filterStatus")
-        ? document.getElementById("filterStatus").value
-        : "全部客户";
+      let displayCustomers = customers.filter(customer => {
+        const haystack = [
+          customer.name,
+          customer.phone,
+          customer.community,
+          customer.source,
+          customer.status,
+          customer.owner
+        ].join(" ").toLowerCase();
 
-      const searchKeyword = document.getElementById("searchKeyword")
-        ? document.getElementById("searchKeyword").value.trim()
-        : "";
+        const matchesKeyword = !keyword || haystack.includes(keyword);
+        const matchesSource = source === "全部来源" || customer.source === source;
+        const matchesStatus = status === "全部状态" || customer.status === status;
+        const followState = getFollowState(customer);
+        const matchesFollow = followFilter === "全部客户" ||
+          (followFilter === "今日需跟进" && followState === "today") ||
+          (followFilter === "已逾期" && followState === "overdue");
 
-      let displayCustomers = filterStatus === "全部客户"
-        ? customers
-        : customers.filter(customer => customer.status === filterStatus);
-
-      if (searchKeyword) {
-        displayCustomers = displayCustomers.filter(customer => {
-          return (
-            (customer.name || "").includes(searchKeyword) ||
-            (customer.phone || "").includes(searchKeyword) ||
-            (customer.community || "").includes(searchKeyword)
-          );
-        });
-      }
-
-      if (onlyTodayFollow) {
-        const today = getTodayString();
-        displayCustomers = displayCustomers.filter(customer => {
-          return customer.nextFollowDate === today;
-        });
-      }
+        return matchesKeyword && matchesSource && matchesStatus && matchesFollow;
+      });
 
       currentDisplayCustomers = displayCustomers;
+      list.innerHTML = "";
 
-      if (displayCustomers.length === 0) {
-        list.innerHTML = `
-          <tr>
-            <td colspan="10" class="empty-tip">当前没有客户数据</td>
-          </tr>
-        `;
-      } else {
-        displayCustomers.forEach(item => {
-          const index = customers.indexOf(item);
-          const row = document.createElement("tr");
-
-          row.innerHTML = `
-            <td>${escapeHtml(item.name)}</td>
-            <td>${escapeHtml(item.phone)}</td>
-            <td>${escapeHtml(item.community)}</td>
-            <td>${escapeHtml(item.area)}</td>
-            <td>${escapeHtml(item.source)}</td>
-            <td><span class="tag">${escapeHtml(item.status)}</span></td>
-            <td class="need-cell">${escapeHtml(item.need)}</td>
-            <td class="note-cell">${escapeHtml(item.followNote)}</td>
-            <td>${escapeHtml(item.nextFollowDate)}</td>
-            <td class="action-cell">
-              <button class="btn-green btn-small" onclick="editCustomer(${index})">编辑</button>
-              <button class="btn-red btn-small" onclick="deleteCustomer(${index})">删除</button>
-            </td>
-          `;
-
-          list.appendChild(row);
-        });
+      if (!displayCustomers.length) {
+        list.innerHTML = '<tr><td colspan="11" class="empty-tip">当前没有匹配的客户数据</td></tr>';
+        updateStats();
+        return;
       }
+
+      displayCustomers.forEach(customer => {
+        const row = document.createElement("tr");
+        const latestRecord = getLatestFollowRecord(customer);
+        const followState = getFollowState(customer);
+
+        row.innerHTML = `
+          <td>
+            <div class="customer-name">${escapeHtml(customer.name)}</div>
+            <div class="subtle">${escapeHtml(customer.phone)}</div>
+          </td>
+          <td>
+            <div>${escapeHtml(customer.community || "-")}</div>
+            <div class="subtle">${escapeHtml([customer.area, customer.layout].filter(Boolean).join(" / ") || "-")}</div>
+          </td>
+          <td>${escapeHtml(customer.source)}</td>
+          <td>${escapeHtml(customer.budget)}</td>
+          <td>${renderStatusTags(customer, followState)}</td>
+          <td>${escapeHtml(customer.owner || "-")}</td>
+          <td class="text-cell">${escapeHtml(customer.need || "-")}</td>
+          <td class="text-cell">${renderLatestRecord(latestRecord)}</td>
+          <td class="date-cell">${renderNextFollow(customer, followState)}</td>
+          <td class="date-cell">
+            <div>${escapeHtml(formatDateTime(customer.createdAt))}</div>
+            <div class="subtle">${escapeHtml(formatDateTime(customer.updatedAt))}</div>
+          </td>
+          <td class="action-cell">
+            <div class="row-actions">
+              <button class="btn-blue btn-small" onclick="toggleDetails('${customer.id}')">详情</button>
+              <button class="btn-green btn-small" onclick="editCustomer('${customer.id}')">编辑</button>
+              <button class="btn-teal btn-small" onclick="openFollowForm('${customer.id}')">跟进</button>
+              <button class="btn-red btn-small" onclick="deleteCustomer('${customer.id}')">删除</button>
+            </div>
+          </td>
+        `;
+
+        list.appendChild(row);
+
+        if (expandedId === customer.id) {
+          const detailRow = document.createElement("tr");
+          detailRow.innerHTML = `<td colspan="11">${renderDetailPanel(customer)}</td>`;
+          list.appendChild(detailRow);
+        }
+      });
 
       updateStats();
     }
 
-    function editCustomer(index) {
-      const customer = customers[index];
+    function renderStatusTags(customer, followState) {
+      let html = `<span class="tag tag-status">${escapeHtml(customer.status)}</span>`;
 
-      document.getElementById("name").value = customer.name || "";
-      document.getElementById("phone").value = customer.phone || "";
-      document.getElementById("community").value = customer.community || "";
-      document.getElementById("area").value = customer.area || "";
-      document.getElementById("source").value = customer.source || "经纪人推荐";
-      document.getElementById("status").value = customer.status || "待联系";
-      document.getElementById("need").value = customer.need || "";
-      document.getElementById("followNote").value = customer.followNote || "";
-      document.getElementById("nextFollowDate").value = customer.nextFollowDate || "";
+      if (customer.status === "已签单") {
+        html += '<span class="tag tag-ok">已成交</span>';
+      }
 
-      editingIndex = index;
-      document.getElementById("saveButton").innerText = "更新客户";
+      if (followState === "today") {
+        html += '<span class="tag tag-today">今日需跟进</span>';
+      }
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
+      if (followState === "overdue") {
+        html += '<span class="tag tag-overdue">已逾期</span>';
+      }
+
+      return html;
     }
 
-    function deleteCustomer(index) {
-      const confirmDelete = confirm("确定要删除这个客户吗？");
+    function renderLatestRecord(record) {
+      if (!record) {
+        return '<span class="subtle">暂无跟进记录</span>';
+      }
 
-      if (!confirmDelete) {
+      return `
+        <div>${escapeHtml(record.content || "-")}</div>
+        <div class="subtle">${escapeHtml(record.method)} · ${escapeHtml(record.owner || "未填写跟进人")} · ${escapeHtml(formatDateTime(record.followTime))}</div>
+      `;
+    }
+
+    function renderNextFollow(customer, followState) {
+      const dateText = customer.nextFollowDate ? escapeHtml(customer.nextFollowDate) : '<span class="subtle">未设置</span>';
+      const tag = followState === "overdue"
+        ? '<div><span class="tag tag-overdue">已逾期</span></div>'
+        : followState === "today"
+          ? '<div><span class="tag tag-today">今日需跟进</span></div>'
+          : "";
+
+      return `${dateText}${tag}`;
+    }
+
+    function renderDetailPanel(customer) {
+      const records = customer.followRecords.length
+        ? customer.followRecords
+          .slice()
+          .sort((a, b) => new Date(b.followTime) - new Date(a.followTime))
+          .map(record => `
+            <div class="timeline-item">
+              <div class="timeline-meta">
+                <span>${escapeHtml(formatDateTime(record.followTime))}</span>
+                <span>${escapeHtml(record.method)}</span>
+                <span>跟进人：${escapeHtml(record.owner || "-")}</span>
+                <span>下次：${escapeHtml(record.nextFollowDate || "-")}</span>
+              </div>
+              <div class="timeline-content">${escapeHtml(record.content || "-")}</div>
+            </div>
+          `).join("")
+        : '<div class="empty-tip">暂无跟进历史</div>';
+
+      return `
+        <div class="detail-panel">
+          <div class="detail-grid">
+            ${renderDetailItem("客户姓名", customer.name)}
+            ${renderDetailItem("手机号", customer.phone)}
+            ${renderDetailItem("所在小区", customer.community)}
+            ${renderDetailItem("房屋面积", customer.area)}
+            ${renderDetailItem("户型", customer.layout)}
+            ${renderDetailItem("客户来源", customer.source)}
+            ${renderDetailItem("预算区间", customer.budget)}
+            ${renderDetailItem("客户状态", customer.status)}
+            ${renderDetailItem("跟进人", customer.owner)}
+            ${renderDetailItem("下次跟进时间", customer.nextFollowDate)}
+            ${renderDetailItem("创建时间", formatDateTime(customer.createdAt))}
+            ${renderDetailItem("更新时间", formatDateTime(customer.updatedAt))}
+            <div class="detail-item full">
+              <span>装修需求</span>
+              <strong>${escapeHtml(customer.need || "-")}</strong>
+            </div>
+          </div>
+
+          <h3>跟进历史</h3>
+          <div class="timeline">${records}</div>
+
+          <div id="followForm-${customer.id}" class="follow-form hidden">
+            <h3>添加跟进记录</h3>
+            <div class="form-grid" style="margin-top:12px;">
+              <div>
+                <label for="followTime-${customer.id}">跟进时间</label>
+                <input id="followTime-${customer.id}" type="datetime-local" value="${escapeHtml(toDatetimeLocalValue(new Date()))}" />
+              </div>
+              <div>
+                <label for="followMethod-${customer.id}">跟进方式</label>
+                <select id="followMethod-${customer.id}">
+                  <option>电话</option>
+                  <option>微信</option>
+                  <option>到店</option>
+                  <option>量房</option>
+                  <option>方案沟通</option>
+                  <option>报价沟通</option>
+                  <option>其他</option>
+                </select>
+              </div>
+              <div>
+                <label for="followOwner-${customer.id}">跟进人</label>
+                <input id="followOwner-${customer.id}" value="${escapeHtml(customer.owner || "")}" />
+              </div>
+              <div>
+                <label for="followNext-${customer.id}">下次跟进时间</label>
+                <input id="followNext-${customer.id}" type="date" value="${escapeHtml(customer.nextFollowDate || "")}" />
+              </div>
+              <div class="full">
+                <label for="followContent-${customer.id}">跟进内容</label>
+                <textarea id="followContent-${customer.id}" placeholder="记录客户关注点、沟通结果、下一步动作"></textarea>
+              </div>
+            </div>
+            <div class="button-row">
+              <button class="btn-primary" onclick="addFollowRecord('${customer.id}')">保存跟进记录</button>
+              <button class="btn-light" onclick="hideFollowForm('${customer.id}')">取消</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDetailItem(label, value) {
+      return `
+        <div class="detail-item">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value || "-")}</strong>
+        </div>
+      `;
+    }
+
+    function toggleDetails(id) {
+      expandedId = expandedId === id ? "" : id;
+      renderCustomers();
+    }
+
+    function openFollowForm(id) {
+      expandedId = id;
+      renderCustomers();
+      const form = document.getElementById(`followForm-${id}`);
+
+      if (form) {
+        form.classList.remove("hidden");
+        form.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    function hideFollowForm(id) {
+      const form = document.getElementById(`followForm-${id}`);
+
+      if (form) {
+        form.classList.add("hidden");
+      }
+    }
+
+    function addFollowRecord(id) {
+      const customer = customers.find(item => item.id === id);
+
+      if (!customer) {
         return;
       }
 
-      customers.splice(index, 1);
+      const content = getValue(`followContent-${id}`);
+
+      if (!content) {
+        alert("请填写跟进内容");
+        return;
+      }
+
+      const nextFollowDate = getValue(`followNext-${id}`);
+      const owner = getValue(`followOwner-${id}`) || customer.owner;
+      const now = getNowString();
+
+      customer.followRecords.push({
+        id: createId(),
+        followTime: getValue(`followTime-${id}`) || now,
+        method: getValue(`followMethod-${id}`),
+        content,
+        nextFollowDate,
+        owner,
+        createdAt: now
+      });
+
+      customer.owner = owner;
+      customer.nextFollowDate = nextFollowDate;
+      customer.updatedAt = now;
+
+      saveToLocalStorage();
+      renderCustomers();
+    }
+
+    function editCustomer(id) {
+      const customer = customers.find(item => item.id === id);
+
+      if (!customer) {
+        return;
+      }
+
+      setValue("name", customer.name);
+      setValue("phone", customer.phone);
+      setValue("community", customer.community);
+      setValue("area", customer.area);
+      setValue("layout", customer.layout);
+      setValue("source", customer.source);
+      setValue("budget", customer.budget);
+      setValue("status", customer.status);
+      setValue("owner", customer.owner);
+      setValue("nextFollowDate", customer.nextFollowDate);
+      setValue("need", customer.need);
+
+      editingId = id;
+      document.getElementById("formTitle").innerText = "编辑客户";
+      document.getElementById("saveButton").innerText = "更新客户";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function deleteCustomer(id) {
+      const customer = customers.find(item => item.id === id);
+      const confirmed = confirm(`确定要删除客户「${customer ? customer.name : ""}」吗？`);
+
+      if (!confirmed) {
+        return;
+      }
+
+      customers = customers.filter(item => item.id !== id);
+
+      if (editingId === id) {
+        clearForm();
+      }
+
+      if (expandedId === id) {
+        expandedId = "";
+      }
+
       saveToLocalStorage();
       renderCustomers();
     }
 
     function clearForm() {
-      document.getElementById("name").value = "";
-      document.getElementById("phone").value = "";
-      document.getElementById("community").value = "";
-      document.getElementById("area").value = "";
-      document.getElementById("source").value = "经纪人推荐";
-      document.getElementById("status").value = "待联系";
-      document.getElementById("need").value = "";
-      document.getElementById("followNote").value = "";
-      document.getElementById("nextFollowDate").value = "";
+      ["name", "phone", "community", "area", "layout", "owner", "nextFollowDate", "need"].forEach(id => setValue(id, ""));
+      setValue("source", "门店自然进店");
+      setValue("budget", "待确认");
+      setValue("status", "新线索");
+      editingId = "";
+      document.getElementById("formTitle").innerText = "新增客户";
+      document.getElementById("saveButton").innerText = "添加客户";
     }
 
-    function saveToLocalStorage() {
-      localStorage.setItem("customers", JSON.stringify(customers));
+    function cancelEdit() {
+      clearForm();
     }
 
     function clearAllCustomers() {
-      const confirmClear = confirm("确定要清空全部客户数据吗？这个操作不能恢复。");
+      const confirmed = confirm("确定要清空全部客户数据吗？这个操作不能恢复。");
 
-      if (!confirmClear) {
+      if (!confirmed) {
         return;
       }
 
       customers = [];
-      editingIndex = -1;
-      onlyTodayFollow = false;
+      editingId = "";
+      expandedId = "";
       currentDisplayCustomers = [];
-
-      localStorage.removeItem("customers");
-
-      document.getElementById("saveButton").innerText = "添加客户";
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(OLD_STORAGE_KEY);
       clearForm();
       resetFilters();
-
       alert("客户数据已清空");
     }
 
-    function showTodayFollow() {
-      onlyTodayFollow = true;
+    function showNeedFollow() {
+      setValue("filterFollow", "今日需跟进");
       renderCustomers();
     }
 
     function resetFilters() {
-      onlyTodayFollow = false;
-
-      const filterStatus = document.getElementById("filterStatus");
-      const searchKeyword = document.getElementById("searchKeyword");
-
-      if (filterStatus) {
-        filterStatus.value = "全部客户";
-      }
-
-      if (searchKeyword) {
-        searchKeyword.value = "";
-      }
-
+      setValue("searchKeyword", "");
+      setValue("filterSource", "全部来源");
+      setValue("filterStatus", "全部状态");
+      setValue("filterFollow", "全部客户");
       renderCustomers();
     }
 
     function exportCustomers() {
-      const exportData = currentDisplayCustomers.length > 0 ? currentDisplayCustomers : customers;
+      const exportData = currentDisplayCustomers.length ? currentDisplayCustomers : customers;
 
-      if (exportData.length === 0) {
+      if (!exportData.length) {
         alert("当前没有可导出的客户数据");
         return;
       }
 
       const headers = [
         "客户姓名",
-        "联系电话",
-        "小区名称",
+        "手机号",
+        "所在小区",
         "房屋面积",
+        "户型",
         "客户来源",
-        "跟进状态",
         "装修需求",
-        "跟进备注",
-        "下次跟进时间"
+        "预算区间",
+        "客户状态",
+        "跟进人",
+        "最近跟进记录",
+        "下次跟进时间",
+        "创建时间",
+        "更新时间"
       ];
 
-      const rows = exportData.map(item => [
-        item.name || "",
-        item.phone || "",
-        item.community || "",
-        item.area || "",
-        item.source || "",
-        item.status || "",
-        item.need || "",
-        item.followNote || "",
-        item.nextFollowDate || ""
-      ]);
+      const rows = exportData.map(customer => {
+        const latest = getLatestFollowRecord(customer);
+
+        return [
+          customer.name,
+          customer.phone,
+          customer.community,
+          customer.area,
+          customer.layout,
+          customer.source,
+          customer.need,
+          customer.budget,
+          customer.status,
+          customer.owner,
+          latest ? `${formatDateTime(latest.followTime)} ${latest.method} ${latest.content}` : "",
+          customer.nextFollowDate,
+          formatDateTime(customer.createdAt),
+          formatDateTime(customer.updatedAt)
+        ];
+      });
 
       let csvContent = "\uFEFF" + headers.join(",") + "\n";
 
@@ -636,31 +1281,135 @@
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
-
       const link = document.createElement("a");
+
       link.href = url;
-      link.download = "装修客户跟进表.csv";
+      link.download = "装修整装门店CRM客户表.csv";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       URL.revokeObjectURL(url);
     }
 
     function updateStats() {
-      document.getElementById("total").innerText = customers.length;
-      document.getElementById("measured").innerText = customers.filter(c => c.status === "已量房").length;
-      document.getElementById("deposit").innerText = customers.filter(c => c.status === "已交定金").length;
-      document.getElementById("signed").innerText = customers.filter(c => c.status === "已签单").length;
+      const today = getTodayString();
+      const total = customers.length;
+      const signed = customers.filter(customer => customer.status === "已签单").length;
+      const activeTotal = customers.filter(customer => customer.status !== "已流失").length;
+
+      setText("statTotal", total);
+      setText("statTodayNew", customers.filter(customer => getDatePart(customer.createdAt) === today).length);
+      setText("statNeedFollow", customers.filter(customer => ["today", "overdue"].includes(getFollowState(customer))).length);
+      setText("statMeasured", customers.filter(customer => customer.status === "已量房").length);
+      setText("statSigned", signed);
+      setText("statLost", customers.filter(customer => customer.status === "已流失").length);
+      setText("statConversion", activeTotal ? `${Math.round((signed / activeTotal) * 100)}%` : "0%");
+    }
+
+    function getFollowState(customer) {
+      if (!customer.nextFollowDate || ["已签单", "已流失"].includes(customer.status)) {
+        return "none";
+      }
+
+      const today = getTodayString();
+
+      if (customer.nextFollowDate < today) {
+        return "overdue";
+      }
+
+      if (customer.nextFollowDate === today) {
+        return "today";
+      }
+
+      return "future";
+    }
+
+    function getLatestFollowRecord(customer) {
+      if (!customer.followRecords || !customer.followRecords.length) {
+        return null;
+      }
+
+      return customer.followRecords
+        .slice()
+        .sort((a, b) => new Date(b.followTime) - new Date(a.followTime))[0];
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+    }
+
+    function getValue(id) {
+      const element = document.getElementById(id);
+      return element ? element.value.trim() : "";
+    }
+
+    function setValue(id, value) {
+      const element = document.getElementById(id);
+
+      if (element) {
+        element.value = value || "";
+      }
+    }
+
+    function setText(id, value) {
+      const element = document.getElementById(id);
+
+      if (element) {
+        element.innerText = value;
+      }
+    }
+
+    function createId() {
+      return `crm-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     }
 
     function getTodayString() {
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, "0");
-      const day = String(today.getDate()).padStart(2, "0");
+      return getDatePart(new Date());
+    }
+
+    function getNowString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+
+      return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
+    function getDatePart(value) {
+      if (!value) {
+        return "";
+      }
+
+      if (typeof value === "string") {
+        return value.slice(0, 10);
+      }
+
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, "0");
+      const day = String(value.getDate()).padStart(2, "0");
 
       return `${year}-${month}-${day}`;
+    }
+
+    function formatDateTime(value) {
+      if (!value) {
+        return "-";
+      }
+
+      return String(value).replace("T", " ");
+    }
+
+    function toDatetimeLocalValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hour = String(date.getHours()).padStart(2, "0");
+      const minute = String(date.getMinutes()).padStart(2, "0");
+
+      return `${year}-${month}-${day}T${hour}:${minute}`;
     }
 
     function escapeHtml(value) {
@@ -672,6 +1421,7 @@
         .replace(/'/g, "&#039;");
     }
 
+    fillFilterOptions();
     renderCustomers();
   </script>
 </body>
