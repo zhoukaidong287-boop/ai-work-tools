@@ -628,7 +628,10 @@
         <button id="saveButton" class="btn-primary" onclick="saveCustomer()">添加客户</button>
         <button class="btn-light" onclick="cancelEdit()">取消编辑</button>
         <button class="btn-blue" onclick="exportCustomers()">导出客户表</button>
+        <button class="btn-green" onclick="exportCustomerData()">导出客户数据</button>
+        <button class="btn-teal" onclick="triggerImportCustomerData()">导入客户数据</button>
         <button class="btn-gray" onclick="clearAllCustomers()">清空全部数据</button>
+        <input id="importDataFile" class="hidden" type="file" accept="application/json,.json" onchange="importCustomerData(event)" />
       </div>
     </section>
 
@@ -1289,6 +1292,84 @@
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+    }
+
+    function exportCustomerData() {
+      if (!customers.length) {
+        alert("当前没有可导出的客户数据");
+        return;
+      }
+
+      const exportPayload = customers.map(normalizeCustomer);
+      const jsonContent = JSON.stringify(exportPayload, null, 2);
+      const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `装修整装门店CRM客户数据-${getTodayString()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function triggerImportCustomerData() {
+      const input = document.getElementById("importDataFile");
+
+      if (input) {
+        input.value = "";
+        input.click();
+      }
+    }
+
+    function importCustomerData(event) {
+      const file = event.target.files && event.target.files[0];
+
+      if (!file) {
+        return;
+      }
+
+      const confirmed = confirm("导入客户数据会覆盖当前页面里的全部客户数据，确定继续吗？");
+
+      if (!confirmed) {
+        event.target.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function () {
+        try {
+          const parsed = JSON.parse(reader.result);
+
+          if (!Array.isArray(parsed)) {
+            alert("导入失败：请选择由本 CRM 导出的 JSON 客户数据文件");
+            return;
+          }
+
+          customers = parsed.map(normalizeCustomer);
+          editingId = "";
+          expandedId = "";
+          currentDisplayCustomers = [];
+          saveToLocalStorage();
+          clearForm();
+          resetFilters();
+          alert(`导入完成，共恢复 ${customers.length} 条客户数据`);
+        } catch (error) {
+          console.error("客户数据导入失败", error);
+          alert("导入失败：JSON 文件格式不正确");
+        } finally {
+          event.target.value = "";
+        }
+      };
+
+      reader.onerror = function () {
+        alert("导入失败：文件读取出错");
+        event.target.value = "";
+      };
+
+      reader.readAsText(file, "UTF-8");
     }
 
     function updateStats() {
