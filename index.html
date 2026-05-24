@@ -315,6 +315,49 @@
       margin-top: 16px;
     }
 
+    .todo-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .todo-card {
+      background: #fbfcfe;
+      border: 1px solid #e5e9ef;
+      border-radius: 8px;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: minmax(180px, 1.1fr) minmax(180px, 1fr) minmax(180px, 1.4fr) auto;
+      gap: 12px;
+      padding: 13px;
+    }
+
+    .todo-card:hover {
+      border-color: var(--brand);
+      box-shadow: 0 6px 18px rgba(31, 41, 51, 0.08);
+    }
+
+    .todo-title {
+      color: #111827;
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .todo-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .todo-actions {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
     .filter-grid {
       display: grid;
       grid-template-columns: 1.6fr repeat(4, minmax(150px, 1fr)) auto auto;
@@ -581,6 +624,14 @@
       .button-row button {
         flex: 1 1 120px;
       }
+
+      .todo-card {
+        grid-template-columns: 1fr;
+      }
+
+      .todo-actions {
+        justify-content: stretch;
+      }
     }
   </style>
 </head>
@@ -671,6 +722,14 @@
 
       <div class="section-head" style="margin-top:18px; margin-bottom:10px;">
         <div>
+          <h3>今日待跟进客户</h3>
+          <p class="section-note">逾期客户优先展示，A 类客户在同类中优先。</p>
+        </div>
+      </div>
+      <div class="todo-list" id="followTodoList"></div>
+
+      <div class="section-head" style="margin-top:18px; margin-bottom:10px;">
+        <div>
           <h3>客户来源统计</h3>
           <p class="section-note">按当前客户档案中的来源实时汇总。</p>
         </div>
@@ -731,6 +790,7 @@
             <option>待确认</option>
             <option>5万以下</option>
             <option>5-10万</option>
+            <option>7-10万</option>
             <option>10-20万</option>
             <option>20-30万</option>
             <option>30万以上</option>
@@ -962,12 +1022,12 @@
       if (!followRecords.length && customer.followNote) {
         followRecords.push({
           id: createId(),
-          followTime: customer.updatedAt || customer.createdAt || now,
+          followTime: normalizeDateTimeValue(customer.updatedAt) || normalizeDateTimeValue(customer.createdAt) || now,
           method: "备注",
           content: customer.followNote,
-          nextFollowDate: customer.nextFollowDate || "",
+          nextFollowDate: normalizeDateValue(customer.nextFollowDate),
           owner: customer.owner || "",
-          createdAt: customer.updatedAt || customer.createdAt || now
+          createdAt: normalizeDateTimeValue(customer.updatedAt) || normalizeDateTimeValue(customer.createdAt) || now
         });
       }
 
@@ -984,22 +1044,24 @@
         grade: GRADE_OPTIONS.includes(customer.grade) ? customer.grade : "C类客户",
         status: STATUS_OPTIONS.includes(status) ? status : "新线索",
         owner: customer.owner || "",
-        nextFollowDate: customer.nextFollowDate || "",
+        nextFollowDate: normalizeDateValue(customer.nextFollowDate),
         followRecords,
-        createdAt: customer.createdAt || now,
-        updatedAt: customer.updatedAt || now
+        createdAt: normalizeDateTimeValue(customer.createdAt) || now,
+        updatedAt: normalizeDateTimeValue(customer.updatedAt) || now
       };
     }
 
     function normalizeFollowRecord(record) {
+      const now = getNowString();
+
       return {
         id: record.id || createId(),
-        followTime: record.followTime || record.createdAt || getNowString(),
+        followTime: normalizeDateTimeValue(record.followTime) || normalizeDateTimeValue(record.createdAt) || now,
         method: record.method || "电话",
         content: record.content || "",
-        nextFollowDate: record.nextFollowDate || "",
+        nextFollowDate: normalizeDateValue(record.nextFollowDate),
         owner: record.owner || "",
-        createdAt: record.createdAt || record.followTime || getNowString()
+        createdAt: normalizeDateTimeValue(record.createdAt) || normalizeDateTimeValue(record.followTime) || now
       };
     }
 
@@ -1037,7 +1099,7 @@
         grade: getValue("grade"),
         status: getValue("status"),
         owner: getValue("owner"),
-        nextFollowDate: getValue("nextFollowDate"),
+        nextFollowDate: normalizeDateValue(getValue("nextFollowDate")),
         followRecords: existing ? existing.followRecords : [],
         createdAt: existing ? existing.createdAt : now,
         updatedAt: now
@@ -1337,13 +1399,14 @@
         return;
       }
 
-      const nextFollowDate = getValue(`followNext-${id}`);
+      const nextFollowDate = normalizeDateValue(getValue(`followNext-${id}`));
       const owner = getValue(`followOwner-${id}`) || customer.owner;
       const now = getNowString();
+      const followTime = normalizeDateTimeValue(getValue(`followTime-${id}`)) || now;
 
       customer.followRecords.push({
         id: createId(),
-        followTime: getValue(`followTime-${id}`) || now,
+        followTime,
         method: getValue(`followMethod-${id}`),
         content,
         nextFollowDate,
@@ -1376,7 +1439,7 @@
       setValue("grade", customer.grade);
       setValue("status", customer.status);
       setValue("owner", customer.owner);
-      setValue("nextFollowDate", customer.nextFollowDate);
+      setValue("nextFollowDate", normalizeDateValue(customer.nextFollowDate));
       setValue("need", customer.need);
 
       editingId = id;
@@ -1621,6 +1684,7 @@
       setText("statGradeC", customers.filter(customer => customer.grade === "C类客户").length);
       setText("statGradeD", customers.filter(customer => customer.grade === "D类客户").length);
       renderStageFunnel();
+      renderFollowTodos();
       renderSourceStats();
     }
 
@@ -1651,6 +1715,74 @@
       setText("rateMeasured", formatPercent(countAtOrAfterStatus("已量房"), total));
       setText("rateQuoted", formatPercent(countAtOrAfterStatus("已报价"), total));
       setText("rateSigned", formatPercent(countByStatus("已签单"), total));
+    }
+
+    function renderFollowTodos() {
+      const todoList = document.getElementById("followTodoList");
+
+      if (!todoList) {
+        return;
+      }
+
+      const todos = customers
+        .filter(customer => ["today", "overdue"].includes(getFollowState(customer)))
+        .sort(compareFollowTodo);
+
+      if (!todos.length) {
+        todoList.innerHTML = '<div class="empty-tip">当前没有今日待跟进或逾期未跟进客户</div>';
+        return;
+      }
+
+      todoList.innerHTML = todos.map(customer => {
+        const followState = getFollowState(customer);
+        const latestRecord = getLatestFollowRecord(customer);
+        const followTag = followState === "overdue"
+          ? '<span class="tag tag-overdue">已逾期</span>'
+          : '<span class="tag tag-today">今日跟进</span>';
+
+        return `
+          <div class="todo-card" onclick="toggleDetails('${customer.id}')">
+            <div>
+              <div class="todo-title">${escapeHtml(customer.name)}</div>
+              <div class="todo-meta">${escapeHtml(customer.phone || "-")}</div>
+              <div class="todo-meta">${escapeHtml(customer.community || "-")}</div>
+            </div>
+            <div>
+              ${renderGradeTag(customer.grade)}
+              <span class="tag tag-status">${escapeHtml(customer.status)}</span>
+              ${followTag}
+              <div class="todo-meta">下次跟进：${escapeHtml(customer.nextFollowDate || "-")}</div>
+              <div class="todo-meta">跟进人：${escapeHtml(customer.owner || "-")}</div>
+            </div>
+            <div>
+              <div class="todo-meta">最近跟进记录</div>
+              <div class="timeline-content">${latestRecord ? escapeHtml(latestRecord.content || "-") : "暂无跟进记录"}</div>
+            </div>
+            <div class="todo-actions">
+              <button class="btn-blue btn-small" onclick="event.stopPropagation(); toggleDetails('${customer.id}')">详情</button>
+              <button class="btn-green btn-small" onclick="event.stopPropagation(); editCustomer('${customer.id}')">编辑</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function compareFollowTodo(a, b) {
+      const stateWeight = { overdue: 0, today: 1 };
+      const gradeWeight = { "A类客户": 0, "B类客户": 1, "C类客户": 2, "D类客户": 3 };
+      const stateDiff = stateWeight[getFollowState(a)] - stateWeight[getFollowState(b)];
+
+      if (stateDiff !== 0) {
+        return stateDiff;
+      }
+
+      const gradeDiff = (gradeWeight[a.grade] ?? 9) - (gradeWeight[b.grade] ?? 9);
+
+      if (gradeDiff !== 0) {
+        return gradeDiff;
+      }
+
+      return String(a.nextFollowDate || "").localeCompare(String(b.nextFollowDate || ""));
     }
 
     function renderSourceStats() {
@@ -1696,17 +1828,19 @@
     }
 
     function getFollowState(customer) {
-      if (!customer.nextFollowDate || ["已签单", "已流失"].includes(customer.status)) {
+      const nextFollowDate = normalizeDateValue(customer.nextFollowDate);
+
+      if (!nextFollowDate || ["已签单", "已流失"].includes(customer.status)) {
         return "none";
       }
 
       const today = getTodayString();
 
-      if (customer.nextFollowDate < today) {
+      if (nextFollowDate < today) {
         return "overdue";
       }
 
-      if (customer.nextFollowDate === today) {
+      if (nextFollowDate === today) {
         return "today";
       }
 
@@ -1773,7 +1907,11 @@
       }
 
       if (typeof value === "string") {
-        return value.slice(0, 10);
+        return normalizeDateValue(value);
+      }
+
+      if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+        return "";
       }
 
       const year = value.getFullYear();
@@ -1788,7 +1926,68 @@
         return "-";
       }
 
-      return String(value).replace("T", " ");
+      const normalizedDateTime = normalizeDateTimeValue(value);
+
+      if (normalizedDateTime) {
+        return normalizedDateTime.replace("T", " ");
+      }
+
+      return normalizeDateValue(value) || "-";
+    }
+
+    function normalizeDateValue(value) {
+      if (!value) {
+        return "";
+      }
+
+      const text = String(value).trim();
+      const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+
+      if (!match) {
+        return "";
+      }
+
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      const date = new Date(year, month - 1, day);
+
+      if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+      ) {
+        return "";
+      }
+
+      return [
+        String(year).padStart(4, "0"),
+        String(month).padStart(2, "0"),
+        String(day).padStart(2, "0")
+      ].join("-");
+    }
+
+    function normalizeDateTimeValue(value) {
+      if (!value) {
+        return "";
+      }
+
+      const text = String(value).trim();
+      const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[T\s](\d{1,2}):(\d{1,2}))?/);
+      const datePart = normalizeDateValue(text);
+
+      if (!match || !datePart) {
+        return "";
+      }
+
+      const hour = Number(match[4] || 0);
+      const minute = Number(match[5] || 0);
+
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        return "";
+      }
+
+      return `${datePart}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
     }
 
     function toDatetimeLocalValue(date) {
