@@ -238,6 +238,35 @@
       margin-top: 9px;
     }
 
+    .source-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .source-stat {
+      align-items: center;
+      background: #fbfcfe;
+      border: 1px solid #e5e9ef;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      min-height: 48px;
+      padding: 11px 13px;
+    }
+
+    .source-stat span {
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .source-stat strong {
+      color: var(--brand-dark);
+      font-size: 20px;
+    }
+
     .filter-grid {
       display: grid;
       grid-template-columns: 1.6fr repeat(4, minmax(150px, 1fr)) auto auto;
@@ -569,6 +598,14 @@
           <strong id="statGradeD">0</strong>
         </div>
       </div>
+
+      <div class="section-head" style="margin-top:18px; margin-bottom:10px;">
+        <div>
+          <h3>客户来源统计</h3>
+          <p class="section-note">按当前客户档案中的来源实时汇总。</p>
+        </div>
+      </div>
+      <div class="source-stats" id="sourceStats"></div>
     </section>
 
     <section class="card">
@@ -608,12 +645,12 @@
         <div>
           <label for="source">客户来源</label>
           <select id="source">
-            <option>门店自然进店</option>
-            <option>新媒体留资</option>
+            <option>抖音线索</option>
             <option>经纪人推荐</option>
+            <option>自然到店</option>
             <option>老客户转介绍</option>
-            <option>电话咨询</option>
-            <option>活动获客</option>
+            <option>地推获客</option>
+            <option>直播留资</option>
             <option>其他</option>
           </select>
         </div>
@@ -769,14 +806,21 @@
     ];
 
     const SOURCE_OPTIONS = [
-      "门店自然进店",
-      "新媒体留资",
+      "抖音线索",
       "经纪人推荐",
+      "自然到店",
       "老客户转介绍",
-      "电话咨询",
-      "活动获客",
+      "地推获客",
+      "直播留资",
       "其他"
     ];
+
+    const SOURCE_MAP = {
+      "门店自然进店": "自然到店",
+      "新媒体留资": "抖音线索",
+      "电话咨询": "其他",
+      "活动获客": "地推获客"
+    };
 
     const GRADE_OPTIONS = [
       "A类客户",
@@ -830,6 +874,7 @@
       const now = getNowString();
       const id = customer.id || createId();
       const status = STATUS_MAP[customer.status] || customer.status || "新线索";
+      const source = SOURCE_MAP[customer.source] || customer.source || "自然到店";
       const followRecords = Array.isArray(customer.followRecords)
         ? customer.followRecords.map(normalizeFollowRecord)
         : [];
@@ -853,7 +898,7 @@
         community: customer.community || "",
         area: customer.area || "",
         layout: customer.layout || "",
-        source: customer.source || "门店自然进店",
+        source: SOURCE_OPTIONS.includes(source) ? source : "其他",
         need: customer.need || "",
         budget: customer.budget || "待确认",
         grade: GRADE_OPTIONS.includes(customer.grade) ? customer.grade : "C类客户",
@@ -1284,7 +1329,7 @@
 
     function clearForm() {
       ["name", "phone", "community", "area", "layout", "owner", "nextFollowDate", "need"].forEach(id => setValue(id, ""));
-      setValue("source", "门店自然进店");
+      setValue("source", "自然到店");
       setValue("budget", "待确认");
       setValue("grade", "C类客户");
       setValue("status", "新线索");
@@ -1495,6 +1540,26 @@
       setText("statGradeB", customers.filter(customer => customer.grade === "B类客户").length);
       setText("statGradeC", customers.filter(customer => customer.grade === "C类客户").length);
       setText("statGradeD", customers.filter(customer => customer.grade === "D类客户").length);
+      renderSourceStats();
+    }
+
+    function renderSourceStats() {
+      const sourceStats = document.getElementById("sourceStats");
+
+      if (!sourceStats) {
+        return;
+      }
+
+      sourceStats.innerHTML = SOURCE_OPTIONS.map(source => {
+        const count = customers.filter(customer => customer.source === source).length;
+
+        return `
+          <div class="source-stat">
+            <span>${escapeHtml(source)}</span>
+            <strong>${count}</strong>
+          </div>
+        `;
+      }).join("");
     }
 
     function getFollowState(customer) {
