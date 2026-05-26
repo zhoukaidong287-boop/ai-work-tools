@@ -568,6 +568,58 @@
       display: none !important;
     }
 
+    .modal-backdrop {
+      align-items: center;
+      background: rgba(17, 24, 39, 0.58);
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      left: 0;
+      padding: 22px;
+      position: fixed;
+      right: 0;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .modal-dialog {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+      max-height: calc(100vh - 44px);
+      max-width: 1080px;
+      overflow: auto;
+      width: 100%;
+    }
+
+    .modal-head {
+      align-items: flex-start;
+      border-bottom: 1px solid #e5e9ef;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      padding: 20px 22px 14px;
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 2;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+    }
+
+    .modal-body {
+      padding: 0 22px 22px;
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 22px 22px;
+    }
+
     @media (max-width: 1180px) {
       .dashboard {
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -631,6 +683,26 @@
 
       .todo-actions {
         justify-content: stretch;
+      }
+
+      .modal-backdrop {
+        align-items: stretch;
+        padding: 12px;
+      }
+
+      .modal-dialog {
+        max-height: calc(100vh - 24px);
+      }
+
+      .modal-head,
+      .modal-actions {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .modal-body {
+        padding-left: 16px;
+        padding-right: 16px;
       }
     }
   </style>
@@ -920,6 +992,20 @@
     </section>
   </main>
 
+  <div id="customerDetailModal" class="modal-backdrop hidden" onclick="handleDetailBackdropClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="detailModalTitle">客户详情</h2>
+          <p id="detailModalSubtitle" class="section-note"></p>
+        </div>
+        <button class="btn-light btn-small" onclick="closeCustomerDetail()">关闭</button>
+      </div>
+      <div id="detailModalBody" class="modal-body"></div>
+      <div id="detailModalActions" class="modal-actions"></div>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = "decorationStoreCrmCustomers";
     const OLD_STORAGE_KEY = "customers";
@@ -985,6 +1071,7 @@
     let customers = loadCustomers();
     let editingId = "";
     let expandedId = "";
+    let detailModalCustomerId = "";
     let currentDisplayCustomers = [];
 
     function loadCustomers() {
@@ -1190,7 +1277,7 @@
           </td>
           <td class="action-cell">
             <div class="row-actions">
-              <button class="btn-blue btn-small" onclick="toggleDetails('${customer.id}')">详情</button>
+              <button class="btn-blue btn-small" onclick="openCustomerDetail('${customer.id}')">查看详情</button>
               <button class="btn-green btn-small" onclick="editCustomer('${customer.id}')">编辑</button>
               <button class="btn-teal btn-small" onclick="openFollowForm('${customer.id}')">跟进</button>
               <button class="btn-red btn-small" onclick="deleteCustomer('${customer.id}')">删除</button>
@@ -1199,12 +1286,6 @@
         `;
 
         list.appendChild(row);
-
-        if (expandedId === customer.id) {
-          const detailRow = document.createElement("tr");
-          detailRow.innerHTML = `<td colspan="12">${renderDetailPanel(customer)}</td>`;
-          list.appendChild(detailRow);
-        }
       });
 
       updateStats();
@@ -1362,13 +1443,59 @@
     }
 
     function toggleDetails(id) {
-      expandedId = expandedId === id ? "" : id;
-      renderCustomers();
+      openCustomerDetail(id);
+    }
+
+    function openCustomerDetail(id) {
+      const customer = customers.find(item => item.id === id);
+
+      if (!customer) {
+        return;
+      }
+
+      detailModalCustomerId = id;
+      document.getElementById("customerDetailModal").classList.remove("hidden");
+      renderCustomerDetailModal();
+    }
+
+    function closeCustomerDetail() {
+      detailModalCustomerId = "";
+      document.getElementById("customerDetailModal").classList.add("hidden");
+      document.getElementById("detailModalBody").innerHTML = "";
+      document.getElementById("detailModalActions").innerHTML = "";
+    }
+
+    function renderCustomerDetailModal() {
+      const customer = customers.find(item => item.id === detailModalCustomerId);
+      const modal = document.getElementById("customerDetailModal");
+
+      if (!customer || modal.classList.contains("hidden")) {
+        return;
+      }
+
+      document.getElementById("detailModalTitle").innerText = `${customer.name || "客户"}详情`;
+      document.getElementById("detailModalSubtitle").innerText = `${customer.phone || "-"} · ${customer.community || "-"}`;
+      document.getElementById("detailModalBody").innerHTML = renderDetailPanel(customer);
+      document.getElementById("detailModalActions").innerHTML = `
+        <button class="btn-green" onclick="editCustomerFromDetail('${customer.id}')">编辑客户</button>
+        <button class="btn-teal" onclick="openFollowForm('${customer.id}')">添加跟进记录</button>
+        <button class="btn-light" onclick="closeCustomerDetail()">关闭</button>
+      `;
+    }
+
+    function editCustomerFromDetail(id) {
+      closeCustomerDetail();
+      editCustomer(id);
+    }
+
+    function handleDetailBackdropClick(event) {
+      if (event.target.id === "customerDetailModal") {
+        closeCustomerDetail();
+      }
     }
 
     function openFollowForm(id) {
-      expandedId = id;
-      renderCustomers();
+      openCustomerDetail(id);
       const form = document.getElementById(`followForm-${id}`);
 
       if (form) {
@@ -1420,6 +1547,7 @@
 
       saveToLocalStorage();
       renderCustomers();
+      renderCustomerDetailModal();
     }
 
     function editCustomer(id) {
@@ -1741,7 +1869,7 @@
           : '<span class="tag tag-today">今日跟进</span>';
 
         return `
-          <div class="todo-card" onclick="toggleDetails('${customer.id}')">
+          <div class="todo-card" onclick="openCustomerDetail('${customer.id}')">
             <div>
               <div class="todo-title">${escapeHtml(customer.name)}</div>
               <div class="todo-meta">${escapeHtml(customer.phone || "-")}</div>
@@ -1759,7 +1887,7 @@
               <div class="timeline-content">${latestRecord ? escapeHtml(latestRecord.content || "-") : "暂无跟进记录"}</div>
             </div>
             <div class="todo-actions">
-              <button class="btn-blue btn-small" onclick="event.stopPropagation(); toggleDetails('${customer.id}')">详情</button>
+              <button class="btn-blue btn-small" onclick="event.stopPropagation(); openCustomerDetail('${customer.id}')">查看详情</button>
               <button class="btn-green btn-small" onclick="event.stopPropagation(); editCustomer('${customer.id}')">编辑</button>
             </div>
           </div>
