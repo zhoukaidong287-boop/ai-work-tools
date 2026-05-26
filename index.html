@@ -369,13 +369,14 @@
     .table-wrapper {
       width: 100%;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
       border: 1px solid #e5e9ef;
       border-radius: 8px;
     }
 
     table {
       width: 100%;
-      min-width: 1480px;
+      min-width: 1740px;
       border-collapse: collapse;
       background: #fff;
       font-size: 13px;
@@ -387,6 +388,36 @@
       padding: 11px;
       text-align: left;
       vertical-align: top;
+    }
+
+    th:nth-child(1),
+    td:nth-child(1) {
+      min-width: 190px;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      min-width: 230px;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3),
+    th:nth-child(4),
+    td:nth-child(4),
+    th:nth-child(5),
+    td:nth-child(5),
+    th:nth-child(6),
+    td:nth-child(6),
+    th:nth-child(7),
+    td:nth-child(7) {
+      min-width: 118px;
+    }
+
+    th:nth-child(8),
+    td:nth-child(8),
+    th:nth-child(9),
+    td:nth-child(9) {
+      min-width: 250px;
     }
 
     th {
@@ -403,6 +434,8 @@
     .customer-name {
       font-weight: 800;
       color: #111827;
+      white-space: nowrap;
+      word-break: keep-all;
     }
 
     .subtle {
@@ -411,28 +444,59 @@
       line-height: 1.7;
     }
 
+    .nowrap {
+      white-space: nowrap;
+      word-break: keep-all;
+    }
+
+    .compact-cell {
+      white-space: nowrap;
+    }
+
     .text-cell {
-      width: 220px;
-      max-width: 220px;
+      width: 260px;
+      max-width: 320px;
       line-height: 1.6;
       word-break: break-word;
       white-space: normal;
     }
 
     .date-cell {
-      min-width: 124px;
+      min-width: 146px;
       white-space: nowrap;
     }
 
     .action-cell {
-      width: 210px;
-      min-width: 210px;
+      width: 252px;
+      min-width: 252px;
+      background: #fff;
+      box-shadow: -10px 0 16px rgba(15, 23, 42, 0.08);
+      position: sticky;
+      right: 0;
+      z-index: 2;
+    }
+
+    th:last-child {
+      background: #f8fafc;
+      box-shadow: -10px 0 16px rgba(15, 23, 42, 0.08);
+      position: sticky;
+      right: 0;
+      z-index: 3;
+    }
+
+    tbody tr:hover .action-cell {
+      background: #fcfcfd;
     }
 
     .row-actions {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 7px;
+    }
+
+    .row-actions .btn-small {
+      flex: 0 0 auto;
+      white-space: nowrap;
     }
 
     .tag {
@@ -675,6 +739,11 @@
       .row-actions button,
       .button-row button {
         flex: 1 1 120px;
+      }
+
+      .action-cell .row-actions button {
+        flex: 0 0 auto;
+        width: auto;
       }
 
       .todo-card {
@@ -1257,17 +1326,17 @@
         row.innerHTML = `
           <td>
             <div class="customer-name">${escapeHtml(customer.name)}</div>
-            <div class="subtle">${escapeHtml(customer.phone)}</div>
+            <div class="subtle nowrap">${escapeHtml(customer.phone)}</div>
           </td>
           <td>
-            <div>${escapeHtml(customer.community || "-")}</div>
-            <div class="subtle">${escapeHtml([customer.area, customer.layout].filter(Boolean).join(" / ") || "-")}</div>
+            <div class="nowrap">${escapeHtml(customer.community || "-")}</div>
+            <div class="subtle nowrap">${escapeHtml([customer.area, customer.layout].filter(Boolean).join(" / ") || "-")}</div>
           </td>
-          <td>${escapeHtml(customer.source)}</td>
-          <td>${escapeHtml(customer.budget)}</td>
-          <td>${renderGradeTag(customer.grade)}</td>
-          <td>${renderStatusTags(customer, followState)}</td>
-          <td>${escapeHtml(customer.owner || "-")}</td>
+          <td class="compact-cell">${escapeHtml(customer.source)}</td>
+          <td class="compact-cell">${escapeHtml(customer.budget)}</td>
+          <td class="compact-cell">${renderGradeTag(customer.grade)}</td>
+          <td class="compact-cell">${renderStatusTags(customer, followState)}</td>
+          <td class="compact-cell">${escapeHtml(customer.owner || "-")}</td>
           <td class="text-cell">${escapeHtml(customer.need || "-")}</td>
           <td class="text-cell">${renderLatestRecord(latestRecord)}</td>
           <td class="date-cell">${renderNextFollow(customer, followState)}</td>
