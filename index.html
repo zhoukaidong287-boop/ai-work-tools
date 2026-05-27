@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>装修整装门店 CRM</title>
+  <title>点将客户跟进工具</title>
 
   <style>
     :root {
@@ -150,6 +150,19 @@
       font-size: 13px;
       line-height: 1.5;
       margin: 6px 0 0;
+    }
+
+    .project-panel {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.4fr) minmax(160px, 1fr) minmax(160px, 1fr);
+      gap: 15px;
+    }
+
+    .page-footer {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      padding: 2px 0 0;
     }
 
     .form-grid {
@@ -694,6 +707,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .project-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .filter-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -722,6 +739,7 @@
       }
 
       .dashboard,
+      .project-panel,
       .form-grid,
       .detail-grid,
       .filter-grid {
@@ -779,11 +797,35 @@
 
 <body>
   <header>
-    <h1>装修/整装门店 CRM</h1>
-    <p>客户档案、销售阶段、跟进历史、今日提醒与门店经营看板</p>
+    <h1>点将客户跟进工具</h1>
+    <p>用于点将期间客户录入、跟进提醒、客户状态管理与数据留存</p>
   </header>
 
   <main>
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>当前项目</h2>
+          <p class="section-note">设置当前点将项目和执行周期，刷新页面后会自动保留。</p>
+        </div>
+      </div>
+
+      <div class="project-panel">
+        <div>
+          <label for="pointProjectName">当前项目</label>
+          <input id="pointProjectName" placeholder="当前点将项目" oninput="saveProjectInfo()" />
+        </div>
+        <div>
+          <label for="pointStartDate">点将开始日期</label>
+          <input id="pointStartDate" type="date" onchange="saveProjectInfo()" />
+        </div>
+        <div>
+          <label for="pointEndDate">点将结束日期</label>
+          <input id="pointEndDate" type="date" onchange="saveProjectInfo()" />
+        </div>
+      </div>
+    </section>
+
     <section class="card">
       <div class="section-head">
         <div>
@@ -1059,6 +1101,10 @@
         </table>
       </div>
     </section>
+
+    <footer class="page-footer">
+      当前工具为个人点将客户跟进工具，数据保存在当前设备浏览器中。适合点将期间个人记录、客户跟进、状态管理和数据导出。如需多人协同，后续可升级云端版。
+    </footer>
   </main>
 
   <div id="customerDetailModal" class="modal-backdrop hidden" onclick="handleDetailBackdropClick(event)">
@@ -1078,6 +1124,8 @@
   <script>
     const STORAGE_KEY = "decorationStoreCrmCustomers";
     const OLD_STORAGE_KEY = "customers";
+    const PROJECT_STORAGE_KEY = "pointProjectInfo";
+    const DEFAULT_PROJECT_NAME = "当前点将项目";
 
     const STATUS_OPTIONS = [
       "新线索",
@@ -1142,6 +1190,49 @@
     let expandedId = "";
     let detailModalCustomerId = "";
     let currentDisplayCustomers = [];
+    let projectInfo = loadProjectInfo();
+
+    function loadProjectInfo() {
+      const fallback = {
+        name: DEFAULT_PROJECT_NAME,
+        startDate: "",
+        endDate: ""
+      };
+      const saved = localStorage.getItem(PROJECT_STORAGE_KEY);
+
+      if (!saved) {
+        return fallback;
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+
+        return {
+          name: String(parsed.name || "").trim() || DEFAULT_PROJECT_NAME,
+          startDate: normalizeDateValue(parsed.startDate),
+          endDate: normalizeDateValue(parsed.endDate)
+        };
+      } catch (error) {
+        console.error("点将项目信息读取失败", error);
+        return fallback;
+      }
+    }
+
+    function renderProjectInfo() {
+      setValue("pointProjectName", projectInfo.name || DEFAULT_PROJECT_NAME);
+      setValue("pointStartDate", projectInfo.startDate);
+      setValue("pointEndDate", projectInfo.endDate);
+    }
+
+    function saveProjectInfo() {
+      projectInfo = {
+        name: getValue("pointProjectName") || DEFAULT_PROJECT_NAME,
+        startDate: normalizeDateValue(getValue("pointStartDate")),
+        endDate: normalizeDateValue(getValue("pointEndDate"))
+      };
+
+      localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(projectInfo));
+    }
 
     function loadCustomers() {
       const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
@@ -2206,6 +2297,7 @@
         .replace(/'/g, "&#039;");
     }
 
+    renderProjectInfo();
     fillFilterOptions();
     renderCustomers();
   </script>
