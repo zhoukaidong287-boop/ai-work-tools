@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>投流测试与预算模拟</title>
+  <style>
+    :root {
+      --bg: #eef3fb;
+      --panel: #ffffff;
+      --line: #dbe4f0;
+      --text: #172033;
+      --muted: #64748b;
+      --brand: #4657f0;
+      --blue: #2563eb;
+      --green: #12945a;
+      --red: #d04444;
+      --teal: #0891b2;
+      --amber: #d97706;
+      --shadow: 0 18px 50px rgba(21, 34, 66, 0.09);
+      --gradient-primary: linear-gradient(135deg, #3861ff 0%, #6757f5 52%, #08b6d8 100%);
+      --gradient-dark: radial-gradient(circle at 18% 16%, rgba(77, 208, 255, 0.28), transparent 34%),
+        radial-gradient(circle at 86% 8%, rgba(132, 92, 255, 0.34), transparent 30%),
+        linear-gradient(135deg, #111827 0%, #172554 50%, #0f172a 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(70, 87, 240, 0.14), transparent 28%),
+        radial-gradient(circle at 96% 12%, rgba(8, 182, 216, 0.13), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    header {
+      background: var(--gradient-dark);
+      color: #fff;
+      overflow: hidden;
+      padding: 36px 40px 82px;
+      position: relative;
+    }
+
+    header::before {
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+      background-size: 42px 42px;
+      content: "";
+      inset: 0;
+      opacity: 0.32;
+      position: absolute;
+    }
+
+    .hero {
+      align-items: center;
+      display: grid;
+      gap: 22px;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      margin: 0 auto;
+      max-width: 1280px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      color: #c7f1ff;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      padding: 7px 12px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(32px, 4vw, 48px);
+      letter-spacing: 0;
+      line-height: 1.12;
+    }
+
+    .subtitle {
+      color: #dbeafe;
+      line-height: 1.75;
+      margin-top: 12px;
+      max-width: 760px;
+    }
+
+    main {
+      margin: -46px auto 0;
+      max-width: 1280px;
+      padding: 0 32px 44px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(219, 228, 240, 0.92);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .section-head {
+      align-items: flex-start;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .section-note {
+      color: var(--muted);
+      line-height: 1.65;
+      margin-top: 7px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .wide {
+      grid-column: span 2;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: #344054;
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    input,
+    select,
+    textarea {
+      background: #fbfdff;
+      border: 1px solid #d7e0ec;
+      border-radius: 10px;
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      padding: 10px 11px;
+      width: 100%;
+    }
+
+    textarea {
+      line-height: 1.6;
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      background: #fff;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(70, 87, 240, 0.13);
+    }
+
+    button,
+    a.button-link {
+      align-items: center;
+      border: 0;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      justify-content: center;
+      min-height: 38px;
+      padding: 9px 14px;
+      text-decoration: none;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+      white-space: nowrap;
+    }
+
+    button:hover,
+    a.button-link:hover {
+      filter: brightness(0.96);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      box-shadow: 0 12px 26px rgba(70, 87, 240, 0.22);
+    }
+
+    .btn-blue {
+      background: var(--blue);
+    }
+
+    .btn-green {
+      background: var(--green);
+    }
+
+    .btn-red {
+      background: var(--red);
+    }
+
+    .btn-light {
+      background: #f1f5f9;
+      color: #334155;
+      box-shadow: none;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .result-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-top: 16px;
+    }
+
+    .metric {
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      color: #1d2f7a;
+      display: block;
+      font-size: 24px;
+      margin-top: 8px;
+    }
+
+    .advice-box {
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      color: #26364f;
+      line-height: 1.75;
+      margin-top: 14px;
+      padding: 16px;
+      white-space: pre-wrap;
+    }
+
+    .table-wrapper {
+      border: 1px solid #dbe4f0;
+      border-radius: 16px;
+      overflow: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      min-width: 1320px;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #e7edf6;
+      font-size: 13px;
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f2f6ff;
+      color: #334155;
+      font-weight: 900;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:hover td {
+      background: #fbfdff;
+    }
+
+    .text-cell {
+      max-width: 260px;
+      white-space: normal;
+    }
+
+    .tag {
+      border-radius: 999px;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 5px 9px;
+    }
+
+    .tag-good {
+      background: #ecfdf3;
+      color: var(--green);
+    }
+
+    .tag-watch {
+      background: #fff7ed;
+      color: var(--amber);
+    }
+
+    .tag-risk {
+      background: #fff1f2;
+      color: var(--red);
+    }
+
+    .empty-tip {
+      color: var(--muted);
+      padding: 18px;
+      text-align: center;
+    }
+
+    .copy-tip {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 980px) {
+      header {
+        padding: 30px 20px 78px;
+      }
+
+      .hero {
+        display: block;
+      }
+
+      main {
+        padding: 0 14px 36px;
+      }
+
+      .form-grid,
+      .result-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .wide,
+      .full {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .form-grid,
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        border-radius: 16px;
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="hero">
+      <div>
+        <div class="eyebrow">点将工具库 · 投流测试</div>
+        <h1>投流测试与预算模拟</h1>
+        <p class="subtitle">用于点将期间记录信息流/本地推测试数据，模拟预算效果，判断是否继续投放、调价、换素材或暂停。</p>
+      </div>
+      <div class="button-row">
+        <a class="button-link btn-light" href="index.html">返回工具库首页</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>预算模拟器</h2>
+          <p class="section-note">先用小预算测试模型预估消耗、线索、量房和签单，不承诺结果，只做投放前参考。</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <label for="simPlatform">投放平台</label>
+          <select id="simPlatform">
+            <option>巨量本地推</option>
+            <option>抖音信息流</option>
+            <option>腾讯广告</option>
+            <option>小红书</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div>
+          <label for="simCity">城市名称</label>
+          <input id="simCity" placeholder="例如：中卫" />
+        </div>
+        <div>
+          <label for="simMall">商场名称</label>
+          <input id="simMall" placeholder="例如：某家居商场" />
+        </div>
+        <div>
+          <label for="simProduct">主推套餐/主推产品</label>
+          <input id="simProduct" placeholder="例如：整装套餐" />
+        </div>
+        <div>
+          <label for="simDailyBudget">日预算</label>
+          <input id="simDailyBudget" type="number" min="0" step="1" placeholder="例如：300" />
+        </div>
+        <div>
+          <label for="simLeadCost">预计线索成本</label>
+          <input id="simLeadCost" type="number" min="0" step="1" placeholder="例如：80" />
+        </div>
+        <div>
+          <label for="simValidRate">预计有效线索率(%)</label>
+          <input id="simValidRate" type="number" min="0" max="100" step="1" placeholder="例如：40" />
+        </div>
+        <div>
+          <label for="simMeasureRate">预计量房率(%)</label>
+          <input id="simMeasureRate" type="number" min="0" max="100" step="1" placeholder="例如：30" />
+        </div>
+        <div>
+          <label for="simSignRate">预计签单率(%)</label>
+          <input id="simSignRate" type="number" min="0" max="100" step="1" placeholder="例如：10" />
+        </div>
+        <div>
+          <label for="simDays">测试周期天数</label>
+          <input id="simDays" type="number" min="1" step="1" placeholder="例如：7" />
+        </div>
+        <div class="wide">
+          <label for="simNote">备注</label>
+          <input id="simNote" placeholder="例如：先测本地痛点素材，不直接放量" />
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="btn-primary" onclick="generateSimulation()">生成预算模拟结果</button>
+      </div>
+
+      <div id="simulationResult" class="hidden"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>投流测试记录</h2>
+          <p class="section-note">记录每天或每轮素材测试数据，保存后自动计算关键转化和成本。</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <label for="recordDate">测试日期</label>
+          <input id="recordDate" type="date" />
+        </div>
+        <div>
+          <label for="recordPlatform">投放平台</label>
+          <select id="recordPlatform">
+            <option>巨量本地推</option>
+            <option>抖音信息流</option>
+            <option>腾讯广告</option>
+            <option>小红书</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div>
+          <label for="recordCity">城市名称</label>
+          <input id="recordCity" />
+        </div>
+        <div>
+          <label for="recordMall">商场名称</label>
+          <input id="recordMall" />
+        </div>
+        <div class="wide">
+          <label for="recordMaterial">素材方向</label>
+          <input id="recordMaterial" placeholder="例如：拎包入住、怕增项、低预算整装" />
+        </div>
+        <div>
+          <label for="recordDailyBudget">日预算</label>
+          <input id="recordDailyBudget" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="recordSpend">实际消耗</label>
+          <input id="recordSpend" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="recordImpressions">展现量</label>
+          <input id="recordImpressions" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="recordClicks">点击量</label>
+          <input id="recordClicks" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="recordLeads">留资量</label>
+          <input id="recordLeads" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="recordValidLeads">有效线索量</label>
+          <input id="recordValidLeads" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="recordMeasures">量房量</label>
+          <input id="recordMeasures" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="recordQuotes">报价量</label>
+          <input id="recordQuotes" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="recordSigns">签单量</label>
+          <input id="recordSigns" type="number" min="0" step="1" />
+        </div>
+        <div>
+          <label for="recordQuality">线索质量评价</label>
+          <select id="recordQuality">
+            <option>不确定</option>
+            <option>高</option>
+            <option>中</option>
+            <option>低</option>
+          </select>
+        </div>
+        <div>
+          <label for="recordSalesFollow">销售承接情况</label>
+          <select id="recordSalesFollow">
+            <option>及时</option>
+            <option>一般</option>
+            <option>滞后</option>
+            <option>未跟进</option>
+          </select>
+        </div>
+        <div class="full">
+          <label for="recordNote">备注</label>
+          <textarea id="recordNote" placeholder="记录素材反馈、销售承接、客户预算、商场活动等情况"></textarea>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="btn-primary" onclick="saveAdRecord()">保存投流测试记录</button>
+        <button class="btn-light" onclick="clearRecordForm()">清空表单</button>
+      </div>
+      <div id="recordTip" class="copy-tip"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>历史测试记录</h2>
+          <p class="section-note">记录保存在当前浏览器 localStorage 中，刷新页面不会丢失。</p>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>测试信息</th>
+              <th>投放数据</th>
+              <th>转化数据</th>
+              <th>成本</th>
+              <th>结论建议</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="recordList"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const AD_STORAGE_KEY = "pointAdTestRecords";
+    let adRecords = loadAdRecords();
+
+    function num(id) {
+      const value = Number(document.getElementById(id).value);
+      return Number.isFinite(value) && value >= 0 ? value : 0;
+    }
+
+    function text(id) {
+      const element = document.getElementById(id);
+      return element ? element.value.trim() : "";
+    }
+
+    function setText(id, value) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.innerText = value;
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatMoney(value) {
+      if (!Number.isFinite(value)) {
+        return "-";
+      }
+      return `¥${Math.round(value).toLocaleString("zh-CN")}`;
+    }
+
+    function formatNumber(value) {
+      if (!Number.isFinite(value)) {
+        return "-";
+      }
+      return Number(value.toFixed(2)).toLocaleString("zh-CN");
+    }
+
+    function formatRate(numerator, denominator) {
+      if (!denominator) {
+        return "0%";
+      }
+      return `${Math.round((numerator / denominator) * 1000) / 10}%`;
+    }
+
+    function safeCost(spend, count) {
+      return count ? spend / count : null;
+    }
+
+    function formatCost(value) {
+      return value === null || !Number.isFinite(value) ? "-" : formatMoney(value);
+    }
+
+    function today() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function createId() {
+      return `ad-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function generateSimulation() {
+      const dailyBudget = num("simDailyBudget");
+      const leadCost = num("simLeadCost");
+      const validRate = num("simValidRate") / 100;
+      const measureRate = num("simMeasureRate") / 100;
+      const signRate = num("simSignRate") / 100;
+      const days = Math.max(1, num("simDays"));
+      const totalSpend = dailyBudget * days;
+      const leads = leadCost ? totalSpend / leadCost : 0;
+      const validLeads = leads * validRate;
+      const measures = validLeads * measureRate;
+      const signs = measures * signRate;
+      const advice = buildSimulationAdvice({ dailyBudget, leadCost, validRate, measureRate, signRate, days, leads, validLeads, measures, signs });
+
+      document.getElementById("simulationResult").classList.remove("hidden");
+      document.getElementById("simulationResult").innerHTML = `
+        <div class="result-grid">
+          ${metric("预计总消耗", formatMoney(totalSpend))}
+          ${metric("预计线索数", `${formatNumber(leads)}条`)}
+          ${metric("预计有效线索数", `${formatNumber(validLeads)}条`)}
+          ${metric("预计量房数", `${formatNumber(measures)}组`)}
+          ${metric("预计签单数", `${formatNumber(signs)}单`)}
+        </div>
+        <div class="advice-box">${escapeHtml(advice)}</div>
+      `;
+    }
+
+    function metric(label, value) {
+      return `<div class="metric"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+    }
+
+    function buildSimulationAdvice(data) {
+      const lines = [];
+
+      if (!data.dailyBudget || !data.leadCost) {
+        lines.push("当前预算或预计线索成本信息不足，建议先补充日预算和预计线索成本，再判断测试可行性。");
+      } else if (data.dailyBudget <= 500 && data.days <= 10) {
+        lines.push("当前预算更适合先做小预算测试，重点看素材方向、线索质量和销售承接，不建议一开始直接放量。");
+      } else {
+        lines.push("当前预算规模需要谨慎观察，建议仍按小预算测试逻辑分阶段验证，先看有效线索再决定是否放量。");
+      }
+
+      if (data.leads < 10) {
+        lines.push("预计线索量偏少，可能不足以判断素材方向，建议延长测试周期或降低线索成本后再评估。");
+      } else {
+        lines.push("预计线索量可以作为初步判断素材方向的参考，但仍需结合有效线索和后端转化看结果。");
+      }
+
+      if (data.validRate > 0 && data.validRate < 0.3) {
+        lines.push("预计有效线索率偏低，建议先优化素材表达、定向人群和销售首轮承接，不要只看线索成本。");
+      }
+
+      if (data.measureRate > 0 && data.measureRate < 0.25) {
+        lines.push("预计量房率偏低，建议检查销售跟进速度、客户需求挖掘和邀约动作。");
+      }
+
+      if (data.signRate > 0 && data.signRate < 0.12) {
+        lines.push("预计签单率偏低，建议检查方案、报价、活动政策、客户预算匹配和设计师承接。");
+      }
+
+      lines.push("以上结果只做投流测试模拟参考，不承诺一定签单，实际投放需要结合素材质量、城市市场、团队承接和活动政策复盘。");
+      return lines.join("\n");
+    }
+
+    function collectRecord() {
+      return {
+        id: createId(),
+        createdAt: new Date().toISOString(),
+        date: text("recordDate") || today(),
+        platform: text("recordPlatform"),
+        city: text("recordCity"),
+        mall: text("recordMall"),
+        material: text("recordMaterial"),
+        dailyBudget: num("recordDailyBudget"),
+        spend: num("recordSpend"),
+        impressions: num("recordImpressions"),
+        clicks: num("recordClicks"),
+        leads: num("recordLeads"),
+        validLeads: num("recordValidLeads"),
+        measures: num("recordMeasures"),
+        quotes: num("recordQuotes"),
+        signs: num("recordSigns"),
+        quality: text("recordQuality"),
+        salesFollow: text("recordSalesFollow"),
+        note: text("recordNote")
+      };
+    }
+
+    function enrichRecord(record) {
+      const metrics = {
+        clickRate: formatRate(record.clicks, record.impressions),
+        leadRate: formatRate(record.leads, record.clicks),
+        validRate: formatRate(record.validLeads, record.leads),
+        measureRate: formatRate(record.measures, record.validLeads),
+        quoteRate: formatRate(record.quotes, record.measures),
+        signRate: formatRate(record.signs, record.quotes || record.leads),
+        leadCost: safeCost(record.spend, record.leads),
+        validLeadCost: safeCost(record.spend, record.validLeads),
+        measureCost: safeCost(record.spend, record.measures),
+        signCost: safeCost(record.spend, record.signs)
+      };
+
+      return {
+        ...record,
+        metrics,
+        conclusion: buildRecordConclusion(record)
+      };
+    }
+
+    function saveAdRecord() {
+      const record = enrichRecord(collectRecord());
+
+      if (!record.date || !record.platform) {
+        alert("请至少填写测试日期和投放平台");
+        return;
+      }
+
+      adRecords.unshift(record);
+      saveAdRecords();
+      clearRecordForm();
+      renderRecords();
+      setText("recordTip", "投流测试记录已保存");
+    }
+
+    function buildRecordConclusion(record) {
+      const lines = [];
+
+      if (record.leads < 5 && record.spend < 500) {
+        lines.push("样本量不足，建议继续观察，不要过早判断素材好坏。");
+        lines.push("建议继续小预算测试，先积累有效线索和承接反馈。");
+        return lines.join("\n");
+      }
+
+      if (record.leads > 0 && record.validLeads === 0) {
+        lines.push("有留资但暂无有效线索，建议优化素材方向，检查表单筛选、客户真实需求和销售首联质量。");
+        lines.push("建议暂不放大预算，可降低预算观察或更换素材继续测试。");
+      } else if (record.validLeads > 0 && record.measures === 0) {
+        lines.push("已有有效线索但暂无量房，优先检查客户质量、销售跟进速度和需求挖掘。");
+        lines.push(["滞后", "未跟进"].includes(record.salesFollow) ? "建议加强销售承接，先把首联、回访和邀约动作跑顺。" : "建议继续小预算测试，同时优化邀约量房话术。");
+      } else if (record.measures > 0 && record.quotes === 0) {
+        lines.push("已有量房但暂无报价，优先检查设计师承接、方案输出节奏和报价准备。");
+        lines.push("建议优化报价/方案转化，暂不盲目放大预算。");
+      } else if (record.quotes > 0 && record.signs === 0) {
+        lines.push("已有报价但暂无签单，优先检查价格、活动政策、客户预算匹配和逼单动作。");
+        lines.push("建议暂不放大预算，先复盘报价后的跟进节奏。");
+      } else if (record.signs > 0) {
+        lines.push("当前测试已产生签单，可继续观察线索质量和签单成本。");
+        lines.push("建议继续小预算测试，稳定后再分阶段加预算，不建议一次性大幅放量。");
+      } else {
+        lines.push("当前数据仍需继续观察，建议结合有效线索率、销售承接和后端转化综合判断。");
+      }
+
+      if (record.quality === "低") {
+        lines.push("线索质量评价偏低，建议优先优化素材方向和定向，不要只看单条线索成本。");
+      }
+
+      if (["滞后", "未跟进"].includes(record.salesFollow)) {
+        lines.push("销售承接存在滞后，建议先统一跟进机制，否则投流放量容易造成线索浪费。");
+      }
+
+      return lines.join("\n");
+    }
+
+    function clearRecordForm() {
+      [
+        "recordCity",
+        "recordMall",
+        "recordMaterial",
+        "recordDailyBudget",
+        "recordSpend",
+        "recordImpressions",
+        "recordClicks",
+        "recordLeads",
+        "recordValidLeads",
+        "recordMeasures",
+        "recordQuotes",
+        "recordSigns",
+        "recordNote"
+      ].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      document.getElementById("recordDate").value = today();
+      document.getElementById("recordPlatform").value = "巨量本地推";
+      document.getElementById("recordQuality").value = "不确定";
+      document.getElementById("recordSalesFollow").value = "及时";
+    }
+
+    function loadAdRecords() {
+      const saved = localStorage.getItem(AD_STORAGE_KEY);
+      if (!saved) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed.map(enrichRecord) : [];
+      } catch (error) {
+        console.error("投流测试记录读取失败", error);
+        return [];
+      }
+    }
+
+    function saveAdRecords() {
+      localStorage.setItem(AD_STORAGE_KEY, JSON.stringify(adRecords));
+    }
+
+    function renderRecords() {
+      const list = document.getElementById("recordList");
+
+      if (!adRecords.length) {
+        list.innerHTML = '<tr><td colspan="6" class="empty-tip">暂无投流测试记录</td></tr>';
+        return;
+      }
+
+      list.innerHTML = adRecords.map(record => `
+        <tr>
+          <td>
+            <strong>${escapeHtml(record.date)} · ${escapeHtml(record.platform)}</strong><br>
+            ${escapeHtml([record.city, record.mall].filter(Boolean).join(" / ") || "-")}<br>
+            <span class="tag ${record.quality === "高" ? "tag-good" : record.quality === "低" ? "tag-risk" : "tag-watch"}">线索质量：${escapeHtml(record.quality)}</span>
+          </td>
+          <td>
+            预算：${formatMoney(record.dailyBudget)}<br>
+            消耗：${formatMoney(record.spend)}<br>
+            展现/点击：${formatNumber(record.impressions)} / ${formatNumber(record.clicks)}<br>
+            点击率：${record.metrics.clickRate}
+          </td>
+          <td>
+            留资：${formatNumber(record.leads)}，有效：${formatNumber(record.validLeads)}<br>
+            量房：${formatNumber(record.measures)}，报价：${formatNumber(record.quotes)}，签单：${formatNumber(record.signs)}<br>
+            留资率：${record.metrics.leadRate}，有效率：${record.metrics.validRate}<br>
+            量房/报价/签单：${record.metrics.measureRate} / ${record.metrics.quoteRate} / ${record.metrics.signRate}
+          </td>
+          <td>
+            线索成本：${formatCost(record.metrics.leadCost)}<br>
+            有效线索成本：${formatCost(record.metrics.validLeadCost)}<br>
+            量房成本：${formatCost(record.metrics.measureCost)}<br>
+            签单成本：${formatCost(record.metrics.signCost)}
+          </td>
+          <td class="text-cell">
+            <strong>${escapeHtml(record.material || "未填写素材方向")}</strong><br>
+            ${escapeHtml(record.conclusion)}
+            ${record.note ? `<br><br>备注：${escapeHtml(record.note)}` : ""}
+          </td>
+          <td>
+            <div class="button-row">
+              <button class="btn-green" onclick="copyConclusion('${record.id}')">复制结论</button>
+              <button class="btn-red" onclick="deleteRecord('${record.id}')">删除</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function copyConclusion(id) {
+      const record = adRecords.find(item => item.id === id);
+      if (!record) {
+        return;
+      }
+
+      const text = [
+        "【投流测试结论】",
+        `测试日期：${record.date}`,
+        `平台：${record.platform}`,
+        `城市/商场：${[record.city, record.mall].filter(Boolean).join(" / ") || "-"}`,
+        `素材方向：${record.material || "-"}`,
+        "",
+        record.conclusion
+      ].join("\n");
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => setText("recordTip", "测试结论已复制"));
+      } else {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+        setText("recordTip", "测试结论已复制");
+      }
+    }
+
+    function deleteRecord(id) {
+      const record = adRecords.find(item => item.id === id);
+      const title = record ? `${record.date} ${record.platform}` : "该记录";
+
+      if (!confirm(`确定要删除投流测试记录「${title}」吗？`)) {
+        return;
+      }
+
+      adRecords = adRecords.filter(item => item.id !== id);
+      saveAdRecords();
+      renderRecords();
+      setText("recordTip", "投流测试记录已删除");
+    }
+
+    document.getElementById("recordDate").value = today();
+    renderRecords();
+  </script>
+</body>
+</html>
