@@ -280,6 +280,63 @@
       font-size: 20px;
     }
 
+    .report-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .report-options {
+      display: grid;
+      gap: 18px;
+      padding-top: 18px;
+    }
+
+    .report-type-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .radio-card,
+    .check-card {
+      align-items: center;
+      border: 1px solid #dfe5ec;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      gap: 8px;
+      min-height: 40px;
+      padding: 9px 12px;
+    }
+
+    .radio-card input,
+    .check-card input {
+      width: auto;
+    }
+
+    .action-checks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .report-output {
+      background: #fbfcfe;
+      border: 1px solid #dfe5ec;
+      border-radius: 8px;
+      min-height: 220px;
+      white-space: pre-wrap;
+    }
+
+    .copy-tip {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      min-height: 20px;
+    }
+
     .funnel-panel {
       display: grid;
       gap: 12px;
@@ -738,11 +795,21 @@
         flex-direction: column;
       }
 
+      .report-toolbar {
+        justify-content: stretch;
+        width: 100%;
+      }
+
       .dashboard,
       .project-panel,
       .form-grid,
       .detail-grid,
       .filter-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .report-type-group {
+        display: grid;
         grid-template-columns: 1fr;
       }
 
@@ -831,6 +898,9 @@
         <div>
           <h2>统计看板</h2>
           <p class="section-note">按本机浏览器保存的数据实时统计。</p>
+        </div>
+        <div class="report-toolbar">
+          <button class="btn-primary" onclick="openDailyReportModal()">生成工作日报</button>
         </div>
       </div>
 
@@ -1121,6 +1191,75 @@
     </div>
   </div>
 
+  <div id="dailyReportModal" class="modal-backdrop hidden" onclick="handleDailyReportBackdropClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dailyReportTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="dailyReportTitle">生成工作日报</h2>
+          <p class="section-note">勾选今日动作并补充要点，自动生成适合微信或工作汇报使用的日报。</p>
+        </div>
+        <button class="btn-light btn-small" onclick="closeDailyReportModal()">关闭</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="report-options">
+          <div>
+            <label>日报类型</label>
+            <div class="report-type-group">
+              <label class="radio-card">
+                <input type="radio" name="dailyReportType" value="simple" checked />
+                简版日报
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="dailyReportType" value="detailed" />
+                详细日报
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label>今日工作动作</label>
+            <div id="dailyActionChecks" class="action-checks"></div>
+          </div>
+
+          <div class="form-grid">
+            <div class="wide">
+              <label for="reportWorkNote">今日工作补充说明</label>
+              <textarea id="reportWorkNote" placeholder="填写今天具体做了什么，例如客户沟通、方案梳理、门店动作等"></textarea>
+            </div>
+            <div class="wide">
+              <label for="reportKeyCustomers">重点客户跟进情况</label>
+              <textarea id="reportKeyCustomers" placeholder="填写重点客户推进情况，不填写则不会编造具体客户"></textarea>
+            </div>
+            <div class="wide">
+              <label for="reportProblems">今日问题与卡点</label>
+              <textarea id="reportProblems" placeholder="填写今天发现的问题、卡点或需要关注的风险"></textarea>
+            </div>
+            <div class="wide">
+              <label for="reportTomorrowPlan">明日工作计划</label>
+              <textarea id="reportTomorrowPlan" placeholder="填写明天准备推进的重点工作"></textarea>
+            </div>
+            <div class="full">
+              <label for="reportCoordination">需要协调事项</label>
+              <textarea id="reportCoordination" placeholder="填写需要老板、商场、设计师、销售或其他人员配合的事项"></textarea>
+            </div>
+            <div class="full">
+              <label for="dailyReportOutput">日报内容</label>
+              <textarea id="dailyReportOutput" class="report-output" readonly placeholder="点击“生成日报”后在这里显示内容"></textarea>
+              <div id="dailyReportCopyTip" class="copy-tip"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="generateDailyReport()">生成日报</button>
+        <button class="btn-green" onclick="copyDailyReport()">复制日报</button>
+        <button class="btn-light" onclick="closeDailyReportModal()">关闭</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = "decorationStoreCrmCustomers";
     const OLD_STORAGE_KEY = "customers";
@@ -1183,6 +1322,48 @@
       "待联系": "新线索",
       "已联系": "已沟通",
       "暂缓": "已流失"
+    };
+
+    const DAILY_WORK_ACTIONS = [
+      "客户跟进",
+      "客户信息复盘",
+      "量房",
+      "方案沟通",
+      "报价梳理",
+      "销售/设计师培训",
+      "信息流文案输出",
+      "短视频脚本输出",
+      "视频拍摄",
+      "视频剪辑",
+      "投流计划沟通",
+      "直播准备",
+      "经纪人渠道沟通",
+      "门店流程梳理",
+      "活动政策梳理",
+      "数据复盘",
+      "老板/负责人沟通",
+      "其他"
+    ];
+
+    const WORK_ACTION_SENTENCES = {
+      "客户跟进": "围绕意向客户进行持续跟进，确认客户需求、沟通进度和下一步推进动作。",
+      "客户信息复盘": "今日围绕现有客户信息进行了整理复盘，重点梳理客户来源、跟进状态及后续推进动作，为后续客户转化做好基础准备。",
+      "量房": "推进量房相关工作，围绕客户房屋情况、空间需求和后续方案衔接做好记录。",
+      "方案沟通": "围绕客户装修需求进行方案沟通，梳理客户关注点，为后续报价和转化做准备。",
+      "报价梳理": "对报价内容进行梳理，重点核对客户预算、项目配置和沟通口径。",
+      "销售/设计师培训": "围绕客户承接、需求沟通及后续跟进节奏，与销售/设计端进行沟通培训，进一步统一客户转化动作。",
+      "信息流文案输出": "结合门店现阶段获客需求，输出信息流文案及短视频脚本，为后续内容发布和投流获客提供素材支撑。",
+      "短视频脚本输出": "结合门店现阶段获客需求，输出信息流文案及短视频脚本，为后续内容发布和投流获客提供素材支撑。",
+      "视频拍摄": "完成相关视频素材拍摄及剪辑工作，围绕门店卖点、客户痛点和装修案例进行内容整理。",
+      "视频剪辑": "完成相关视频素材拍摄及剪辑工作，围绕门店卖点、客户痛点和装修案例进行内容整理。",
+      "投流计划沟通": "围绕本地获客方向、投流素材及客户承接路径进行沟通，为后续投放测试做好准备。",
+      "直播准备": "推进直播准备工作，梳理直播内容、产品卖点、活动政策和客户承接流程。",
+      "经纪人渠道沟通": "围绕经纪人客户转介绍、客户报备及后续承接流程进行沟通，推动渠道客户有效转化。",
+      "门店流程梳理": "梳理门店客户接待、录入、跟进及转化流程，让执行动作更清晰。",
+      "活动政策梳理": "梳理当前活动政策、优惠口径和客户沟通重点，方便一线统一表达。",
+      "数据复盘": "对客户来源、跟进状态及阶段转化情况进行数据复盘，明确后续重点跟进方向。",
+      "老板/负责人沟通": "沟通老板/负责人，同步阶段工作情况、客户推进重点及需要协同解决的问题。",
+      "其他": "同步处理点将期间其他相关工作，保障客户跟进和门店执行动作持续推进。"
     };
 
     let customers = loadCustomers();
@@ -1954,6 +2135,449 @@
       reader.readAsText(file, "UTF-8");
     }
 
+    function renderDailyActionChecks() {
+      const actionWrap = document.getElementById("dailyActionChecks");
+
+      if (!actionWrap) {
+        return;
+      }
+
+      actionWrap.innerHTML = DAILY_WORK_ACTIONS.map(action => `
+        <label class="check-card">
+          <input type="checkbox" name="dailyWorkAction" value="${escapeHtml(action)}" />
+          ${escapeHtml(action)}
+        </label>
+      `).join("");
+    }
+
+    function openDailyReportModal() {
+      document.getElementById("dailyReportModal").classList.remove("hidden");
+      setText("dailyReportCopyTip", "");
+    }
+
+    function closeDailyReportModal() {
+      document.getElementById("dailyReportModal").classList.add("hidden");
+    }
+
+    function handleDailyReportBackdropClick(event) {
+      if (event.target.id === "dailyReportModal") {
+        closeDailyReportModal();
+      }
+    }
+
+    function getSelectedReportType() {
+      const selected = document.querySelector('input[name="dailyReportType"]:checked');
+      return selected ? selected.value : "simple";
+    }
+
+    function getSelectedWorkActions() {
+      return Array.from(document.querySelectorAll('input[name="dailyWorkAction"]:checked'))
+        .map(input => input.value)
+        .filter(action => DAILY_WORK_ACTIONS.includes(action));
+    }
+
+    function generateDailyReport() {
+      const reportType = getSelectedReportType();
+      const report = reportType === "detailed"
+        ? buildDetailedDailyReport()
+        : buildSimpleDailyReport();
+
+      setValue("dailyReportOutput", report);
+      setText("dailyReportCopyTip", "");
+    }
+
+    function buildSimpleDailyReport() {
+      const stats = getDailyReportStats();
+      const actions = getSelectedWorkActions();
+      const workNote = getValue("reportWorkNote");
+      const problems = getValue("reportProblems");
+      const tomorrowPlan = getValue("reportTomorrowPlan");
+      const dataLine = buildSimpleDataLine(stats);
+      const hasCustomerReview = actions.includes("客户信息复盘");
+      const workLines = buildActionWorkLines(actions)
+        .filter(line => line !== WORK_ACTION_SENTENCES["客户信息复盘"]);
+      const noteLines = buildSimpleSupplementLines(workNote, problems, tomorrowPlan);
+      const reportLines = [
+        "今日工作：",
+        `1. ${dataLine}`
+      ];
+
+      if (hasCustomerReview) {
+        reportLines.push(`${reportLines.length}. 完成客户信息复盘，梳理客户来源、客户状态及后续跟进动作。`);
+      }
+
+      workLines.forEach(line => {
+        reportLines.push(`${reportLines.length}. ${line}`);
+      });
+
+      reportLines.push(`${reportLines.length}. ${tomorrowPlan ? polishText(tomorrowPlan) : "明日重点围绕A类客户跟进、逾期客户提醒、已沟通客户量房推进及数据复盘开展工作。"}`);
+
+      return [
+        `当前项目：${getCurrentProjectName()}    日期：${stats.today}`,
+        "",
+        ...reportLines,
+        "",
+        "补充说明：",
+        noteLines.join("\n")
+      ].join("\n");
+    }
+
+    function buildDetailedDailyReport() {
+      const stats = getDailyReportStats();
+      const actions = getSelectedWorkActions();
+      const workNote = getValue("reportWorkNote");
+      const keyCustomers = getValue("reportKeyCustomers");
+      const problems = getValue("reportProblems");
+      const tomorrowPlan = getValue("reportTomorrowPlan");
+      const coordination = getValue("reportCoordination");
+      const sourceText = getTopSourceText();
+      const workLines = buildActionWorkLines(actions);
+      const workDetailText = buildDetailedWorkNote(actions, workNote, sourceText);
+      const keyCustomerText = keyCustomers
+        ? polishText(keyCustomers)
+        : "今日重点围绕A类客户、待跟进客户及逾期客户进行梳理，后续继续推进客户转化动作。";
+      const problemText = problems
+        ? polishText(problems)
+        : "今日暂无需重点反馈的问题，后续继续关注客户跟进节奏及转化情况。";
+      const planText = tomorrowPlan
+        ? polishText(tomorrowPlan)
+        : "明日将继续围绕重点客户跟进、客户状态推进、数据复盘及后续转化动作开展工作。";
+      const coordinationText = coordination
+        ? polishText(coordination)
+        : "暂无。";
+      const keyStatusParts = [];
+
+      if (stats.gradeA) {
+        keyStatusParts.push(`A类客户${stats.gradeA}组`);
+      }
+
+      if (stats.measuredOrLater) {
+        keyStatusParts.push(`已量房及后续客户${stats.measuredOrLater}组`);
+      }
+
+      if (stats.quotedOrLater) {
+        keyStatusParts.push(`已报价及后续客户${stats.quotedOrLater}组`);
+      }
+
+      if (stats.overdueTodo) {
+        keyStatusParts.push(`逾期待跟进客户${stats.overdueTodo}组`);
+      }
+
+      return [
+        `当前项目：${getCurrentProjectName()}    日期：${stats.today}`,
+        "",
+        "今日工作内容：",
+        `1. 客户跟进：${buildDetailedCustomerLine(stats)}`,
+        `2. 客户复盘：围绕客户来源、客户等级、客户状态进行梳理${keyStatusParts.length ? `，重点关注${keyStatusParts.join("、")}。` : "，重点关注A类客户、已量房客户、已报价客户及逾期待跟进客户。"}`,
+        `3. 重点工作：${workLines.length ? workLines.join("\n") : "今日未勾选具体工作动作，主要完成客户数据查看和基础跟进准备。"}`,
+        "",
+        "今日具体说明：",
+        workDetailText,
+        "",
+        "重点客户情况：",
+        keyCustomerText,
+        "",
+        "问题与卡点：",
+        problemText,
+        "",
+        "明日工作计划：",
+        planText,
+        "",
+        "需要协调事项：",
+        coordinationText
+      ].join("\n");
+    }
+
+    function getDailyReportStats() {
+      const today = getTodayString();
+      const followedCustomerIds = new Set();
+
+      customers.forEach(customer => {
+        (customer.followRecords || []).forEach(record => {
+          if (getDatePart(record.followTime) === today || getDatePart(record.createdAt) === today) {
+            followedCustomerIds.add(customer.id);
+          }
+        });
+      });
+
+      return {
+        today,
+        todayNew: customers.filter(customer => getDatePart(customer.createdAt) === today).length,
+        todayFollowed: followedCustomerIds.size,
+        todayMeasured: countTodayUpdatedByStatus("已量房", today),
+        todayQuoted: countTodayUpdatedByStatus("已报价", today),
+        todaySigned: countTodayUpdatedByStatus("已签单", today),
+        todayLost: countTodayUpdatedByStatus("已流失", today),
+        todayTodo: customers.filter(customer => getFollowState(customer) === "today").length,
+        overdueTodo: customers.filter(customer => getFollowState(customer) === "overdue").length,
+        gradeA: customers.filter(customer => customer.grade === "A类客户").length,
+        gradeB: customers.filter(customer => customer.grade === "B类客户").length,
+        gradeC: customers.filter(customer => customer.grade === "C类客户").length,
+        gradeD: customers.filter(customer => customer.grade === "D类客户").length,
+        measuredOrLater: countAtOrAfterStatus("已量房"),
+        quotedOrLater: countAtOrAfterStatus("已报价")
+      };
+    }
+
+    function countTodayUpdatedByStatus(status, today) {
+      return customers.filter(customer =>
+        customer.status === status && getDatePart(customer.updatedAt) === today
+      ).length;
+    }
+
+    function getActualSourceStats() {
+      const sourceCounts = {};
+
+      customers.forEach(customer => {
+        const source = customer.source || "其他";
+        sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+      });
+
+      return Object.keys(sourceCounts)
+        .filter(source => sourceCounts[source] > 0)
+        .sort((a, b) => sourceCounts[b] - sourceCounts[a] || a.localeCompare(b, "zh-CN"))
+        .map(source => `${source}：${sourceCounts[source]}组`);
+    }
+
+    function buildSimpleDataLine(stats) {
+      const parts = [
+        ["今日新增客户", stats.todayNew],
+        ["跟进客户", stats.todayFollowed],
+        ["量房", stats.todayMeasured],
+        ["报价", stats.todayQuoted],
+        ["签单", stats.todaySigned]
+      ]
+        .filter(([, count]) => count > 0)
+        .map(([label, count]) => `${label}${count}组`);
+
+      return parts.length
+        ? `${parts.join("，")}。`
+        : "今日暂无新增、跟进、量房、报价或签单数据，主要进行客户资料整理和后续动作准备。";
+    }
+
+    function buildDetailedCustomerLine(stats) {
+      const parts = [
+        `今日新增客户${stats.todayNew}组`,
+        `跟进客户${stats.todayFollowed}组`,
+        `当前待跟进${stats.todayTodo}组`,
+        `逾期${stats.overdueTodo}组`
+      ];
+
+      if (stats.todayMeasured) {
+        parts.push(`量房${stats.todayMeasured}组`);
+      }
+
+      if (stats.todayQuoted) {
+        parts.push(`报价${stats.todayQuoted}组`);
+      }
+
+      if (stats.todaySigned) {
+        parts.push(`签单${stats.todaySigned}组`);
+      }
+
+      return `${parts.join("，")}。`;
+    }
+
+    function buildActionWorkLines(actions) {
+      const lines = [];
+      const addLine = line => {
+        if (line && !lines.includes(line)) {
+          lines.push(line);
+        }
+      };
+
+      if (actions.includes("客户跟进")) {
+        addLine(WORK_ACTION_SENTENCES["客户跟进"]);
+      }
+
+      if (actions.includes("客户信息复盘")) {
+        addLine(WORK_ACTION_SENTENCES["客户信息复盘"]);
+      }
+
+      if (actions.includes("量房")) {
+        addLine(WORK_ACTION_SENTENCES["量房"]);
+      }
+
+      if (actions.includes("方案沟通")) {
+        addLine(WORK_ACTION_SENTENCES["方案沟通"]);
+      }
+
+      if (actions.includes("报价梳理")) {
+        addLine(WORK_ACTION_SENTENCES["报价梳理"]);
+      }
+
+      if (actions.includes("信息流文案输出") || actions.includes("短视频脚本输出")) {
+        addLine(WORK_ACTION_SENTENCES["信息流文案输出"]);
+      }
+
+      if (actions.includes("视频拍摄") || actions.includes("视频剪辑")) {
+        addLine(WORK_ACTION_SENTENCES["视频拍摄"]);
+      }
+
+      if (actions.includes("销售/设计师培训")) {
+        addLine(WORK_ACTION_SENTENCES["销售/设计师培训"]);
+      }
+
+      if (actions.includes("投流计划沟通")) {
+        addLine(WORK_ACTION_SENTENCES["投流计划沟通"]);
+      }
+
+      if (actions.includes("经纪人渠道沟通")) {
+        addLine(WORK_ACTION_SENTENCES["经纪人渠道沟通"]);
+      }
+
+      [
+        "直播准备",
+        "门店流程梳理",
+        "活动政策梳理",
+        "数据复盘",
+        "老板/负责人沟通",
+        "其他"
+      ].forEach(action => {
+        if (actions.includes(action)) {
+          addLine(WORK_ACTION_SENTENCES[action]);
+        }
+      });
+
+      return lines;
+    }
+
+    function buildSimpleSupplementLines(workNote, problems, tomorrowPlan) {
+      const lines = [];
+
+      if (workNote) {
+        lines.push(polishText(workNote));
+      }
+
+      if (problems) {
+        lines.push(`当前需要关注的是：${polishText(problems)}`);
+      }
+
+      if (tomorrowPlan) {
+        lines.push(`明日计划：${polishText(tomorrowPlan)}`);
+      }
+
+      if (!lines.length) {
+        lines.push("今日主要围绕客户资料整理、跟进节奏梳理和后续转化动作准备开展工作，明日继续推进重点客户跟进和数据复盘。");
+      }
+
+      return lines.slice(0, 3);
+    }
+
+    function buildDetailedWorkNote(actions, workNote, sourceText) {
+      const actionLines = buildActionWorkLines(actions);
+      const lines = [];
+
+      if (workNote) {
+        lines.push(polishText(workNote));
+      } else if (actionLines.length) {
+        lines.push(actionLines.join("\n"));
+      } else {
+        lines.push("今日主要围绕客户资料查看、跟进记录整理和后续客户推进准备开展工作。");
+      }
+
+      if (sourceText) {
+        lines.push(`从当前客户来源看，${sourceText}，后续继续结合实际线索质量优化跟进重点。`);
+      }
+
+      return lines.join("\n");
+    }
+
+    function getTopSourceText() {
+      const sourceLines = getActualSourceStats();
+
+      if (!sourceLines.length) {
+        return "";
+      }
+
+      return sourceLines.slice(0, 3).join("，");
+    }
+
+    function buildWorkSummary(actions, workNote, isDetailed) {
+      const actionSentences = actions
+        .map(action => WORK_ACTION_SENTENCES[action])
+        .filter(Boolean);
+      const sentences = [];
+
+      if (actionSentences.length) {
+        sentences.push(`今日主要围绕${actions.join("、")}等工作展开。`);
+        sentences.push(...actionSentences);
+
+        if (isDetailed) {
+          sentences.push("整体来看，以上动作主要服务于线索承接、客户关系维护、转化节点推进和门店执行闭环，后续将继续结合客户状态变化和跟进反馈，及时调整优先级。");
+        }
+      }
+
+      if (workNote) {
+        sentences.push(`补充说明：${polishText(workNote)}`);
+
+        if (isDetailed) {
+          sentences.push("该部分工作将作为后续复盘依据，便于持续追踪执行结果、客户反馈和需要协同推进的事项。");
+        }
+      }
+
+      if (!sentences.length) {
+        return isDetailed
+          ? "今日未勾选具体工作动作。建议后续在日报中补充客户跟进、数据复盘、渠道沟通、方案沟通或门店执行等实际内容，便于沉淀每日动作、复盘推进效果，并形成可追踪的点将工作记录。"
+          : "今日已完成点将相关基础工作，具体动作可在后续日报中继续补充记录。";
+      }
+
+      return sentences.join(isDetailed ? "\n" : "");
+    }
+
+    function polishText(value) {
+      const text = String(value || "").trim();
+
+      if (!text) {
+        return "";
+      }
+
+      return /[。！？.!?]$/.test(text) ? text : `${text}。`;
+    }
+
+    function getCurrentProjectName() {
+      saveProjectInfo();
+      return projectInfo.name || DEFAULT_PROJECT_NAME;
+    }
+
+    function copyDailyReport() {
+      const report = getValue("dailyReportOutput");
+
+      if (!report) {
+        alert("请先生成日报");
+        return;
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(report).then(() => {
+          setText("dailyReportCopyTip", "日报已复制");
+        }).catch(() => {
+          fallbackCopyDailyReport(report);
+        });
+        return;
+      }
+
+      fallbackCopyDailyReport(report);
+    }
+
+    function fallbackCopyDailyReport(report) {
+      const output = document.getElementById("dailyReportOutput");
+
+      if (!output) {
+        return;
+      }
+
+      output.focus();
+      output.select();
+
+      try {
+        document.execCommand("copy");
+        setText("dailyReportCopyTip", "日报已复制");
+      } catch (error) {
+        alert("复制失败，请手动选中日报内容复制");
+      }
+    }
+
     function updateStats() {
       const today = getTodayString();
       const total = customers.length;
@@ -2298,6 +2922,7 @@
     }
 
     renderProjectInfo();
+    renderDailyActionChecks();
     fillFilterOptions();
     renderCustomers();
   </script>
