@@ -1,0 +1,3572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI城市点将研判</title>
+
+  <style>
+    :root {
+      --bg: #eef3fb;
+      --panel: #ffffff;
+      --line: #dbe4f0;
+      --text: #172033;
+      --muted: #64748b;
+      --brand: #4657f0;
+      --brand-dark: #2738c8;
+      --blue: #2563eb;
+      --green: #12945a;
+      --red: #d04444;
+      --teal: #0891b2;
+      --gray: #64748b;
+      --amber-bg: #f8fbff;
+      --amber-line: #dbeafe;
+      --blue-bg: #eaf2ff;
+      --red-bg: #fff1f2;
+      --green-bg: #ecfdf3;
+      --shadow: 0 18px 50px rgba(21, 34, 66, 0.09);
+      --soft-shadow: 0 10px 28px rgba(21, 34, 66, 0.08);
+      --gradient-primary: linear-gradient(135deg, #3861ff 0%, #6757f5 52%, #08b6d8 100%);
+      --gradient-dark: radial-gradient(circle at 18% 16%, rgba(77, 208, 255, 0.28), transparent 34%),
+        radial-gradient(circle at 86% 8%, rgba(132, 92, 255, 0.34), transparent 30%),
+        linear-gradient(135deg, #111827 0%, #172554 50%, #0f172a 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(70, 87, 240, 0.14), transparent 28%),
+        radial-gradient(circle at 96% 12%, rgba(8, 182, 216, 0.13), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    header {
+      background: var(--gradient-dark);
+      color: #fff;
+      padding: 30px 40px 74px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      background: linear-gradient(90deg, rgba(14, 165, 233, 0.38), rgba(99, 102, 241, 0.18), transparent);
+      bottom: 0;
+      content: "";
+      height: 1px;
+      left: 0;
+      position: absolute;
+      right: 0;
+    }
+
+    .hero-shell {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.95fr) minmax(520px, 1.35fr);
+      gap: 24px;
+      margin: 0 auto;
+      max-width: 1400px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-copy {
+      align-self: center;
+    }
+
+    .hero-eyebrow {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      color: #c7f1ff;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      padding: 7px 11px;
+    }
+
+    .hero-project {
+      background: rgba(255, 255, 255, 0.11);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.22);
+      padding: 20px;
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-project .section-head {
+      margin-bottom: 14px;
+    }
+
+    .hero-project h2,
+    .hero-project label {
+      color: #fff;
+    }
+
+    .hero-project .section-note {
+      color: #cbd5e1;
+    }
+
+    .hero-project input {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 10px 0 0;
+      color: #dbeafe;
+      line-height: 1.6;
+      max-width: 620px;
+    }
+
+    main {
+      width: min(1480px, 100%);
+      margin: -44px auto 0;
+      padding: 0 40px 46px;
+      position: relative;
+      z-index: 2;
+    }
+
+    h2,
+    h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 22px;
+    }
+
+    h3 {
+      font-size: 17px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #344054;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #d7e0ec;
+      border-radius: 10px;
+      background: #fbfdff;
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      padding: 10px 11px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--brand);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(70, 87, 240, 0.13);
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    button {
+      min-height: 38px;
+      border: 0;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 9px 14px;
+      white-space: nowrap;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.12);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+    }
+
+    button:hover {
+      filter: brightness(0.96);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 22px rgba(37, 99, 235, 0.16);
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(219, 228, 240, 0.92);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .ops-panel {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+      padding-top: 16px;
+      position: relative;
+    }
+
+    .ops-panel::before {
+      background: linear-gradient(90deg, rgba(255,255,255,0.34), rgba(255,255,255,0.04));
+      content: "";
+      height: 1px;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .hero-actions button {
+      min-height: 40px;
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.11);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: none;
+      color: #eaf6ff;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.16);
+    }
+
+    .module-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .module-card::before {
+      background: linear-gradient(90deg, #4657f0, #08b6d8, transparent);
+      content: "";
+      height: 3px;
+      left: 22px;
+      position: absolute;
+      right: 22px;
+      top: 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .section-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 6px 0 0;
+    }
+
+    .project-panel {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.4fr) minmax(160px, 1fr) minmax(160px, 1fr);
+      gap: 15px;
+    }
+
+    .page-footer {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      padding: 2px 0 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .wide {
+      grid-column: span 2;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+    }
+
+    .btn-blue {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+    }
+
+    .btn-gray {
+      background: #64748b;
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, #059669, #10b981);
+    }
+
+    .btn-red {
+      background: linear-gradient(135deg, #dc4a4a, #ef6464);
+    }
+
+    .btn-teal {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+    }
+
+    .btn-light {
+      background: #f3f7fb;
+      border: 1px solid #dbe4f0;
+      box-shadow: none;
+      color: #334155;
+    }
+
+    .btn-small {
+      min-height: 31px;
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .stat-box {
+      min-height: 128px;
+      border: 1px solid rgba(219, 234, 254, 0.95);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 251, 255, 0.94)),
+        radial-gradient(circle at 100% 0%, rgba(70, 87, 240, 0.12), transparent 38%);
+      box-shadow: var(--soft-shadow);
+      display: grid;
+      gap: 8px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .stat-box::before {
+      background: var(--gradient-primary);
+      border-radius: 999px;
+      content: "";
+      height: 4px;
+      left: 17px;
+      position: absolute;
+      right: 17px;
+      top: 0;
+    }
+
+    .stat-box::after {
+      background: rgba(70, 87, 240, 0.08);
+      border-radius: 999px;
+      content: "";
+      height: 74px;
+      position: absolute;
+      right: -22px;
+      top: -24px;
+      width: 74px;
+    }
+
+    .stat-box:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 18px 38px rgba(37, 99, 235, 0.13);
+      transform: translateY(-3px);
+    }
+
+    .stat-box span {
+      display: block;
+      color: #4b5563;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .stat-box strong {
+      display: block;
+      color: #1e3a8a;
+      font-size: 30px;
+      line-height: 1.1;
+      margin-top: 2px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-icon {
+      align-items: center;
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      color: #1d4ed8;
+      display: inline-flex;
+      font-size: 17px;
+      height: 34px;
+      justify-content: center;
+      width: 34px;
+    }
+
+    .stat-desc {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-critical strong {
+      color: #be123c;
+    }
+
+    .stat-critical .stat-icon {
+      background: #fff1f2;
+      border-color: #fecdd3;
+      color: #be123c;
+    }
+
+    .stat-success strong {
+      color: #047857;
+    }
+
+    .stat-success .stat-icon {
+      background: #ecfdf3;
+      border-color: #bbf7d0;
+      color: #047857;
+    }
+
+    .mini-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .mini-stat {
+      align-items: center;
+      background: #f8fbff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      min-height: 48px;
+      padding: 10px 12px;
+    }
+
+    .mini-stat span {
+      color: #475569;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .mini-stat strong {
+      color: #1e3a8a;
+      font-size: 20px;
+    }
+
+    .source-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .source-stat {
+      align-items: center;
+      background: linear-gradient(180deg, #ffffff, #f8fbff);
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      min-height: 48px;
+      padding: 11px 13px;
+      box-shadow: 0 8px 20px rgba(21, 34, 66, 0.05);
+    }
+
+    .source-stat span {
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .source-stat strong {
+      color: var(--brand-dark);
+      font-size: 20px;
+    }
+
+    .report-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .report-options {
+      display: grid;
+      gap: 18px;
+      padding-top: 18px;
+    }
+
+    .report-type-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .radio-card,
+    .check-card {
+      align-items: center;
+      background: #f8fbff;
+      border: 1px solid #dbe4f0;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      gap: 8px;
+      min-height: 40px;
+      padding: 9px 12px;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .radio-card:hover,
+    .check-card:hover {
+      background: #fff;
+      border-color: #93c5fd;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+    }
+
+    .radio-card input,
+    .check-card input {
+      width: auto;
+    }
+
+    .action-checks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .report-output {
+      background: #f8fbff;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      min-height: 280px;
+      white-space: pre-wrap;
+    }
+
+    .copy-tip {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      min-height: 20px;
+    }
+
+    .prejudge-history {
+      display: grid;
+      gap: 10px;
+    }
+
+    .prejudge-history-item {
+      align-items: center;
+      background: #f8fbff;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: 12px;
+    }
+
+    .prejudge-history-title {
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    .funnel-panel {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .funnel-row {
+      display: grid;
+      grid-template-columns: 94px minmax(120px, 1fr) 56px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .funnel-name {
+      color: #344054;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .funnel-bar {
+      background: #e8eef8;
+      border-radius: 999px;
+      height: 12px;
+      overflow: hidden;
+    }
+
+    .funnel-fill {
+      background: var(--gradient-primary);
+      border-radius: 999px;
+      display: block;
+      height: 100%;
+      min-width: 4px;
+    }
+
+    .funnel-count {
+      color: #1d4ed8;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .funnel-rates {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .todo-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .todo-card {
+      background: linear-gradient(180deg, #fff, #f8fbff);
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: minmax(180px, 1.1fr) minmax(180px, 1fr) minmax(180px, 1.4fr) auto;
+      gap: 12px;
+      padding: 13px;
+    }
+
+    .todo-card:hover {
+      border-color: var(--brand);
+      box-shadow: 0 14px 30px rgba(21, 34, 66, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .todo-title {
+      color: #111827;
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .todo-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .todo-actions {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+    }
+
+    .filter-grid {
+      background: #f8fbff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      display: grid;
+      grid-template-columns: 1.6fr repeat(4, minmax(150px, 1fr)) auto auto;
+      align-items: end;
+      gap: 12px;
+      margin-bottom: 16px;
+      margin-top: 12px;
+      padding: 14px;
+    }
+
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid #dbe4f0;
+      border-radius: 16px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1740px;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #e8edf2;
+      padding: 13px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th:nth-child(1),
+    td:nth-child(1) {
+      min-width: 190px;
+    }
+
+    th:nth-child(2),
+    td:nth-child(2) {
+      min-width: 230px;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3),
+    th:nth-child(4),
+    td:nth-child(4),
+    th:nth-child(5),
+    td:nth-child(5),
+    th:nth-child(6),
+    td:nth-child(6),
+    th:nth-child(7),
+    td:nth-child(7) {
+      min-width: 118px;
+    }
+
+    th:nth-child(8),
+    td:nth-child(8),
+    th:nth-child(9),
+    td:nth-child(9) {
+      min-width: 250px;
+    }
+
+    th {
+      background: #f1f6ff;
+      color: #334155;
+      font-weight: 800;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    tbody tr:hover {
+      background: #f8fbff;
+    }
+
+    tbody tr {
+      height: 72px;
+      transition: background 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .customer-name {
+      font-weight: 800;
+      color: #111827;
+      white-space: nowrap;
+      word-break: keep-all;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+      word-break: keep-all;
+    }
+
+    .compact-cell {
+      white-space: nowrap;
+    }
+
+    .text-cell {
+      width: 260px;
+      max-width: 320px;
+      line-height: 1.6;
+      word-break: break-word;
+      white-space: normal;
+    }
+
+    .date-cell {
+      min-width: 146px;
+      white-space: nowrap;
+    }
+
+    .action-cell {
+      width: 252px;
+      min-width: 252px;
+      background: #ffffff;
+      box-shadow: -14px 0 22px rgba(15, 23, 42, 0.08);
+      position: sticky;
+      right: 0;
+      z-index: 2;
+    }
+
+    th:last-child {
+      background: #f1f6ff;
+      box-shadow: -14px 0 22px rgba(15, 23, 42, 0.08);
+      position: sticky;
+      right: 0;
+      z-index: 3;
+    }
+
+    tbody tr:hover .action-cell {
+      background: #f8fbff;
+    }
+
+    .row-actions {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 7px;
+    }
+
+    .row-actions .btn-small {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .row-actions .btn-blue {
+      background: #eef5ff;
+      border: 1px solid #bfdbfe;
+      box-shadow: none;
+      color: #1d4ed8;
+    }
+
+    .row-actions .btn-green {
+      background: #ecfdf3;
+      border: 1px solid #bbf7d0;
+      box-shadow: none;
+      color: #047857;
+    }
+
+    .row-actions .btn-teal {
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      box-shadow: none;
+      color: #0e7490;
+    }
+
+    .row-actions .btn-red {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      box-shadow: none;
+      color: #be123c;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      margin: 0 5px 6px 0;
+      padding: 6px 9px;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .tag-status {
+      background: #eef5ff;
+      border-color: #bfdbfe;
+      color: #1d4ed8;
+    }
+
+    .tag-grade-a {
+      background: linear-gradient(135deg, #fff7ed, #ffedd5);
+      border-color: #fdba74;
+      color: #c2410c;
+    }
+
+    .tag-grade-b {
+      background: #eaf2ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+    }
+
+    .tag-grade-c {
+      background: #ecfdf3;
+      border-color: #bbf7d0;
+      color: #16803c;
+    }
+
+    .tag-grade-d {
+      background: #f2f4f7;
+      border-color: #e2e8f0;
+      color: #475467;
+    }
+
+    .tag-today {
+      background: #ecfeff;
+      border-color: #67e8f9;
+      color: #0e7490;
+    }
+
+    .tag-overdue {
+      background: var(--red-bg);
+      border-color: #fecdd3;
+      color: var(--red);
+    }
+
+    .tag-ok {
+      background: var(--green-bg);
+      border-color: #bbf7d0;
+      color: var(--green);
+    }
+
+    .empty-tip {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      background: #f9fafb;
+    }
+
+    .detail-panel {
+      border: 1px solid #dbe4f0;
+      border-radius: 16px;
+      background: #f8fbff;
+      margin-top: 14px;
+      padding: 16px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .detail-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #fff;
+      padding: 10px;
+      min-height: 68px;
+      box-shadow: 0 8px 18px rgba(21, 34, 66, 0.04);
+    }
+
+    .detail-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .detail-item strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .timeline-item {
+      border-left: 4px solid #4657f0;
+      border-radius: 12px;
+      background: #fff;
+      padding: 11px 12px;
+      box-shadow: 0 8px 20px rgba(21, 34, 66, 0.05);
+    }
+
+    .timeline-meta {
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .timeline-content {
+      line-height: 1.65;
+      word-break: break-word;
+    }
+
+    .follow-form {
+      border-top: 1px solid #e5e9ef;
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .modal-backdrop {
+      align-items: center;
+      background: rgba(15, 23, 42, 0.66);
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      left: 0;
+      padding: 22px;
+      position: fixed;
+      right: 0;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .modal-dialog {
+      background: #ffffff;
+      border: 1px solid rgba(219, 228, 240, 0.9);
+      border-radius: 18px;
+      box-shadow: 0 28px 90px rgba(15, 23, 42, 0.34);
+      max-height: calc(100vh - 44px);
+      max-width: 1080px;
+      overflow: auto;
+      width: 100%;
+    }
+
+    #dailyReportModal .modal-dialog {
+      max-width: 1160px;
+    }
+
+    #preJudgeModal .modal-dialog {
+      max-width: 1180px;
+    }
+
+    #dailyReportModal .modal-body,
+    #preJudgeModal .modal-body {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .modal-head {
+      align-items: flex-start;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      padding: 20px 22px 14px;
+      position: sticky;
+      top: 0;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      z-index: 2;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+    }
+
+    .modal-body {
+      padding: 0 22px 22px;
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0 22px 22px;
+    }
+
+    @media (max-width: 1180px) {
+      .hero-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .form-grid,
+      .detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .project-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
+        padding: 22px 14px 58px;
+      }
+
+      header h1 {
+        font-size: 27px;
+        line-height: 1.18;
+      }
+
+      .hero-shell {
+        gap: 18px;
+      }
+
+      .hero-project {
+        border-radius: 16px;
+        padding: 16px;
+      }
+
+      .hero-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        margin-top: -38px;
+        padding: 0 12px 30px;
+      }
+
+      .card {
+        border-radius: 16px;
+        padding: 16px;
+      }
+
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .report-toolbar {
+        justify-content: stretch;
+        width: 100%;
+      }
+
+      .dashboard,
+      .project-panel,
+      .form-grid,
+      .detail-grid,
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stat-box {
+        min-height: 94px;
+        padding: 14px;
+      }
+
+      .stat-box strong {
+        font-size: 25px;
+      }
+
+      .mini-stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .report-type-group {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .wide {
+        grid-column: auto;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .row-actions button,
+      .button-row button {
+        flex: 1 1 120px;
+      }
+
+      .action-cell .row-actions button {
+        flex: 0 0 auto;
+        width: auto;
+      }
+
+      .todo-card {
+        grid-template-columns: 1fr;
+      }
+
+      .todo-actions {
+        justify-content: stretch;
+      }
+
+      .modal-backdrop {
+        align-items: stretch;
+        padding: 10px;
+      }
+
+      .modal-dialog {
+        border-radius: 16px;
+        max-height: calc(100vh - 20px);
+      }
+
+      .modal-head,
+      .modal-actions {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .modal-body {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .table-wrapper {
+        border-radius: 14px;
+      }
+
+      table {
+        min-width: 1560px;
+      }
+
+      .page-footer {
+        padding: 0 4px;
+      }
+    }
+  </style>
+  <style>
+    main.city-analysis-page {
+      margin: -44px auto 0;
+      max-width: 1240px;
+    }
+
+    .city-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .city-analysis-card {
+      margin-top: 0;
+    }
+
+    .city-analysis-card .report-output {
+      min-height: 210px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="hero-shell">
+      <div class="hero-copy">
+        <div class="hero-eyebrow">点将工具库 · 城市研判</div>
+        <h1>AI城市点将研判</h1>
+        <p>新城市调研、客户画像、老板沟通、前7天打法和投流初判。只生成可复制给 AI 的调研指令，不联网、不编造城市数据。</p>
+        <div class="city-hero-actions">
+          <button class="btn-light" onclick="location.href='index.html'">返回工具库首页</button>
+          <button class="btn-primary" onclick="generatePreJudgePrompt()">生成AI调研指令</button>
+          <button class="btn-blue" onclick="copyPreJudgePrompt()">复制调研指令</button>
+        </div>
+      </div>
+
+      <section class="hero-project">
+        <div class="section-head">
+          <div>
+            <h2>研判方式</h2>
+            <p class="section-note">填写城市、商场、品牌和点将目标后，复制指令给 ChatGPT 联网调研；再将报告粘贴回来保存归档。</p>
+          </div>
+        </div>
+        <div class="mini-stat-grid">
+          <div class="mini-stat"><span>输入方式</span><strong>少量字段</strong></div>
+          <div class="mini-stat"><span>输出内容</span><strong>AI指令</strong></div>
+          <div class="mini-stat"><span>历史保存</span><strong>本机浏览器</strong></div>
+        </div>
+      </section>
+    </div>
+  </header>
+
+  <main class="city-analysis-page">
+    <section class="card module-card city-analysis-card">
+      <div class="section-head">
+        <div>
+          <h2 id="preJudgeTitle">AI城市点将研判助手</h2>
+          <p class="section-note">只填写少量基础信息，生成可复制给 ChatGPT 的调研指令；AI 完成联网调研后，可将报告粘贴回来归档。</p>
+        </div>
+      </div>
+
+      <div class="report-options">
+        <section>
+          <h3>基础输入</h3>
+          <p class="section-note">城市名称必填，其余信息可选；本工具只生成调研指令，不联网、不编造城市数据。</p>
+          <div class="form-grid">
+            <div>
+              <label for="preJudge-cityName">城市名称 *</label>
+              <input id="preJudge-cityName" placeholder="例如：杭州" />
+            </div>
+            <div>
+              <label for="preJudge-mallName">商场名称</label>
+              <input id="preJudge-mallName" placeholder="例如：红星美凯龙某店" />
+            </div>
+            <div>
+              <label for="preJudge-brandCategory">品牌/品类</label>
+              <input id="preJudge-brandCategory" placeholder="例如：整装/定制/家装" />
+            </div>
+            <div class="full">
+              <label for="preJudge-note">备注</label>
+              <textarea id="preJudge-note" placeholder="补充你希望 AI 重点关注的问题，例如预算有限、老板想做抖音、门店线索少等"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3>点将目标与诊断方向</h3>
+          <p class="section-note">先判断门店问题属于流量、承接、流程、活动还是综合诊断，再让 AI 按优先级输出打法。</p>
+          <label>点将目标大类</label>
+          <div id="preJudgeGoalChecks" class="action-checks"></div>
+        </section>
+
+        <section>
+          <h3>前端流量方向</h3>
+          <p class="section-note">前端流量获客包含新媒体、信息流、直播、经纪人、小区、地推、私域等所有客户入口问题。</p>
+          <div id="preJudgeTrafficChecks" class="action-checks"></div>
+        </section>
+
+        <section>
+          <h3>承接转化问题</h3>
+          <div id="preJudgeConversionChecks" class="action-checks"></div>
+        </section>
+
+        <section>
+          <h3>团队/流程问题</h3>
+          <div id="preJudgeProcessChecks" class="action-checks"></div>
+        </section>
+
+        <section>
+          <label for="preJudgePromptOutput">AI调研指令</label>
+          <textarea id="preJudgePromptOutput" class="report-output" readonly placeholder="点击“生成AI调研指令”后在这里显示内容"></textarea>
+          <div id="preJudgeCopyTip" class="copy-tip"></div>
+        </section>
+
+        <section>
+          <label for="preJudgeAiReport">粘贴AI生成的城市研判报告</label>
+          <textarea id="preJudgeAiReport" class="report-output" placeholder="把 ChatGPT 联网调研后生成的完整城市研判报告粘贴到这里，用于保存归档"></textarea>
+        </section>
+
+        <section>
+          <div class="section-head">
+            <div>
+              <h3>历史城市研判记录</h3>
+              <p class="section-note">历史记录单独保存在当前浏览器，不影响客户 CRM 数据。</p>
+            </div>
+          </div>
+          <div id="preJudgeHistoryList" class="prejudge-history"></div>
+        </section>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="generatePreJudgePrompt()">生成AI调研指令</button>
+        <button class="btn-blue" onclick="copyPreJudgePrompt()">复制调研指令</button>
+        <button class="btn-green" onclick="savePreJudgeRecord()">保存城市研判记录</button>
+        <button class="btn-light" onclick="location.href='index.html'">返回工具库首页</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "decorationStoreCrmCustomers";
+    const OLD_STORAGE_KEY = "customers";
+    const PROJECT_STORAGE_KEY = "pointProjectInfo";
+    const PREJUDGE_STORAGE_KEY = "pointPreJudgeRecords";
+    const DEFAULT_PROJECT_NAME = "当前点将项目";
+
+    const STATUS_OPTIONS = [
+      "新线索",
+      "已沟通",
+      "已量房",
+      "已出方案",
+      "已报价",
+      "已交定金",
+      "已签单",
+      "已流失"
+    ];
+
+    const FUNNEL_PROGRESS_STATUSES = [
+      "新线索",
+      "已沟通",
+      "已量房",
+      "已出方案",
+      "已报价",
+      "已交定金",
+      "已签单"
+    ];
+
+    const SOURCE_OPTIONS = [
+      "抖音线索",
+      "经纪人推荐",
+      "自然到店",
+      "老客户转介绍",
+      "地推获客",
+      "直播留资",
+      "其他"
+    ];
+
+    const SOURCE_MAP = {
+      "门店自然进店": "自然到店",
+      "新媒体留资": "抖音线索",
+      "电话咨询": "其他",
+      "活动获客": "地推获客"
+    };
+
+    const GRADE_OPTIONS = [
+      "A类客户",
+      "B类客户",
+      "C类客户",
+      "D类客户"
+    ];
+
+    const GRADE_LABELS = {
+      "A类客户": "重点客户",
+      "B类客户": "意向客户",
+      "C类客户": "培育客户",
+      "D类客户": "低意向客户"
+    };
+
+    const STATUS_MAP = {
+      "待联系": "新线索",
+      "已联系": "已沟通",
+      "暂缓": "已流失"
+    };
+
+    const DAILY_WORK_ACTIONS = [
+      "客户跟进",
+      "客户信息复盘",
+      "量房",
+      "方案沟通",
+      "报价梳理",
+      "销售/设计师培训",
+      "信息流文案输出",
+      "短视频脚本输出",
+      "视频拍摄",
+      "视频剪辑",
+      "投流计划沟通",
+      "直播准备",
+      "经纪人渠道沟通",
+      "门店流程梳理",
+      "活动政策梳理",
+      "数据复盘",
+      "老板/负责人沟通",
+      "其他"
+    ];
+
+    const WORK_ACTION_SENTENCES = {
+      "客户跟进": "围绕意向客户进行持续跟进，确认客户需求、沟通进度和下一步推进动作。",
+      "客户信息复盘": "今日围绕现有客户信息进行了整理复盘，重点梳理客户来源、跟进状态及后续推进动作，为后续客户转化做好基础准备。",
+      "量房": "推进量房相关工作，围绕客户房屋情况、空间需求和后续方案衔接做好记录。",
+      "方案沟通": "围绕客户装修需求进行方案沟通，梳理客户关注点，为后续报价和转化做准备。",
+      "报价梳理": "对报价内容进行梳理，重点核对客户预算、项目配置和沟通口径。",
+      "销售/设计师培训": "围绕客户承接、需求沟通及后续跟进节奏，与销售/设计端进行沟通培训，进一步统一客户转化动作。",
+      "信息流文案输出": "结合门店现阶段获客需求，输出信息流文案及短视频脚本，为后续内容发布和投流获客提供素材支撑。",
+      "短视频脚本输出": "结合门店现阶段获客需求，输出信息流文案及短视频脚本，为后续内容发布和投流获客提供素材支撑。",
+      "视频拍摄": "完成相关视频素材拍摄及剪辑工作，围绕门店卖点、客户痛点和装修案例进行内容整理。",
+      "视频剪辑": "完成相关视频素材拍摄及剪辑工作，围绕门店卖点、客户痛点和装修案例进行内容整理。",
+      "投流计划沟通": "围绕本地获客方向、投流素材及客户承接路径进行沟通，为后续投放测试做好准备。",
+      "直播准备": "推进直播准备工作，梳理直播内容、产品卖点、活动政策和客户承接流程。",
+      "经纪人渠道沟通": "围绕经纪人客户转介绍、客户报备及后续承接流程进行沟通，推动渠道客户有效转化。",
+      "门店流程梳理": "梳理门店客户接待、录入、跟进及转化流程，让执行动作更清晰。",
+      "活动政策梳理": "梳理当前活动政策、优惠口径和客户沟通重点，方便一线统一表达。",
+      "数据复盘": "对客户来源、跟进状态及阶段转化情况进行数据复盘，明确后续重点跟进方向。",
+      "老板/负责人沟通": "沟通老板/负责人，同步阶段工作情况、客户推进重点及需要协同解决的问题。",
+      "其他": "同步处理点将期间其他相关工作，保障客户跟进和门店执行动作持续推进。"
+    };
+
+    const PREJUDGE_GOAL_OPTIONS = [
+      "前端流量获客",
+      "客户承接转化",
+      "团队流程管理",
+      "活动落地执行",
+      "新店冷启动",
+      "老店盘活",
+      "业绩冲刺",
+      "综合诊断"
+    ];
+
+    const PREJUDGE_TRAFFIC_OPTIONS = [
+      "短视频内容获客",
+      "信息流投放",
+      "直播获客",
+      "经纪人渠道",
+      "小区/物业渠道",
+      "地推获客",
+      "老客户转介绍",
+      "朋友圈/私域获客",
+      "自然到店提升",
+      "异业联盟"
+    ];
+
+    const PREJUDGE_CONVERSION_OPTIONS = [
+      "客户跟进不及时",
+      "客户需求挖掘不足",
+      "销售话术弱",
+      "设计师承接弱",
+      "方案转化弱",
+      "报价不清晰",
+      "进店转量房弱",
+      "量房转报价弱",
+      "报价转签单弱",
+      "客户回访机制弱"
+    ];
+
+    const PREJUDGE_PROCESS_OPTIONS = [
+      "老板配合度不足",
+      "销售执行不稳定",
+      "设计师配合不稳定",
+      "新媒体人员不足",
+      "客户分配不清晰",
+      "跟进机制不清晰",
+      "活动政策不明确",
+      "数据统计不规范",
+      "会议复盘机制弱"
+    ];
+
+    let customers = [];
+    let editingId = "";
+    let expandedId = "";
+    let detailModalCustomerId = "";
+    let currentDisplayCustomers = [];
+    let projectInfo = loadProjectInfo();
+    let preJudgeRecords = loadPreJudgeRecords();
+
+    function loadProjectInfo() {
+      const fallback = {
+        name: DEFAULT_PROJECT_NAME,
+        startDate: "",
+        endDate: ""
+      };
+      const saved = localStorage.getItem(PROJECT_STORAGE_KEY);
+
+      if (!saved) {
+        return fallback;
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+
+        return {
+          name: String(parsed.name || "").trim() || DEFAULT_PROJECT_NAME,
+          startDate: normalizeDateValue(parsed.startDate),
+          endDate: normalizeDateValue(parsed.endDate)
+        };
+      } catch (error) {
+        console.error("点将项目信息读取失败", error);
+        return fallback;
+      }
+    }
+
+    function renderProjectInfo() {
+      setValue("pointProjectName", projectInfo.name || DEFAULT_PROJECT_NAME);
+      setValue("pointStartDate", projectInfo.startDate);
+      setValue("pointEndDate", projectInfo.endDate);
+    }
+
+    function saveProjectInfo() {
+      projectInfo = {
+        name: getValue("pointProjectName") || DEFAULT_PROJECT_NAME,
+        startDate: normalizeDateValue(getValue("pointStartDate")),
+        endDate: normalizeDateValue(getValue("pointEndDate"))
+      };
+
+      localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(projectInfo));
+    }
+
+    function loadCustomers() {
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
+
+      if (!saved) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        const normalized = parsed.map(normalizeCustomer);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+        return normalized;
+      } catch (error) {
+        console.error("客户数据读取失败", error);
+        return [];
+      }
+    }
+
+    function normalizeCustomer(customer) {
+      const now = getNowString();
+      const id = customer.id || createId();
+      const status = STATUS_MAP[customer.status] || customer.status || "新线索";
+      const source = SOURCE_MAP[customer.source] || customer.source || "自然到店";
+      const followRecords = Array.isArray(customer.followRecords)
+        ? customer.followRecords.map(normalizeFollowRecord)
+        : [];
+
+      if (!followRecords.length && customer.followNote) {
+        followRecords.push({
+          id: createId(),
+          followTime: normalizeDateTimeValue(customer.updatedAt) || normalizeDateTimeValue(customer.createdAt) || now,
+          method: "备注",
+          content: customer.followNote,
+          nextFollowDate: normalizeDateValue(customer.nextFollowDate),
+          owner: customer.owner || "",
+          createdAt: normalizeDateTimeValue(customer.updatedAt) || normalizeDateTimeValue(customer.createdAt) || now
+        });
+      }
+
+      return {
+        id,
+        name: customer.name || "",
+        phone: customer.phone || "",
+        community: customer.community || "",
+        area: customer.area || "",
+        layout: customer.layout || "",
+        source: SOURCE_OPTIONS.includes(source) ? source : "其他",
+        need: customer.need || "",
+        budget: customer.budget || "待确认",
+        grade: GRADE_OPTIONS.includes(customer.grade) ? customer.grade : "C类客户",
+        status: STATUS_OPTIONS.includes(status) ? status : "新线索",
+        owner: customer.owner || "",
+        nextFollowDate: normalizeDateValue(customer.nextFollowDate),
+        followRecords,
+        createdAt: normalizeDateTimeValue(customer.createdAt) || now,
+        updatedAt: normalizeDateTimeValue(customer.updatedAt) || now
+      };
+    }
+
+    function normalizeFollowRecord(record) {
+      const now = getNowString();
+
+      return {
+        id: record.id || createId(),
+        followTime: normalizeDateTimeValue(record.followTime) || normalizeDateTimeValue(record.createdAt) || now,
+        method: record.method || "电话",
+        content: record.content || "",
+        nextFollowDate: normalizeDateValue(record.nextFollowDate),
+        owner: record.owner || "",
+        createdAt: normalizeDateTimeValue(record.createdAt) || normalizeDateTimeValue(record.followTime) || now
+      };
+    }
+
+    function fillFilterOptions() {
+      const sourceSelect = document.getElementById("filterSource");
+      const statusSelect = document.getElementById("filterStatus");
+      const gradeSelect = document.getElementById("filterGrade");
+
+      sourceSelect.innerHTML = "<option>全部来源</option>" + SOURCE_OPTIONS
+        .map(source => `<option>${escapeHtml(source)}</option>`)
+        .join("");
+
+      statusSelect.innerHTML = "<option>全部状态</option>" + STATUS_OPTIONS
+        .map(status => `<option>${escapeHtml(status)}</option>`)
+        .join("");
+
+      gradeSelect.innerHTML = "<option>全部等级</option>" + GRADE_OPTIONS
+        .map(grade => `<option>${escapeHtml(grade)}</option>`)
+        .join("");
+    }
+
+    function saveCustomer() {
+      const now = getNowString();
+      const existing = customers.find(customer => customer.id === editingId);
+      const customer = {
+        id: existing ? existing.id : createId(),
+        name: getValue("name"),
+        phone: getValue("phone"),
+        community: getValue("community"),
+        area: getValue("area"),
+        layout: getValue("layout"),
+        source: getValue("source"),
+        need: getValue("need"),
+        budget: getValue("budget"),
+        grade: getValue("grade"),
+        status: getValue("status"),
+        owner: getValue("owner"),
+        nextFollowDate: normalizeDateValue(getValue("nextFollowDate")),
+        followRecords: existing ? existing.followRecords : [],
+        createdAt: existing ? existing.createdAt : now,
+        updatedAt: now
+      };
+
+      if (!customer.name || !customer.phone) {
+        alert("客户姓名和手机号必须填写");
+        return;
+      }
+
+      if (existing) {
+        customers = customers.map(item => item.id === editingId ? customer : item);
+      } else {
+        customers.unshift(customer);
+      }
+
+      saveToLocalStorage();
+      clearForm();
+      renderCustomers();
+    }
+
+    function renderCustomers() {
+      const list = document.getElementById("customerList");
+      const keyword = getValue("searchKeyword").toLowerCase();
+      const source = getValue("filterSource");
+      const status = getValue("filterStatus");
+      const grade = getValue("filterGrade");
+      const followFilter = getValue("filterFollow");
+
+      let displayCustomers = customers.filter(customer => {
+        const haystack = [
+          customer.name,
+          customer.phone,
+          customer.community,
+          customer.source,
+          customer.status,
+          customer.grade,
+          getGradeLabel(customer.grade),
+          customer.owner
+        ].join(" ").toLowerCase();
+
+        const matchesKeyword = !keyword || haystack.includes(keyword);
+        const matchesSource = source === "全部来源" || customer.source === source;
+        const matchesStatus = status === "全部状态" || customer.status === status;
+        const matchesGrade = grade === "全部等级" || customer.grade === grade;
+        const followState = getFollowState(customer);
+        const matchesFollow = followFilter === "全部客户" ||
+          (followFilter === "今日需跟进" && followState === "today") ||
+          (followFilter === "已逾期" && followState === "overdue");
+
+        return matchesKeyword && matchesSource && matchesStatus && matchesGrade && matchesFollow;
+      });
+
+      currentDisplayCustomers = displayCustomers;
+      list.innerHTML = "";
+
+      if (!displayCustomers.length) {
+        list.innerHTML = '<tr><td colspan="12" class="empty-tip">当前没有匹配的客户数据</td></tr>';
+        updateStats();
+        return;
+      }
+
+      displayCustomers.forEach(customer => {
+        const row = document.createElement("tr");
+        const latestRecord = getLatestFollowRecord(customer);
+        const followState = getFollowState(customer);
+
+        row.innerHTML = `
+          <td>
+            <div class="customer-name">${escapeHtml(customer.name)}</div>
+            <div class="subtle nowrap">${escapeHtml(customer.phone)}</div>
+          </td>
+          <td>
+            <div class="nowrap">${escapeHtml(customer.community || "-")}</div>
+            <div class="subtle nowrap">${escapeHtml([customer.area, customer.layout].filter(Boolean).join(" / ") || "-")}</div>
+          </td>
+          <td class="compact-cell">${escapeHtml(customer.source)}</td>
+          <td class="compact-cell">${escapeHtml(customer.budget)}</td>
+          <td class="compact-cell">${renderGradeTag(customer.grade)}</td>
+          <td class="compact-cell">${renderStatusTags(customer, followState)}</td>
+          <td class="compact-cell">${escapeHtml(customer.owner || "-")}</td>
+          <td class="text-cell">${escapeHtml(customer.need || "-")}</td>
+          <td class="text-cell">${renderLatestRecord(latestRecord)}</td>
+          <td class="date-cell">${renderNextFollow(customer, followState)}</td>
+          <td class="date-cell">
+            <div>${escapeHtml(formatDateTime(customer.createdAt))}</div>
+            <div class="subtle">${escapeHtml(formatDateTime(customer.updatedAt))}</div>
+          </td>
+          <td class="action-cell">
+            <div class="row-actions">
+              <button class="btn-blue btn-small" onclick="openCustomerDetail('${customer.id}')">查看详情</button>
+              <button class="btn-green btn-small" onclick="editCustomer('${customer.id}')">编辑</button>
+              <button class="btn-teal btn-small" onclick="openFollowForm('${customer.id}')">跟进</button>
+              <button class="btn-red btn-small" onclick="deleteCustomer('${customer.id}')">删除</button>
+            </div>
+          </td>
+        `;
+
+        list.appendChild(row);
+      });
+
+      updateStats();
+    }
+
+    function renderStatusTags(customer, followState) {
+      let html = `<span class="tag tag-status">${escapeHtml(customer.status)}</span>`;
+
+      if (customer.status === "已签单") {
+        html += '<span class="tag tag-ok">已成交</span>';
+      }
+
+      if (followState === "today") {
+        html += '<span class="tag tag-today">今日需跟进</span>';
+      }
+
+      if (followState === "overdue") {
+        html += '<span class="tag tag-overdue">已逾期</span>';
+      }
+
+      return html;
+    }
+
+    function renderGradeTag(grade) {
+      const normalizedGrade = GRADE_OPTIONS.includes(grade) ? grade : "C类客户";
+      const gradeClass = normalizedGrade
+        .replace("A类客户", "tag-grade-a")
+        .replace("B类客户", "tag-grade-b")
+        .replace("C类客户", "tag-grade-c")
+        .replace("D类客户", "tag-grade-d");
+
+      return `
+        <span class="tag ${gradeClass}">${escapeHtml(normalizedGrade)}</span>
+        <span class="tag ${gradeClass}">${escapeHtml(getGradeLabel(normalizedGrade))}</span>
+      `;
+    }
+
+    function getGradeLabel(grade) {
+      return GRADE_LABELS[grade] || GRADE_LABELS["C类客户"];
+    }
+
+    function renderLatestRecord(record) {
+      if (!record) {
+        return '<span class="subtle">暂无跟进记录</span>';
+      }
+
+      return `
+        <div>${escapeHtml(record.content || "-")}</div>
+        <div class="subtle">${escapeHtml(record.method)} · ${escapeHtml(record.owner || "未填写跟进人")} · ${escapeHtml(formatDateTime(record.followTime))}</div>
+      `;
+    }
+
+    function renderNextFollow(customer, followState) {
+      const dateText = customer.nextFollowDate ? escapeHtml(customer.nextFollowDate) : '<span class="subtle">未设置</span>';
+      const tag = followState === "overdue"
+        ? '<div><span class="tag tag-overdue">已逾期</span></div>'
+        : followState === "today"
+          ? '<div><span class="tag tag-today">今日需跟进</span></div>'
+          : "";
+
+      return `${dateText}${tag}`;
+    }
+
+    function renderDetailPanel(customer) {
+      const records = customer.followRecords.length
+        ? customer.followRecords
+          .slice()
+          .sort((a, b) => new Date(b.followTime) - new Date(a.followTime))
+          .map(record => `
+            <div class="timeline-item">
+              <div class="timeline-meta">
+                <span>${escapeHtml(formatDateTime(record.followTime))}</span>
+                <span>${escapeHtml(record.method)}</span>
+                <span>跟进人：${escapeHtml(record.owner || "-")}</span>
+                <span>下次：${escapeHtml(record.nextFollowDate || "-")}</span>
+              </div>
+              <div class="timeline-content">${escapeHtml(record.content || "-")}</div>
+            </div>
+          `).join("")
+        : '<div class="empty-tip">暂无跟进历史</div>';
+
+      return `
+        <div class="detail-panel">
+          <div class="detail-grid">
+            ${renderDetailItem("客户姓名", customer.name)}
+            ${renderDetailItem("手机号", customer.phone)}
+            ${renderDetailItem("所在小区", customer.community)}
+            ${renderDetailItem("房屋面积", customer.area)}
+            ${renderDetailItem("户型", customer.layout)}
+            ${renderDetailItem("客户来源", customer.source)}
+            ${renderDetailItem("预算区间", customer.budget)}
+            ${renderDetailItem("客户等级", `${customer.grade} · ${getGradeLabel(customer.grade)}`)}
+            ${renderDetailItem("客户状态", customer.status)}
+            ${renderDetailItem("跟进人", customer.owner)}
+            ${renderDetailItem("下次跟进时间", customer.nextFollowDate)}
+            ${renderDetailItem("创建时间", formatDateTime(customer.createdAt))}
+            ${renderDetailItem("更新时间", formatDateTime(customer.updatedAt))}
+            <div class="detail-item full">
+              <span>装修需求</span>
+              <strong>${escapeHtml(customer.need || "-")}</strong>
+            </div>
+          </div>
+
+          <h3>跟进历史</h3>
+          <div class="timeline">${records}</div>
+
+          <div id="followForm-${customer.id}" class="follow-form hidden">
+            <h3>添加跟进记录</h3>
+            <div class="form-grid" style="margin-top:12px;">
+              <div>
+                <label for="followTime-${customer.id}">跟进时间</label>
+                <input id="followTime-${customer.id}" type="datetime-local" value="${escapeHtml(toDatetimeLocalValue(new Date()))}" />
+              </div>
+              <div>
+                <label for="followMethod-${customer.id}">跟进方式</label>
+                <select id="followMethod-${customer.id}">
+                  <option>电话</option>
+                  <option>微信</option>
+                  <option>到店</option>
+                  <option>量房</option>
+                  <option>方案沟通</option>
+                  <option>报价沟通</option>
+                  <option>其他</option>
+                </select>
+              </div>
+              <div>
+                <label for="followOwner-${customer.id}">跟进人</label>
+                <input id="followOwner-${customer.id}" value="${escapeHtml(customer.owner || "")}" />
+              </div>
+              <div>
+                <label for="followNext-${customer.id}">下次跟进时间</label>
+                <input id="followNext-${customer.id}" type="date" value="${escapeHtml(customer.nextFollowDate || "")}" />
+              </div>
+              <div class="full">
+                <label for="followContent-${customer.id}">跟进内容</label>
+                <textarea id="followContent-${customer.id}" placeholder="记录客户关注点、沟通结果、下一步动作"></textarea>
+              </div>
+            </div>
+            <div class="button-row">
+              <button class="btn-primary" onclick="addFollowRecord('${customer.id}')">保存跟进记录</button>
+              <button class="btn-light" onclick="hideFollowForm('${customer.id}')">取消</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDetailItem(label, value) {
+      return `
+        <div class="detail-item">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value || "-")}</strong>
+        </div>
+      `;
+    }
+
+    function toggleDetails(id) {
+      openCustomerDetail(id);
+    }
+
+    function openCustomerDetail(id) {
+      const customer = customers.find(item => item.id === id);
+
+      if (!customer) {
+        return;
+      }
+
+      detailModalCustomerId = id;
+      document.getElementById("customerDetailModal").classList.remove("hidden");
+      renderCustomerDetailModal();
+    }
+
+    function closeCustomerDetail() {
+      detailModalCustomerId = "";
+      document.getElementById("customerDetailModal").classList.add("hidden");
+      document.getElementById("detailModalBody").innerHTML = "";
+      document.getElementById("detailModalActions").innerHTML = "";
+    }
+
+    function renderCustomerDetailModal() {
+      const customer = customers.find(item => item.id === detailModalCustomerId);
+      const modal = document.getElementById("customerDetailModal");
+
+      if (!customer || modal.classList.contains("hidden")) {
+        return;
+      }
+
+      document.getElementById("detailModalTitle").innerText = `${customer.name || "客户"}详情`;
+      document.getElementById("detailModalSubtitle").innerText = `${customer.phone || "-"} · ${customer.community || "-"}`;
+      document.getElementById("detailModalBody").innerHTML = renderDetailPanel(customer);
+      document.getElementById("detailModalActions").innerHTML = `
+        <button class="btn-green" onclick="editCustomerFromDetail('${customer.id}')">编辑客户</button>
+        <button class="btn-teal" onclick="openFollowForm('${customer.id}')">添加跟进记录</button>
+        <button class="btn-light" onclick="closeCustomerDetail()">关闭</button>
+      `;
+    }
+
+    function editCustomerFromDetail(id) {
+      closeCustomerDetail();
+      editCustomer(id);
+    }
+
+    function handleDetailBackdropClick(event) {
+      if (event.target.id === "customerDetailModal") {
+        closeCustomerDetail();
+      }
+    }
+
+    function openFollowForm(id) {
+      openCustomerDetail(id);
+      const form = document.getElementById(`followForm-${id}`);
+
+      if (form) {
+        form.classList.remove("hidden");
+        form.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    function hideFollowForm(id) {
+      const form = document.getElementById(`followForm-${id}`);
+
+      if (form) {
+        form.classList.add("hidden");
+      }
+    }
+
+    function addFollowRecord(id) {
+      const customer = customers.find(item => item.id === id);
+
+      if (!customer) {
+        return;
+      }
+
+      const content = getValue(`followContent-${id}`);
+
+      if (!content) {
+        alert("请填写跟进内容");
+        return;
+      }
+
+      const nextFollowDate = normalizeDateValue(getValue(`followNext-${id}`));
+      const owner = getValue(`followOwner-${id}`) || customer.owner;
+      const now = getNowString();
+      const followTime = normalizeDateTimeValue(getValue(`followTime-${id}`)) || now;
+
+      customer.followRecords.push({
+        id: createId(),
+        followTime,
+        method: getValue(`followMethod-${id}`),
+        content,
+        nextFollowDate,
+        owner,
+        createdAt: now
+      });
+
+      customer.owner = owner;
+      customer.nextFollowDate = nextFollowDate;
+      customer.updatedAt = now;
+
+      saveToLocalStorage();
+      renderCustomers();
+      renderCustomerDetailModal();
+    }
+
+    function editCustomer(id) {
+      const customer = customers.find(item => item.id === id);
+
+      if (!customer) {
+        return;
+      }
+
+      setValue("name", customer.name);
+      setValue("phone", customer.phone);
+      setValue("community", customer.community);
+      setValue("area", customer.area);
+      setValue("layout", customer.layout);
+      setValue("source", customer.source);
+      setValue("budget", customer.budget);
+      setValue("grade", customer.grade);
+      setValue("status", customer.status);
+      setValue("owner", customer.owner);
+      setValue("nextFollowDate", normalizeDateValue(customer.nextFollowDate));
+      setValue("need", customer.need);
+
+      editingId = id;
+      document.getElementById("formTitle").innerText = "编辑客户";
+      document.getElementById("saveButton").innerText = "更新客户";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function deleteCustomer(id) {
+      const customer = customers.find(item => item.id === id);
+      const confirmed = confirm(`确定要删除客户「${customer ? customer.name : ""}」吗？`);
+
+      if (!confirmed) {
+        return;
+      }
+
+      customers = customers.filter(item => item.id !== id);
+
+      if (editingId === id) {
+        clearForm();
+      }
+
+      if (expandedId === id) {
+        expandedId = "";
+      }
+
+      saveToLocalStorage();
+      renderCustomers();
+    }
+
+    function clearForm() {
+      ["name", "phone", "community", "area", "layout", "owner", "nextFollowDate", "need"].forEach(id => setValue(id, ""));
+      setValue("source", "自然到店");
+      setValue("budget", "待确认");
+      setValue("grade", "C类客户");
+      setValue("status", "新线索");
+      editingId = "";
+      document.getElementById("formTitle").innerText = "新增客户";
+      document.getElementById("saveButton").innerText = "添加客户";
+    }
+
+    function cancelEdit() {
+      clearForm();
+    }
+
+    function clearAllCustomers() {
+      const confirmed = confirm("确定要清空全部客户数据吗？这个操作不能恢复。");
+
+      if (!confirmed) {
+        return;
+      }
+
+      customers = [];
+      editingId = "";
+      expandedId = "";
+      currentDisplayCustomers = [];
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(OLD_STORAGE_KEY);
+      clearForm();
+      resetFilters();
+      alert("客户数据已清空");
+    }
+
+    function showNeedFollow() {
+      setValue("filterFollow", "今日需跟进");
+      renderCustomers();
+    }
+
+    function resetFilters() {
+      setValue("searchKeyword", "");
+      setValue("filterSource", "全部来源");
+      setValue("filterStatus", "全部状态");
+      setValue("filterGrade", "全部等级");
+      setValue("filterFollow", "全部客户");
+      renderCustomers();
+    }
+
+    function exportCustomers() {
+      const exportData = currentDisplayCustomers.length ? currentDisplayCustomers : customers;
+
+      if (!exportData.length) {
+        alert("当前没有可导出的客户数据");
+        return;
+      }
+
+      const headers = [
+        "客户姓名",
+        "手机号",
+        "所在小区",
+        "房屋面积",
+        "户型",
+        "客户来源",
+        "装修需求",
+        "预算区间",
+        "客户等级",
+        "等级说明",
+        "客户状态",
+        "跟进人",
+        "最近跟进记录",
+        "下次跟进时间",
+        "创建时间",
+        "更新时间"
+      ];
+
+      const rows = exportData.map(customer => {
+        const latest = getLatestFollowRecord(customer);
+
+        return [
+          customer.name,
+          customer.phone,
+          customer.community,
+          customer.area,
+          customer.layout,
+          customer.source,
+          customer.need,
+          customer.budget,
+          customer.grade,
+          getGradeLabel(customer.grade),
+          customer.status,
+          customer.owner,
+          latest ? `${formatDateTime(latest.followTime)} ${latest.method} ${latest.content}` : "",
+          customer.nextFollowDate,
+          formatDateTime(customer.createdAt),
+          formatDateTime(customer.updatedAt)
+        ];
+      });
+
+      let csvContent = "\uFEFF" + headers.join(",") + "\n";
+
+      rows.forEach(row => {
+        csvContent += row.map(value => {
+          const text = String(value || "").replace(/"/g, '""');
+          return `"${text}"`;
+        }).join(",") + "\n";
+      });
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "装修整装门店CRM客户表.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCustomerData() {
+      if (!customers.length) {
+        alert("当前没有可导出的客户数据");
+        return;
+      }
+
+      const exportPayload = customers.map(normalizeCustomer);
+      const jsonContent = JSON.stringify(exportPayload, null, 2);
+      const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `装修整装门店CRM客户数据-${getTodayString()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function triggerImportCustomerData() {
+      const input = document.getElementById("importDataFile");
+
+      if (input) {
+        input.value = "";
+        input.click();
+      }
+    }
+
+    function importCustomerData(event) {
+      const file = event.target.files && event.target.files[0];
+
+      if (!file) {
+        return;
+      }
+
+      const confirmed = confirm("导入客户数据会覆盖当前页面里的全部客户数据，确定继续吗？");
+
+      if (!confirmed) {
+        event.target.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function () {
+        try {
+          const parsed = JSON.parse(reader.result);
+
+          if (!Array.isArray(parsed)) {
+            alert("导入失败：请选择由本 CRM 导出的 JSON 客户数据文件");
+            return;
+          }
+
+          customers = parsed.map(normalizeCustomer);
+          editingId = "";
+          expandedId = "";
+          currentDisplayCustomers = [];
+          saveToLocalStorage();
+          clearForm();
+          resetFilters();
+          alert(`导入完成，共恢复 ${customers.length} 条客户数据`);
+        } catch (error) {
+          console.error("客户数据导入失败", error);
+          alert("导入失败：JSON 文件格式不正确");
+        } finally {
+          event.target.value = "";
+        }
+      };
+
+      reader.onerror = function () {
+        alert("导入失败：文件读取出错");
+        event.target.value = "";
+      };
+
+      reader.readAsText(file, "UTF-8");
+    }
+
+    function renderDailyActionChecks() {
+      const actionWrap = document.getElementById("dailyActionChecks");
+
+      if (!actionWrap) {
+        return;
+      }
+
+      actionWrap.innerHTML = DAILY_WORK_ACTIONS.map(action => `
+        <label class="check-card">
+          <input type="checkbox" name="dailyWorkAction" value="${escapeHtml(action)}" />
+          ${escapeHtml(action)}
+        </label>
+      `).join("");
+    }
+
+    function openDailyReportModal() {
+      document.getElementById("dailyReportModal").classList.remove("hidden");
+      setText("dailyReportCopyTip", "");
+    }
+
+    function closeDailyReportModal() {
+      document.getElementById("dailyReportModal").classList.add("hidden");
+    }
+
+    function handleDailyReportBackdropClick(event) {
+      if (event.target.id === "dailyReportModal") {
+        closeDailyReportModal();
+      }
+    }
+
+    function getSelectedReportType() {
+      const selected = document.querySelector('input[name="dailyReportType"]:checked');
+      return selected ? selected.value : "simple";
+    }
+
+    function getSelectedWorkActions() {
+      return Array.from(document.querySelectorAll('input[name="dailyWorkAction"]:checked'))
+        .map(input => input.value)
+        .filter(action => DAILY_WORK_ACTIONS.includes(action));
+    }
+
+    function generateDailyReport() {
+      const reportType = getSelectedReportType();
+      const report = reportType === "detailed"
+        ? buildDetailedDailyReport()
+        : buildSimpleDailyReport();
+
+      setValue("dailyReportOutput", report);
+      setText("dailyReportCopyTip", "");
+    }
+
+    function buildSimpleDailyReport() {
+      const stats = getDailyReportStats();
+      const actions = getSelectedWorkActions();
+      const workNote = getValue("reportWorkNote");
+      const problems = getValue("reportProblems");
+      const tomorrowPlan = getValue("reportTomorrowPlan");
+      const dataLine = buildSimpleDataLine(stats);
+      const hasCustomerReview = actions.includes("客户信息复盘");
+      const workLines = buildActionWorkLines(actions)
+        .filter(line => line !== WORK_ACTION_SENTENCES["客户信息复盘"]);
+      const noteLines = buildSimpleSupplementLines(workNote, problems, tomorrowPlan);
+      const reportLines = [
+        "今日工作：",
+        `1. ${dataLine}`
+      ];
+
+      if (hasCustomerReview) {
+        reportLines.push(`${reportLines.length}. 完成客户信息复盘，梳理客户来源、客户状态及后续跟进动作。`);
+      }
+
+      workLines.forEach(line => {
+        reportLines.push(`${reportLines.length}. ${line}`);
+      });
+
+      reportLines.push(`${reportLines.length}. ${tomorrowPlan ? polishText(tomorrowPlan) : "明日重点围绕A类客户跟进、逾期客户提醒、已沟通客户量房推进及数据复盘开展工作。"}`);
+
+      return [
+        `当前项目：${getCurrentProjectName()}    日期：${stats.today}`,
+        "",
+        ...reportLines,
+        "",
+        "补充说明：",
+        noteLines.join("\n")
+      ].join("\n");
+    }
+
+    function buildDetailedDailyReport() {
+      const stats = getDailyReportStats();
+      const actions = getSelectedWorkActions();
+      const workNote = getValue("reportWorkNote");
+      const keyCustomers = getValue("reportKeyCustomers");
+      const problems = getValue("reportProblems");
+      const tomorrowPlan = getValue("reportTomorrowPlan");
+      const coordination = getValue("reportCoordination");
+      const sourceText = getTopSourceText();
+      const workLines = buildActionWorkLines(actions);
+      const workDetailText = buildDetailedWorkNote(actions, workNote, sourceText);
+      const keyCustomerText = keyCustomers
+        ? polishText(keyCustomers)
+        : "今日重点围绕A类客户、待跟进客户及逾期客户进行梳理，后续继续推进客户转化动作。";
+      const problemText = problems
+        ? polishText(problems)
+        : "今日暂无需重点反馈的问题，后续继续关注客户跟进节奏及转化情况。";
+      const planText = tomorrowPlan
+        ? polishText(tomorrowPlan)
+        : "明日将继续围绕重点客户跟进、客户状态推进、数据复盘及后续转化动作开展工作。";
+      const coordinationText = coordination
+        ? polishText(coordination)
+        : "暂无。";
+      const keyStatusParts = [];
+
+      if (stats.gradeA) {
+        keyStatusParts.push(`A类客户${stats.gradeA}组`);
+      }
+
+      if (stats.measuredOrLater) {
+        keyStatusParts.push(`已量房及后续客户${stats.measuredOrLater}组`);
+      }
+
+      if (stats.quotedOrLater) {
+        keyStatusParts.push(`已报价及后续客户${stats.quotedOrLater}组`);
+      }
+
+      if (stats.overdueTodo) {
+        keyStatusParts.push(`逾期待跟进客户${stats.overdueTodo}组`);
+      }
+
+      return [
+        `当前项目：${getCurrentProjectName()}    日期：${stats.today}`,
+        "",
+        "今日工作内容：",
+        `1. 客户跟进：${buildDetailedCustomerLine(stats)}`,
+        `2. 客户复盘：围绕客户来源、客户等级、客户状态进行梳理${keyStatusParts.length ? `，重点关注${keyStatusParts.join("、")}。` : "，重点关注A类客户、已量房客户、已报价客户及逾期待跟进客户。"}`,
+        `3. 重点工作：${workLines.length ? workLines.join("\n") : "今日未勾选具体工作动作，主要完成客户数据查看和基础跟进准备。"}`,
+        "",
+        "今日具体说明：",
+        workDetailText,
+        "",
+        "重点客户情况：",
+        keyCustomerText,
+        "",
+        "问题与卡点：",
+        problemText,
+        "",
+        "明日工作计划：",
+        planText,
+        "",
+        "需要协调事项：",
+        coordinationText
+      ].join("\n");
+    }
+
+    function getDailyReportStats() {
+      const today = getTodayString();
+      const followedCustomerIds = new Set();
+
+      customers.forEach(customer => {
+        (customer.followRecords || []).forEach(record => {
+          if (getDatePart(record.followTime) === today || getDatePart(record.createdAt) === today) {
+            followedCustomerIds.add(customer.id);
+          }
+        });
+      });
+
+      return {
+        today,
+        todayNew: customers.filter(customer => getDatePart(customer.createdAt) === today).length,
+        todayFollowed: followedCustomerIds.size,
+        todayMeasured: countTodayUpdatedByStatus("已量房", today),
+        todayQuoted: countTodayUpdatedByStatus("已报价", today),
+        todaySigned: countTodayUpdatedByStatus("已签单", today),
+        todayLost: countTodayUpdatedByStatus("已流失", today),
+        todayTodo: customers.filter(customer => getFollowState(customer) === "today").length,
+        overdueTodo: customers.filter(customer => getFollowState(customer) === "overdue").length,
+        gradeA: customers.filter(customer => customer.grade === "A类客户").length,
+        gradeB: customers.filter(customer => customer.grade === "B类客户").length,
+        gradeC: customers.filter(customer => customer.grade === "C类客户").length,
+        gradeD: customers.filter(customer => customer.grade === "D类客户").length,
+        measuredOrLater: countAtOrAfterStatus("已量房"),
+        quotedOrLater: countAtOrAfterStatus("已报价")
+      };
+    }
+
+    function countTodayUpdatedByStatus(status, today) {
+      return customers.filter(customer =>
+        customer.status === status && getDatePart(customer.updatedAt) === today
+      ).length;
+    }
+
+    function getActualSourceStats() {
+      const sourceCounts = {};
+
+      customers.forEach(customer => {
+        const source = customer.source || "其他";
+        sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+      });
+
+      return Object.keys(sourceCounts)
+        .filter(source => sourceCounts[source] > 0)
+        .sort((a, b) => sourceCounts[b] - sourceCounts[a] || a.localeCompare(b, "zh-CN"))
+        .map(source => `${source}：${sourceCounts[source]}组`);
+    }
+
+    function buildSimpleDataLine(stats) {
+      const parts = [
+        ["今日新增客户", stats.todayNew],
+        ["跟进客户", stats.todayFollowed],
+        ["量房", stats.todayMeasured],
+        ["报价", stats.todayQuoted],
+        ["签单", stats.todaySigned]
+      ]
+        .filter(([, count]) => count > 0)
+        .map(([label, count]) => `${label}${count}组`);
+
+      return parts.length
+        ? `${parts.join("，")}。`
+        : "今日暂无新增、跟进、量房、报价或签单数据，主要进行客户资料整理和后续动作准备。";
+    }
+
+    function buildDetailedCustomerLine(stats) {
+      const parts = [
+        `今日新增客户${stats.todayNew}组`,
+        `跟进客户${stats.todayFollowed}组`,
+        `当前待跟进${stats.todayTodo}组`,
+        `逾期${stats.overdueTodo}组`
+      ];
+
+      if (stats.todayMeasured) {
+        parts.push(`量房${stats.todayMeasured}组`);
+      }
+
+      if (stats.todayQuoted) {
+        parts.push(`报价${stats.todayQuoted}组`);
+      }
+
+      if (stats.todaySigned) {
+        parts.push(`签单${stats.todaySigned}组`);
+      }
+
+      return `${parts.join("，")}。`;
+    }
+
+    function buildActionWorkLines(actions) {
+      const lines = [];
+      const addLine = line => {
+        if (line && !lines.includes(line)) {
+          lines.push(line);
+        }
+      };
+
+      if (actions.includes("客户跟进")) {
+        addLine(WORK_ACTION_SENTENCES["客户跟进"]);
+      }
+
+      if (actions.includes("客户信息复盘")) {
+        addLine(WORK_ACTION_SENTENCES["客户信息复盘"]);
+      }
+
+      if (actions.includes("量房")) {
+        addLine(WORK_ACTION_SENTENCES["量房"]);
+      }
+
+      if (actions.includes("方案沟通")) {
+        addLine(WORK_ACTION_SENTENCES["方案沟通"]);
+      }
+
+      if (actions.includes("报价梳理")) {
+        addLine(WORK_ACTION_SENTENCES["报价梳理"]);
+      }
+
+      if (actions.includes("信息流文案输出") || actions.includes("短视频脚本输出")) {
+        addLine(WORK_ACTION_SENTENCES["信息流文案输出"]);
+      }
+
+      if (actions.includes("视频拍摄") || actions.includes("视频剪辑")) {
+        addLine(WORK_ACTION_SENTENCES["视频拍摄"]);
+      }
+
+      if (actions.includes("销售/设计师培训")) {
+        addLine(WORK_ACTION_SENTENCES["销售/设计师培训"]);
+      }
+
+      if (actions.includes("投流计划沟通")) {
+        addLine(WORK_ACTION_SENTENCES["投流计划沟通"]);
+      }
+
+      if (actions.includes("经纪人渠道沟通")) {
+        addLine(WORK_ACTION_SENTENCES["经纪人渠道沟通"]);
+      }
+
+      [
+        "直播准备",
+        "门店流程梳理",
+        "活动政策梳理",
+        "数据复盘",
+        "老板/负责人沟通",
+        "其他"
+      ].forEach(action => {
+        if (actions.includes(action)) {
+          addLine(WORK_ACTION_SENTENCES[action]);
+        }
+      });
+
+      return lines;
+    }
+
+    function buildSimpleSupplementLines(workNote, problems, tomorrowPlan) {
+      const lines = [];
+
+      if (workNote) {
+        lines.push(polishText(workNote));
+      }
+
+      if (problems) {
+        lines.push(`当前需要关注的是：${polishText(problems)}`);
+      }
+
+      if (tomorrowPlan) {
+        lines.push(`明日计划：${polishText(tomorrowPlan)}`);
+      }
+
+      if (!lines.length) {
+        lines.push("今日主要围绕客户资料整理、跟进节奏梳理和后续转化动作准备开展工作，明日继续推进重点客户跟进和数据复盘。");
+      }
+
+      return lines.slice(0, 3);
+    }
+
+    function buildDetailedWorkNote(actions, workNote, sourceText) {
+      const actionLines = buildActionWorkLines(actions);
+      const lines = [];
+
+      if (workNote) {
+        lines.push(polishText(workNote));
+      } else if (actionLines.length) {
+        lines.push(actionLines.join("\n"));
+      } else {
+        lines.push("今日主要围绕客户资料查看、跟进记录整理和后续客户推进准备开展工作。");
+      }
+
+      if (sourceText) {
+        lines.push(`从当前客户来源看，${sourceText}，后续继续结合实际线索质量优化跟进重点。`);
+      }
+
+      return lines.join("\n");
+    }
+
+    function getTopSourceText() {
+      const sourceLines = getActualSourceStats();
+
+      if (!sourceLines.length) {
+        return "";
+      }
+
+      return sourceLines.slice(0, 3).join("，");
+    }
+
+    function buildWorkSummary(actions, workNote, isDetailed) {
+      const actionSentences = actions
+        .map(action => WORK_ACTION_SENTENCES[action])
+        .filter(Boolean);
+      const sentences = [];
+
+      if (actionSentences.length) {
+        sentences.push(`今日主要围绕${actions.join("、")}等工作展开。`);
+        sentences.push(...actionSentences);
+
+        if (isDetailed) {
+          sentences.push("整体来看，以上动作主要服务于线索承接、客户关系维护、转化节点推进和门店执行闭环，后续将继续结合客户状态变化和跟进反馈，及时调整优先级。");
+        }
+      }
+
+      if (workNote) {
+        sentences.push(`补充说明：${polishText(workNote)}`);
+
+        if (isDetailed) {
+          sentences.push("该部分工作将作为后续复盘依据，便于持续追踪执行结果、客户反馈和需要协同推进的事项。");
+        }
+      }
+
+      if (!sentences.length) {
+        return isDetailed
+          ? "今日未勾选具体工作动作。建议后续在日报中补充客户跟进、数据复盘、渠道沟通、方案沟通或门店执行等实际内容，便于沉淀每日动作、复盘推进效果，并形成可追踪的点将工作记录。"
+          : "今日已完成点将相关基础工作，具体动作可在后续日报中继续补充记录。";
+      }
+
+      return sentences.join(isDetailed ? "\n" : "");
+    }
+
+    function polishText(value) {
+      const text = String(value || "").trim();
+
+      if (!text) {
+        return "";
+      }
+
+      return /[。！？.!?]$/.test(text) ? text : `${text}。`;
+    }
+
+    function getCurrentProjectName() {
+      saveProjectInfo();
+      return projectInfo.name || DEFAULT_PROJECT_NAME;
+    }
+
+    function copyDailyReport() {
+      const report = getValue("dailyReportOutput");
+
+      if (!report) {
+        alert("请先生成日报");
+        return;
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(report).then(() => {
+          setText("dailyReportCopyTip", "日报已复制");
+        }).catch(() => {
+          fallbackCopyDailyReport(report);
+        });
+        return;
+      }
+
+      fallbackCopyDailyReport(report);
+    }
+
+    function fallbackCopyDailyReport(report) {
+      const output = document.getElementById("dailyReportOutput");
+
+      if (!output) {
+        return;
+      }
+
+      output.focus();
+      output.select();
+
+      try {
+        document.execCommand("copy");
+        setText("dailyReportCopyTip", "日报已复制");
+      } catch (error) {
+        alert("复制失败，请手动选中日报内容复制");
+      }
+    }
+
+    function loadPreJudgeRecords() {
+      const saved = localStorage.getItem(PREJUDGE_STORAGE_KEY);
+
+      if (!saved) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed.map(normalizePreJudgeRecord) : [];
+      } catch (error) {
+        console.error("点将前置研判历史读取失败", error);
+        return [];
+      }
+    }
+
+    function normalizePreJudgeRecord(record) {
+      return {
+        id: record.id || createId(),
+        createdAt: normalizeDateTimeValue(record.createdAt) || getNowString(),
+        updatedAt: normalizeDateTimeValue(record.updatedAt) || normalizeDateTimeValue(record.createdAt) || getNowString(),
+        data: record.data && typeof record.data === "object" ? record.data : {},
+        prompt: String(record.prompt || ""),
+        aiReport: String(record.aiReport || record.report || "")
+      };
+    }
+
+    function savePreJudgeRecordsToStorage() {
+      localStorage.setItem(PREJUDGE_STORAGE_KEY, JSON.stringify(preJudgeRecords.map(normalizePreJudgeRecord)));
+    }
+
+    function openPreJudgeModal() {
+      document.getElementById("preJudgeModal").classList.remove("hidden");
+      setText("preJudgeCopyTip", "");
+      renderPreJudgeChoiceGroups();
+      renderPreJudgeHistory();
+    }
+
+    function closePreJudgeModal() {
+      document.getElementById("preJudgeModal").classList.add("hidden");
+    }
+
+    function handlePreJudgeBackdropClick(event) {
+      if (event.target.id === "preJudgeModal") {
+        closePreJudgeModal();
+      }
+    }
+
+    function collectPreJudgeData() {
+      return {
+        cityName: getValue("preJudge-cityName"),
+        mallName: getValue("preJudge-mallName"),
+        brandCategory: getValue("preJudge-brandCategory"),
+        goalCategories: getCheckedValues("preJudgeGoal"),
+        trafficDirections: getCheckedValues("preJudgeTraffic"),
+        conversionIssues: getCheckedValues("preJudgeConversion"),
+        processIssues: getCheckedValues("preJudgeProcess"),
+        note: getValue("preJudge-note")
+      };
+    }
+
+    function setPreJudgeData(data) {
+      setValue("preJudge-cityName", data.cityName || "");
+      setValue("preJudge-mallName", data.mallName || "");
+      setValue("preJudge-brandCategory", data.brandCategory || "");
+      setValue("preJudge-note", data.note || "");
+      setCheckedValues("preJudgeGoal", normalizePreJudgeArray(data.goalCategories || data.goal || data.pointGoal));
+      setCheckedValues("preJudgeTraffic", normalizePreJudgeArray(data.trafficDirections));
+      setCheckedValues("preJudgeConversion", normalizePreJudgeArray(data.conversionIssues));
+      setCheckedValues("preJudgeProcess", normalizePreJudgeArray(data.processIssues));
+    }
+
+    function renderPreJudgeChoiceGroups() {
+      renderPreJudgeChoices("preJudgeGoalChecks", "preJudgeGoal", PREJUDGE_GOAL_OPTIONS);
+      renderPreJudgeChoices("preJudgeTrafficChecks", "preJudgeTraffic", PREJUDGE_TRAFFIC_OPTIONS);
+      renderPreJudgeChoices("preJudgeConversionChecks", "preJudgeConversion", PREJUDGE_CONVERSION_OPTIONS);
+      renderPreJudgeChoices("preJudgeProcessChecks", "preJudgeProcess", PREJUDGE_PROCESS_OPTIONS);
+    }
+
+    function renderPreJudgeChoices(containerId, name, options) {
+      const container = document.getElementById(containerId);
+
+      if (!container || container.dataset.rendered === "true") {
+        return;
+      }
+
+      container.innerHTML = options.map(option => `
+        <label class="check-card">
+          <input type="checkbox" name="${name}" value="${escapeHtml(option)}" />
+          ${escapeHtml(option)}
+        </label>
+      `).join("");
+      container.dataset.rendered = "true";
+    }
+
+    function getCheckedValues(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`))
+        .map(input => input.value);
+    }
+
+    function setCheckedValues(name, values) {
+      const selected = new Set(values);
+
+      document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+        input.checked = selected.has(input.value);
+      });
+    }
+
+    function normalizePreJudgeArray(value) {
+      if (Array.isArray(value)) {
+        return value.filter(Boolean);
+      }
+
+      if (!value) {
+        return [];
+      }
+
+      return String(value)
+        .split(/[、,，/；;]+/)
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    function generatePreJudgePrompt() {
+      const data = collectPreJudgeData();
+
+      if (!data.cityName) {
+        alert("请先填写城市名称");
+        return;
+      }
+
+      const prompt = buildPreJudgeResearchPrompt(data);
+      setValue("preJudgePromptOutput", prompt);
+      setText("preJudgeCopyTip", "");
+    }
+
+    function savePreJudgeRecord() {
+      const data = collectPreJudgeData();
+
+      if (!data.cityName) {
+        alert("请先填写城市名称");
+        return;
+      }
+
+      const prompt = getValue("preJudgePromptOutput") || buildPreJudgeResearchPrompt(data);
+      const aiReport = getValue("preJudgeAiReport");
+      const record = {
+        id: createId(),
+        createdAt: getNowString(),
+        updatedAt: getNowString(),
+        data,
+        prompt,
+        aiReport
+      };
+
+      preJudgeRecords.unshift(record);
+      savePreJudgeRecordsToStorage();
+      setValue("preJudgePromptOutput", prompt);
+      setText("preJudgeCopyTip", "城市研判记录已保存");
+      renderPreJudgeHistory();
+    }
+
+    function renderPreJudgeHistory() {
+      const list = document.getElementById("preJudgeHistoryList");
+
+      if (!list) {
+        return;
+      }
+
+      if (!preJudgeRecords.length) {
+        list.innerHTML = '<div class="empty-tip">暂无历史研判记录</div>';
+        return;
+      }
+
+      list.innerHTML = preJudgeRecords.map(record => {
+        const data = record.data || {};
+        const titleParts = [data.cityName, data.mallName, data.brandCategory].filter(Boolean);
+        const title = titleParts.length ? titleParts.join(" / ") : "未命名研判";
+
+        return `
+          <div class="prejudge-history-item">
+            <div>
+              <div class="prejudge-history-title">${escapeHtml(title)}</div>
+              <div class="subtle">${escapeHtml(formatDateTime(record.createdAt))} · 目标：${escapeHtml(formatPreJudgeSummary(data))}</div>
+            </div>
+            <div class="row-actions">
+              <button class="btn-blue btn-small" onclick="loadPreJudgeRecord('${record.id}')">查看</button>
+              <button class="btn-green btn-small" onclick="copyPreJudgeHistoryReport('${record.id}')">复制报告</button>
+              <button class="btn-red btn-small" onclick="deletePreJudgeRecord('${record.id}')">删除</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function formatPreJudgeSummary(data) {
+      const goals = normalizePreJudgeArray(data.goalCategories || data.goal || data.pointGoal);
+      const traffic = normalizePreJudgeArray(data.trafficDirections);
+      const conversion = normalizePreJudgeArray(data.conversionIssues);
+      const process = normalizePreJudgeArray(data.processIssues);
+      const parts = [];
+
+      if (goals.length) {
+        parts.push(goals.slice(0, 3).join("、"));
+      }
+
+      if (traffic.length) {
+        parts.push(`流量：${traffic.slice(0, 2).join("、")}`);
+      }
+
+      if (conversion.length) {
+        parts.push(`转化：${conversion.slice(0, 2).join("、")}`);
+      }
+
+      if (process.length) {
+        parts.push(`流程：${process.slice(0, 2).join("、")}`);
+      }
+
+      return parts.length ? parts.join("；") : "未填写";
+    }
+
+    function loadPreJudgeRecord(id) {
+      const record = preJudgeRecords.find(item => item.id === id);
+
+      if (!record) {
+        return;
+      }
+
+      setPreJudgeData(record.data || {});
+      setValue("preJudgePromptOutput", record.prompt || buildPreJudgeResearchPrompt(record.data || {}));
+      setValue("preJudgeAiReport", record.aiReport || record.report || "");
+      setText("preJudgeCopyTip", "已载入历史城市研判记录");
+    }
+
+    function deletePreJudgeRecord(id) {
+      const record = preJudgeRecords.find(item => item.id === id);
+      const confirmed = confirm(`确定要删除城市研判记录「${record ? (record.data.cityName || record.data.mallName || "未命名研判") : ""}」吗？`);
+
+      if (!confirmed) {
+        return;
+      }
+
+      preJudgeRecords = preJudgeRecords.filter(item => item.id !== id);
+      savePreJudgeRecordsToStorage();
+      renderPreJudgeHistory();
+      setText("preJudgeCopyTip", "城市研判记录已删除");
+    }
+
+    function copyPreJudgePrompt() {
+      const prompt = getValue("preJudgePromptOutput");
+
+      if (!prompt) {
+        alert("请先生成AI调研指令");
+        return;
+      }
+
+      copyPreJudgeText(prompt, "调研指令已复制", "preJudgePromptOutput");
+    }
+
+    function copyPreJudgeHistoryReport(id) {
+      const record = preJudgeRecords.find(item => item.id === id);
+      const report = record ? (record.aiReport || record.report || "") : "";
+
+      if (!report) {
+        alert("该历史记录还没有AI研判报告");
+        return;
+      }
+
+      copyPreJudgeText(report, "历史报告已复制", "preJudgeAiReport");
+    }
+
+    function copyPreJudgeText(text, successText, fallbackElementId) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          setText("preJudgeCopyTip", successText);
+        }).catch(() => {
+          fallbackCopyPreJudgeText(text, fallbackElementId, successText);
+        });
+        return;
+      }
+
+      fallbackCopyPreJudgeText(text, fallbackElementId, successText);
+    }
+
+    function fallbackCopyPreJudgeText(text, elementId, successText) {
+      const output = document.getElementById(elementId);
+
+      if (output) {
+        output.value = text;
+        output.focus();
+        output.select();
+      } else {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.focus();
+        temp.select();
+      }
+
+      try {
+        document.execCommand("copy");
+        setText("preJudgeCopyTip", successText);
+      } catch (error) {
+        alert("复制失败，请手动选中文本复制");
+      } finally {
+        const temp = document.querySelector("textarea[style*='opacity: 0']");
+        if (temp && temp.parentNode) {
+          temp.parentNode.removeChild(temp);
+        }
+      }
+    }
+
+    function buildPreJudgeResearchPrompt(data) {
+      const mallText = data.mallName ? `，商场名称为【${data.mallName}】` : "，商场名称暂未填写";
+      const brandText = data.brandCategory ? `，品牌/品类为【${data.brandCategory}】` : "，品牌/品类暂未填写";
+      const goals = normalizePreJudgeArray(data.goalCategories || data.goal || data.pointGoal);
+      const trafficDirections = normalizePreJudgeArray(data.trafficDirections);
+      const conversionIssues = normalizePreJudgeArray(data.conversionIssues);
+      const processIssues = normalizePreJudgeArray(data.processIssues);
+      const goalLines = [
+        goals.length ? `点将目标大类：${goals.join("、")}` : "",
+        trafficDirections.length ? `前端流量方向：${trafficDirections.join("、")}` : "",
+        conversionIssues.length ? `承接转化问题：${conversionIssues.join("、")}` : "",
+        processIssues.length ? `团队/流程问题：${processIssues.join("、")}` : ""
+      ].filter(Boolean);
+      const goalText = goalLines.length ? `\n${goalLines.join("\n")}` : "";
+      const noteText = data.note ? `\n补充备注：${data.note}` : "";
+
+      return [
+        `请你以“装修整装行业点将前置研判”的角度，帮我调研【${data.cityName}】市场情况${mallText}${brandText}，生成一份点将前置研判报告。`,
+        `${goalText}${noteText}`,
+        "",
+        "请先结合我选择的点将目标和诊断方向，判断当前门店主要问题属于哪几类：",
+        "- 前端流量问题",
+        "- 客户承接问题",
+        "- 方案报价问题",
+        "- 团队执行问题",
+        "- 活动落地问题",
+        "",
+        "如果选择了“前端流量获客”，请进一步分析适合优先做哪些流量入口：",
+        "- 短视频内容",
+        "- 信息流投放",
+        "- 直播",
+        "- 经纪人渠道",
+        "- 小区/地推",
+        "- 老客户转介绍",
+        "- 私域朋友圈",
+        "",
+        "诊断要求：",
+        "- 不要把所有问题都简单归因为“缺流量”。",
+        "- 需要区分：没有线索、线索质量差、有线索没人跟、有进店不转化、有量房不报价、有报价不签单。",
+        "- 输出报告时要给出优先级：第一优先动作、第二优先动作、暂缓动作。",
+        "- 请按“西北区域城市点将口径”进行判断，优先适用于新疆、甘肃、宁夏、青海及周边西北区域城市。",
+        "- 全国其他城市也可以使用该研判框架，但不要套用一线城市打法。",
+        "- 分析时要结合区域商场、老板配合度、团队承接能力、客户预算敏感度和前端流量基础。",
+        "- 不要编造交房量、楼盘数量、线索成本等具体数据。",
+        "- 投流建议保持小预算测试、先看有效线索、再决定是否放量的逻辑。",
+        "",
+        "报告需要包含：",
+        "",
+        "1. 城市基础判断",
+        "- 城市基本情况",
+        "- 装修/整装需求初步判断",
+        "- 新房交付和存量房装修机会判断",
+        "- 本地客户消费特点",
+        "",
+        "2. 新房交付与楼盘机会",
+        "- 近期是否有新房交付或重点小区",
+        "- 可能适合重点关注的小区方向",
+        "- 是否适合小区爆破、地推、物业合作或经纪人转介绍",
+        "- 如果公开信息不足，请说明需要补充哪些信息，不要编造数据",
+        "",
+        "3. 客户画像与核心痛点",
+        "- 主要客户类型",
+        "- 预算敏感度",
+        "- 装修关注点",
+        "- 可能的客户痛点",
+        "- 适合主打的卖点",
+        "",
+        "4. 获客渠道判断",
+        "- 抖音/短视频获客可行性",
+        "- 信息流投放可行性",
+        "- 经纪人渠道可行性",
+        "- 地推/小区渠道可行性",
+        "- 老客户转介绍可行性",
+        "- 直播获客可行性",
+        "",
+        "5. 首轮投流方案建议",
+        "- 是否建议先小预算测试",
+        "- 建议日预算范围",
+        "- 建议测试周期",
+        "- 建议测试的客户方向",
+        "- 建议测试的素材方向",
+        "- 重点观察数据",
+        "- 加预算、降预算、停投条件",
+        "",
+        "6. 老板沟通话术",
+        "- 初次和老板沟通时怎么说",
+        "- 需要老板配合哪些资源",
+        "- 如何解释前期测试预算",
+        "- 如何说明点将前3-7天的工作重点",
+        "",
+        "7. 前7天点将动作计划",
+        "- 第1天做什么",
+        "- 第2天做什么",
+        "- 第3天做什么",
+        "- 第4-7天怎么推进",
+        "- 每天重点产出是什么",
+        "",
+        "8. 信息流文案方向",
+        "请根据城市情况和客户痛点，生成不少于10条装修/整装信息流文案方向。",
+        "要求：",
+        "- 适合抖音/本地生活/信息流",
+        "- 不要太长",
+        "- 偏真实客户痛点",
+        "- 能用于后续拍摄短视频或投放素材",
+        "",
+        "9. 风险提醒",
+        "- 当前城市可能存在的风险",
+        "- 数据不足时需要补充哪些资料",
+        "- 不建议盲目投入的地方",
+        "",
+        "要求：",
+        "- 不要编造无法确认的新房交付量。",
+        "- 不要编造具体楼盘数据。",
+        "- 如果需要联网资料，请基于公开资料分析。",
+        "- 输出内容要适合主动营销老师到新城市点将使用。",
+        "- 语气务实，不要太官方。",
+        "- 重点是可落地执行。"
+      ].join("\n");
+    }
+
+    function updateStats() {
+      const total = customers.length;
+      const signed = customers.filter(customer => customer.status === "已签单").length;
+      const activeTotal = customers.filter(customer => customer.status !== "已流失").length;
+      const reportStats = getDailyReportStats();
+
+      setText("statTotal", total);
+      setText("statTodayNew", reportStats.todayNew);
+      setText("statTodayFollowed", reportStats.todayFollowed);
+      setText("statTodayNeedFollow", reportStats.todayTodo);
+      setText("statOverdueFollow", reportStats.overdueTodo);
+      setText("statNeedFollow", customers.filter(customer => ["today", "overdue"].includes(getFollowState(customer))).length);
+      setText("statMeasured", customers.filter(customer => customer.status === "已量房").length);
+      setText("statQuoted", customers.filter(customer => customer.status === "已报价").length);
+      setText("statSigned", signed);
+      setText("statLost", customers.filter(customer => customer.status === "已流失").length);
+      setText("statConversion", activeTotal ? `${Math.round((signed / activeTotal) * 100)}%` : "0%");
+      setText("statGradeA", customers.filter(customer => customer.grade === "A类客户").length);
+      setText("statGradeB", customers.filter(customer => customer.grade === "B类客户").length);
+      setText("statGradeC", customers.filter(customer => customer.grade === "C类客户").length);
+      setText("statGradeD", customers.filter(customer => customer.grade === "D类客户").length);
+      renderStageFunnel();
+      renderFollowTodos();
+      renderSourceStats();
+    }
+
+    function focusCustomerForm() {
+      const formSection = document.getElementById("customerFormSection");
+
+      if (formSection) {
+        formSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      setTimeout(() => {
+        const nameInput = document.getElementById("name");
+
+        if (nameInput) {
+          nameInput.focus();
+        }
+      }, 320);
+    }
+
+    function renderStageFunnel() {
+      const stageFunnel = document.getElementById("stageFunnel");
+      const total = customers.length;
+      const maxCount = Math.max(...STATUS_OPTIONS.map(status => countByStatus(status)), 1);
+
+      if (!stageFunnel) {
+        return;
+      }
+
+      stageFunnel.innerHTML = STATUS_OPTIONS.map(status => {
+        const count = countByStatus(status);
+        const width = Math.max((count / maxCount) * 100, count > 0 ? 4 : 0);
+
+        return `
+          <div class="funnel-row">
+            <div class="funnel-name">${escapeHtml(status)}</div>
+            <div class="funnel-bar">
+              <span class="funnel-fill" style="width:${width}%;"></span>
+            </div>
+            <div class="funnel-count">${count}</div>
+          </div>
+        `;
+      }).join("");
+
+      setText("rateMeasured", formatPercent(countAtOrAfterStatus("已量房"), total));
+      setText("rateQuoted", formatPercent(countAtOrAfterStatus("已报价"), total));
+      setText("rateSigned", formatPercent(countByStatus("已签单"), total));
+    }
+
+    function renderFollowTodos() {
+      const todoList = document.getElementById("followTodoList");
+
+      if (!todoList) {
+        return;
+      }
+
+      const todos = customers
+        .filter(customer => ["today", "overdue"].includes(getFollowState(customer)))
+        .sort(compareFollowTodo);
+
+      if (!todos.length) {
+        todoList.innerHTML = '<div class="empty-tip">当前没有今日待跟进或逾期未跟进客户</div>';
+        return;
+      }
+
+      todoList.innerHTML = todos.map(customer => {
+        const followState = getFollowState(customer);
+        const latestRecord = getLatestFollowRecord(customer);
+        const followTag = followState === "overdue"
+          ? '<span class="tag tag-overdue">已逾期</span>'
+          : '<span class="tag tag-today">今日跟进</span>';
+
+        return `
+          <div class="todo-card" onclick="openCustomerDetail('${customer.id}')">
+            <div>
+              <div class="todo-title">${escapeHtml(customer.name)}</div>
+              <div class="todo-meta">${escapeHtml(customer.phone || "-")}</div>
+              <div class="todo-meta">${escapeHtml(customer.community || "-")}</div>
+            </div>
+            <div>
+              ${renderGradeTag(customer.grade)}
+              <span class="tag tag-status">${escapeHtml(customer.status)}</span>
+              ${followTag}
+              <div class="todo-meta">下次跟进：${escapeHtml(customer.nextFollowDate || "-")}</div>
+              <div class="todo-meta">跟进人：${escapeHtml(customer.owner || "-")}</div>
+            </div>
+            <div>
+              <div class="todo-meta">最近跟进记录</div>
+              <div class="timeline-content">${latestRecord ? escapeHtml(latestRecord.content || "-") : "暂无跟进记录"}</div>
+            </div>
+            <div class="todo-actions">
+              <button class="btn-blue btn-small" onclick="event.stopPropagation(); openCustomerDetail('${customer.id}')">查看详情</button>
+              <button class="btn-green btn-small" onclick="event.stopPropagation(); editCustomer('${customer.id}')">编辑</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function compareFollowTodo(a, b) {
+      const stateWeight = { overdue: 0, today: 1 };
+      const gradeWeight = { "A类客户": 0, "B类客户": 1, "C类客户": 2, "D类客户": 3 };
+      const stateDiff = stateWeight[getFollowState(a)] - stateWeight[getFollowState(b)];
+
+      if (stateDiff !== 0) {
+        return stateDiff;
+      }
+
+      const gradeDiff = (gradeWeight[a.grade] ?? 9) - (gradeWeight[b.grade] ?? 9);
+
+      if (gradeDiff !== 0) {
+        return gradeDiff;
+      }
+
+      return String(a.nextFollowDate || "").localeCompare(String(b.nextFollowDate || ""));
+    }
+
+    function renderSourceStats() {
+      const sourceStats = document.getElementById("sourceStats");
+
+      if (!sourceStats) {
+        return;
+      }
+
+      sourceStats.innerHTML = SOURCE_OPTIONS.map(source => {
+        const count = customers.filter(customer => customer.source === source).length;
+
+        return `
+          <div class="source-stat">
+            <span>${escapeHtml(source)}</span>
+            <strong>${count}</strong>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function countByStatus(status) {
+      return customers.filter(customer => customer.status === status).length;
+    }
+
+    function countAtOrAfterStatus(status) {
+      const startIndex = FUNNEL_PROGRESS_STATUSES.indexOf(status);
+
+      if (startIndex === -1) {
+        return 0;
+      }
+
+      const statuses = FUNNEL_PROGRESS_STATUSES.slice(startIndex);
+      return customers.filter(customer => statuses.includes(customer.status)).length;
+    }
+
+    function formatPercent(numerator, denominator) {
+      if (!denominator) {
+        return "0%";
+      }
+
+      return `${Math.round((numerator / denominator) * 100)}%`;
+    }
+
+    function getFollowState(customer) {
+      const nextFollowDate = normalizeDateValue(customer.nextFollowDate);
+
+      if (!nextFollowDate || ["已签单", "已流失"].includes(customer.status)) {
+        return "none";
+      }
+
+      const today = getTodayString();
+
+      if (nextFollowDate < today) {
+        return "overdue";
+      }
+
+      if (nextFollowDate === today) {
+        return "today";
+      }
+
+      return "future";
+    }
+
+    function getLatestFollowRecord(customer) {
+      if (!customer.followRecords || !customer.followRecords.length) {
+        return null;
+      }
+
+      return customer.followRecords
+        .slice()
+        .sort((a, b) => new Date(b.followTime) - new Date(a.followTime))[0];
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+    }
+
+    function getValue(id) {
+      const element = document.getElementById(id);
+      return element ? element.value.trim() : "";
+    }
+
+    function setValue(id, value) {
+      const element = document.getElementById(id);
+
+      if (element) {
+        element.value = value || "";
+      }
+    }
+
+    function setText(id, value) {
+      const element = document.getElementById(id);
+
+      if (element) {
+        element.innerText = value;
+      }
+    }
+
+    function createId() {
+      return `crm-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function getTodayString() {
+      return getDatePart(new Date());
+    }
+
+    function getNowString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+
+      return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
+    function getDatePart(value) {
+      if (!value) {
+        return "";
+      }
+
+      if (typeof value === "string") {
+        return normalizeDateValue(value);
+      }
+
+      if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+        return "";
+      }
+
+      const year = value.getFullYear();
+      const month = String(value.getMonth() + 1).padStart(2, "0");
+      const day = String(value.getDate()).padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatDateTime(value) {
+      if (!value) {
+        return "-";
+      }
+
+      const normalizedDateTime = normalizeDateTimeValue(value);
+
+      if (normalizedDateTime) {
+        return normalizedDateTime.replace("T", " ");
+      }
+
+      return normalizeDateValue(value) || "-";
+    }
+
+    function normalizeDateValue(value) {
+      if (!value) {
+        return "";
+      }
+
+      const text = String(value).trim();
+      const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+
+      if (!match) {
+        return "";
+      }
+
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      const date = new Date(year, month - 1, day);
+
+      if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+      ) {
+        return "";
+      }
+
+      return [
+        String(year).padStart(4, "0"),
+        String(month).padStart(2, "0"),
+        String(day).padStart(2, "0")
+      ].join("-");
+    }
+
+    function normalizeDateTimeValue(value) {
+      if (!value) {
+        return "";
+      }
+
+      const text = String(value).trim();
+      const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[T\s](\d{1,2}):(\d{1,2}))?/);
+      const datePart = normalizeDateValue(text);
+
+      if (!match || !datePart) {
+        return "";
+      }
+
+      const hour = Number(match[4] || 0);
+      const minute = Number(match[5] || 0);
+
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        return "";
+      }
+
+      return `${datePart}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+    }
+
+    function toDatetimeLocalValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hour = String(date.getHours()).padStart(2, "0");
+      const minute = String(date.getMinutes()).padStart(2, "0");
+
+      return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+    renderPreJudgeChoiceGroups();
+    renderPreJudgeHistory();
+  </script>
+</body>
+</html>
