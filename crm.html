@@ -357,6 +357,18 @@
       color: #334155;
     }
 
+    .return-home-btn {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      color: #172554;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+    }
+
+    .return-home-btn:hover {
+      background: #fff;
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.24);
+    }
+
     .btn-small {
       min-height: 31px;
       padding: 6px 9px;
@@ -1296,7 +1308,7 @@
 
         <div class="ops-panel">
           <div class="hero-actions">
-            <button class="btn-light" onclick="location.href='index.html'">返回工具库首页</button>
+            <button class="btn-light return-home-btn" onclick="location.href='index.html'">返回工具库首页</button>
             <button class="btn-blue" onclick="openPreJudgeModal()">AI城市研判</button>
             <button class="btn-primary" onclick="openDailyReportModal()">生成工作日报</button>
             <button class="btn-green" onclick="focusCustomerForm()">新增客户</button>

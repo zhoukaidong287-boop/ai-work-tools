@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工作日报/周报工具</title>
+  <style>
+    :root {
+      --bg: #eef3fb;
+      --line: #dbe4f0;
+      --text: #172033;
+      --muted: #64748b;
+      --brand: #4657f0;
+      --blue: #2563eb;
+      --green: #12945a;
+      --red: #d04444;
+      --teal: #0891b2;
+      --shadow: 0 18px 50px rgba(21, 34, 66, 0.09);
+      --gradient-primary: linear-gradient(135deg, #3861ff 0%, #6757f5 52%, #08b6d8 100%);
+      --gradient-dark: radial-gradient(circle at 18% 16%, rgba(77, 208, 255, 0.28), transparent 34%),
+        radial-gradient(circle at 86% 8%, rgba(132, 92, 255, 0.34), transparent 30%),
+        linear-gradient(135deg, #111827 0%, #172554 50%, #0f172a 100%);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(70, 87, 240, 0.14), transparent 28%),
+        radial-gradient(circle at 96% 12%, rgba(8, 182, 216, 0.13), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    header {
+      background: var(--gradient-dark);
+      color: #fff;
+      overflow: hidden;
+      padding: 36px 40px 82px;
+      position: relative;
+    }
+
+    header::before {
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+      background-size: 42px 42px;
+      content: "";
+      inset: 0;
+      opacity: 0.32;
+      position: absolute;
+    }
+
+    .hero {
+      align-items: center;
+      display: grid;
+      gap: 22px;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      margin: 0 auto;
+      max-width: 1280px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      color: #c7f1ff;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      padding: 7px 12px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      font-size: clamp(32px, 4vw, 48px);
+      letter-spacing: 0;
+      line-height: 1.12;
+    }
+
+    .subtitle {
+      color: #dbeafe;
+      line-height: 1.75;
+      margin-top: 12px;
+      max-width: 820px;
+    }
+
+    main {
+      margin: -46px auto 0;
+      max-width: 1280px;
+      padding: 0 32px 44px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(219, 228, 240, 0.92);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .section-head {
+      align-items: flex-start;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .section-note {
+      color: var(--muted);
+      line-height: 1.65;
+      margin-top: 7px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .wide { grid-column: span 2; }
+    .full { grid-column: 1 / -1; }
+
+    label {
+      color: #344054;
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      background: #fbfdff;
+      border: 1px solid #d7e0ec;
+      border-radius: 10px;
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      padding: 10px 11px;
+      width: 100%;
+    }
+
+    textarea {
+      line-height: 1.65;
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .output {
+      min-height: 280px;
+      white-space: pre-wrap;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      background: #fff;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(70, 87, 240, 0.13);
+    }
+
+    button, a.button-link {
+      align-items: center;
+      border: 0;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      justify-content: center;
+      min-height: 38px;
+      padding: 9px 14px;
+      text-decoration: none;
+      transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+      white-space: nowrap;
+    }
+
+    button:hover, a.button-link:hover {
+      filter: brightness(0.96);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      box-shadow: 0 12px 26px rgba(70, 87, 240, 0.22);
+    }
+
+    .btn-blue { background: var(--blue); }
+    .btn-green { background: var(--green); }
+    .btn-red { background: var(--red); }
+    .btn-light {
+      background: #f1f5f9;
+      color: #334155;
+      box-shadow: none;
+    }
+
+    .return-home-btn {
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(96, 165, 250, 0.75);
+      color: #172554 !important;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
+    }
+
+    .return-home-btn:hover {
+      background: #ffffff;
+      border-color: rgba(37, 99, 235, 0.9);
+      color: #0f172a !important;
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.28);
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .check-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .check-card {
+      align-items: center;
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      gap: 8px;
+      margin: 0;
+      padding: 10px;
+    }
+
+    .check-card input { width: auto; }
+
+    .history-list,
+    .weekly-readout {
+      display: grid;
+      gap: 12px;
+    }
+
+    .history-item,
+    .readout-box {
+      align-items: flex-start;
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr auto;
+      padding: 14px;
+    }
+
+    .history-title {
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .copy-tip {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 980px) {
+      header { padding: 30px 20px 78px; }
+      .hero { display: block; }
+      main { padding: 0 14px 36px; }
+      .form-grid, .check-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .wide, .full { grid-column: 1 / -1; }
+      .history-item, .readout-box { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .form-grid, .check-grid { grid-template-columns: 1fr; }
+      .card { border-radius: 16px; padding: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="hero">
+      <div>
+        <div class="eyebrow">点将工具库 · 主动营销日报周报</div>
+        <h1>工作日报/周报工具</h1>
+        <p class="subtitle">用于主动营销老师在点将期间生成飞书日报、主动营销周报和主动营销阶段汇报，适合复制到飞书、微信或工作汇报中使用。</p>
+      </div>
+      <div class="button-row">
+        <a class="button-link return-home-btn" href="index.html">返回工具库首页</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>项目基础信息</h2>
+          <p class="section-note">固定信息只填写一次，保存后会自动带入每天的飞书日报和周报。</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div><label for="baseMall">点将商场</label><input id="baseMall" placeholder="例如：中卫某商场" /></div>
+        <div><label for="baseMallType">商场类型</label><input id="baseMallType" placeholder="例如：区域家居商场/综合商场" /></div>
+        <div><label for="basePeriod">点将时段</label><input id="basePeriod" placeholder="例如：2026-06-01 至 2026-06-15" /></div>
+        <div><label for="baseOrderTarget">订单目标（户，数字表述）</label><input id="baseOrderTarget" type="number" min="0" placeholder="例如：10" /></div>
+        <div class="full"><label for="baseCoreHandle">本次活动核心抓手</label><textarea id="baseCoreHandle" placeholder="例如：围绕本地新房交付、客户预算痛点和活动政策做邀约转化"></textarea></div>
+      </div>
+      <div class="button-row">
+        <button class="btn-primary" onclick="saveBaseInfo()">保存项目基础信息</button>
+      </div>
+      <div id="baseTip" class="copy-tip"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>飞书日报生成</h2>
+          <p class="section-note">每天只填签单、重点工作和明日计划，固定项自动从项目基础信息带入。</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div><label for="dailyDate">日期</label><input id="dailyDate" type="date" /></div>
+        <div><label for="dailyTodaySign">今日签单（户，数字表述）</label><input id="dailyTodaySign" type="number" min="0" /></div>
+        <div><label for="dailyTotalSign">累计签单（户，数字表述）</label><input id="dailyTotalSign" type="number" min="0" /></div>
+      </div>
+      <h3 style="margin:18px 0 10px;">今日工作动作</h3>
+      <div id="dailyActions" class="check-grid"></div>
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="wide"><label for="dailyWorkSummary">今日重点工作简述</label><textarea id="dailyWorkSummary" placeholder="今天重点做了什么，优先按你的原话润色"></textarea></div>
+        <div class="wide"><label for="dailyTomorrow">明日工作计划</label><textarea id="dailyTomorrow" placeholder="明天准备推进什么"></textarea></div>
+        <div class="full"><label for="dailyOutput">主动营销工作日报</label><textarea id="dailyOutput" class="output" readonly></textarea><div id="dailyTip" class="copy-tip"></div></div>
+      </div>
+      <div class="button-row">
+        <button class="btn-primary" onclick="generateDaily()">生成日报</button>
+        <button class="btn-green" onclick="copyOutput('dailyOutput', 'dailyTip', '日报已复制')">复制日报</button>
+        <button class="btn-blue" onclick="saveDailyReport()">保存日报</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>主动营销周报生成</h2>
+          <p class="section-note">从日报历史读取周期内记录，自动归纳本周重点工作、客户推进和下周计划。</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div><label for="weeklyStart">周报周期开始日期</label><input id="weeklyStart" type="date" /></div>
+        <div><label for="weeklyEnd">周报周期结束日期</label><input id="weeklyEnd" type="date" /></div>
+        <div class="wide"><label for="weeklyMall">当前项目/点将商场</label><input id="weeklyMall" placeholder="默认读取项目基础信息" /></div>
+        <div class="full"><label for="weeklySupplement">周报补充说明（选填）</label><textarea id="weeklySupplement" placeholder="补充本周特别事项、问题或协调内容"></textarea></div>
+        <div class="full">
+          <label>本周日报读取结果</label>
+          <div id="weeklyReadout" class="weekly-readout">
+            <div class="readout-box"><div class="subtle">尚未读取日报历史</div></div>
+          </div>
+        </div>
+        <div class="full"><label for="weeklyOutput">主动营销周报</label><textarea id="weeklyOutput" class="output" readonly></textarea><div id="weeklyTip" class="copy-tip"></div></div>
+      </div>
+      <div class="button-row">
+        <button class="btn-blue" onclick="readWeeklyDailies()">读取本周日报</button>
+        <button class="btn-primary" onclick="generateWeeklyFromDailies()">根据日报生成周报</button>
+        <button class="btn-green" onclick="copyOutput('weeklyOutput', 'weeklyTip', '周报已复制')">复制周报</button>
+        <button class="btn-blue" onclick="saveCurrentReport('周报', weeklyMeta(), getValue('weeklyOutput'), 'weeklyTip')">保存周报</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>主动营销阶段汇报生成</h2>
+          <p class="section-note">适合主动营销点将阶段复盘、离场交接或大区汇报，务实呈现动作、问题和建议。</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div><label for="stageProject">当前项目</label><input id="stageProject" placeholder="当前点将项目" /></div>
+        <div><label for="stageStart">阶段开始日期</label><input id="stageStart" type="date" /></div>
+        <div><label for="stageEnd">阶段结束日期</label><input id="stageEnd" type="date" /></div>
+        <div><label for="stageNew">阶段新增客户数</label><input id="stageNew" type="number" min="0" /></div>
+        <div><label for="stageFollow">阶段跟进客户数</label><input id="stageFollow" type="number" min="0" /></div>
+        <div><label for="stageMeasure">阶段量房数</label><input id="stageMeasure" type="number" min="0" /></div>
+        <div><label for="stageQuote">阶段报价数</label><input id="stageQuote" type="number" min="0" /></div>
+        <div><label for="stageSign">阶段签单数</label><input id="stageSign" type="number" min="0" /></div>
+        <div class="wide"><label for="stageSources">阶段主要客户来源</label><input id="stageSources" placeholder="例如：抖音线索、经纪人、小区地推" /></div>
+        <div class="wide"><label for="stageResults">阶段主要工作成果</label><textarea id="stageResults"></textarea></div>
+        <div class="wide"><label for="stageRisks">阶段问题与风险</label><textarea id="stageRisks"></textarea></div>
+        <div class="wide"><label for="stageAdvice">后续建议</label><textarea id="stageAdvice"></textarea></div>
+        <div class="full"><label for="stageHandover">需要交接事项</label><textarea id="stageHandover"></textarea></div>
+        <div class="full"><label for="stageOutput">主动营销阶段汇报</label><textarea id="stageOutput" class="output" readonly></textarea><div id="stageTip" class="copy-tip"></div></div>
+      </div>
+      <div class="button-row">
+        <button class="btn-primary" onclick="generateStage()">生成阶段汇报</button>
+        <button class="btn-green" onclick="copyOutput('stageOutput', 'stageTip', '阶段汇报已复制')">复制阶段汇报</button>
+        <button class="btn-blue" onclick="saveCurrentReport('阶段汇报', stageMeta(), getValue('stageOutput'), 'stageTip')">保存阶段汇报</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>历史记录</h2>
+          <p class="section-note">日报、周报和阶段汇报单独保存在当前浏览器，不影响客户、城市研判或投流数据。</p>
+        </div>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const REPORT_STORAGE_KEY = "pointReportRecords";
+    const REPORT_BASE_KEY = "pointReportBaseInfo";
+    const PROJECT_STORAGE_KEY = "pointProjectInfo";
+    const DAILY_ACTIONS = [
+      "客户跟进", "客户信息复盘", "量房推进", "方案沟通", "报价沟通", "签单转化",
+      "经纪人渠道沟通", "新媒体文案输出", "短视频脚本输出", "视频拍摄", "视频剪辑",
+      "信息流投放沟通", "活动政策梳理", "数据复盘", "老板/负责人沟通", "其他"
+    ];
+    const ACTION_TEXT = {
+      "客户跟进": "围绕重点客户和待跟进客户持续推进，确认客户需求、预算情况、装修节点和下一步动作。",
+      "客户信息复盘": "对现有客户信息进行整理复盘，重点梳理客户来源、客户状态和后续推进优先级。",
+      "量房推进": "推进已沟通客户进入量房环节，衔接客户房屋情况、需求信息和后续方案准备。",
+      "方案沟通": "围绕客户装修需求和空间规划进行方案沟通，明确客户关注点和后续推进方向。",
+      "报价沟通": "结合客户预算、活动政策和方案内容进行报价沟通，推动客户进一步决策。",
+      "签单转化": "围绕报价后和重点意向客户推进签单转化，持续跟进客户异议和决策节点。",
+      "经纪人渠道沟通": "围绕经纪人客户转介绍、客户报备和后续承接流程进行沟通。",
+      "新媒体文案输出": "结合本地获客需求和客户痛点输出新媒体文案，为后续内容发布和投放测试提供素材。",
+      "短视频脚本输出": "围绕门店卖点、客户痛点和装修场景输出短视频脚本方向。",
+      "视频拍摄": "完成视频素材拍摄，围绕门店卖点、客户痛点和案例内容进行素材整理。",
+      "视频剪辑": "推进视频剪辑和素材整理，为后续发布或投放提供内容基础。",
+      "信息流投放沟通": "围绕投放素材、预算测试和线索承接路径进行沟通，明确小预算测试方向。",
+      "活动政策梳理": "梳理当前活动政策、优惠口径和客户沟通重点，方便一线统一表达。",
+      "数据复盘": "对客户来源、跟进状态和阶段转化情况进行数据复盘，明确后续重点方向。",
+      "老板/负责人沟通": "与老板/负责人同步点将工作进展、客户推进重点和需要协同解决的事项。",
+      "其他": "同步处理主动营销点将期间其他相关工作，保障客户跟进和门店执行持续推进。"
+    };
+
+    let reportRecords = loadReports();
+    let weeklyDailies = [];
+
+    function today() {
+      const date = new Date();
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function getValue(id) {
+      const element = document.getElementById(id);
+      return element ? element.value.trim() : "";
+    }
+
+    function num(id) {
+      const value = Number(getValue(id));
+      return Number.isFinite(value) && value >= 0 ? value : 0;
+    }
+
+    function setValue(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.value = value || "";
+    }
+
+    function setText(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.innerText = value;
+    }
+
+    function polish(value) {
+      const text = String(value || "").trim();
+      if (!text) return "";
+      return /[。！？.!?]$/.test(text) ? text : `${text}。`;
+    }
+
+    function lightPolish(value) {
+      const text = String(value || "").trim();
+      return text ? polish(text) : "未填写。";
+    }
+
+    function renderChecks(containerId, name, options) {
+      document.getElementById(containerId).innerHTML = options.map(option => `
+        <label class="check-card">
+          <input type="checkbox" name="${name}" value="${escapeHtml(option)}" />
+          ${escapeHtml(option)}
+        </label>
+      `).join("");
+    }
+
+    function checked(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(input => input.value);
+    }
+
+    function getBaseInfo() {
+      return {
+        mall: getValue("baseMall"),
+        mallType: getValue("baseMallType"),
+        period: getValue("basePeriod"),
+        orderTarget: getValue("baseOrderTarget"),
+        coreHandle: getValue("baseCoreHandle")
+      };
+    }
+
+    function saveBaseInfo() {
+      localStorage.setItem(REPORT_BASE_KEY, JSON.stringify(getBaseInfo()));
+      setText("baseTip", "项目基础信息已保存");
+      syncBaseToWeeklyAndStage();
+    }
+
+    function loadBaseInfo() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(REPORT_BASE_KEY) || "{}");
+        const projectInfo = JSON.parse(localStorage.getItem(PROJECT_STORAGE_KEY) || "{}");
+        return {
+          mall: saved.mall || projectInfo.name || "",
+          mallType: saved.mallType || "",
+          period: saved.period || "",
+          orderTarget: saved.orderTarget || "",
+          coreHandle: saved.coreHandle || ""
+        };
+      } catch {
+        return { mall: "", mallType: "", period: "", orderTarget: "", coreHandle: "" };
+      }
+    }
+
+    function fillBaseInfo() {
+      const info = loadBaseInfo();
+      setValue("baseMall", info.mall);
+      setValue("baseMallType", info.mallType);
+      setValue("basePeriod", info.period);
+      setValue("baseOrderTarget", info.orderTarget);
+      setValue("baseCoreHandle", info.coreHandle);
+      syncBaseToWeeklyAndStage();
+    }
+
+    function syncBaseToWeeklyAndStage() {
+      const info = getBaseInfo();
+      setValue("weeklyMall", info.mall);
+      setValue("stageProject", info.mall);
+    }
+
+    function buildDailyWork(actions, summary) {
+      const lines = [];
+      if (summary) {
+        lines.push(polish(summary));
+      }
+      actions.forEach(action => {
+        const text = ACTION_TEXT[action];
+        if (text && !lines.includes(text)) {
+          lines.push(text);
+        }
+      });
+      if (!lines.length) {
+        lines.push("今日主要围绕主动营销点将基础工作开展，重点关注客户跟进、资料整理和后续转化动作准备。");
+      }
+      return lines.join("\n");
+    }
+
+    function generateDaily() {
+      const base = getBaseInfo();
+      const actions = checked("dailyAction");
+      const workSummary = getValue("dailyWorkSummary");
+      const tomorrow = polish(getValue("dailyTomorrow")) || "明日继续围绕重点客户跟进、客户状态推进、数据复盘及后续转化动作开展工作。";
+      const workText = buildDailyWork(actions, workSummary);
+      const report = [
+        "【主动营销工作日报】",
+        "",
+        "1. 点将商场",
+        base.mall || "未填写",
+        "",
+        "2. 商场类型",
+        base.mallType || "未填写",
+        "",
+        "3. 点将时段",
+        base.period || "未填写",
+        "",
+        "4. 订单目标（户，数字表述）",
+        base.orderTarget || "0",
+        "",
+        "5. 本次活动核心抓手",
+        lightPolish(base.coreHandle),
+        "",
+        "6. 今日签单（户，数字表述）",
+        getValue("dailyTodaySign") || "0",
+        "",
+        "7. 累计签单（户，数字表述）",
+        getValue("dailyTotalSign") || "0",
+        "",
+        "8. 今日重点工作",
+        workText,
+        "",
+        "9. 明日工作计划",
+        tomorrow
+      ].join("\n");
+
+      setValue("dailyOutput", report);
+      setText("dailyTip", "");
+    }
+
+    function collectDailyRecord(content) {
+      const base = getBaseInfo();
+      const actions = checked("dailyAction");
+      return {
+        id: `report-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        type: "日报",
+        date: getValue("dailyDate") || today(),
+        mall: base.mall,
+        mallType: base.mallType,
+        period: base.period,
+        orderTarget: Number(base.orderTarget) || 0,
+        coreHandle: base.coreHandle,
+        todaySign: num("dailyTodaySign"),
+        totalSign: num("dailyTotalSign"),
+        actions,
+        workSummary: getValue("dailyWorkSummary"),
+        workText: buildDailyWork(actions, getValue("dailyWorkSummary")),
+        tomorrowPlan: getValue("dailyTomorrow"),
+        content,
+        project: base.mall,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    function saveDailyReport() {
+      const content = getValue("dailyOutput");
+      if (!content) {
+        alert("请先生成日报");
+        return;
+      }
+      reportRecords.unshift(collectDailyRecord(content));
+      saveReports();
+      renderHistory();
+      setText("dailyTip", "日报已保存");
+    }
+
+    function readWeeklyDailies() {
+      const start = getValue("weeklyStart");
+      const end = getValue("weeklyEnd");
+      const mall = getValue("weeklyMall");
+      weeklyDailies = reportRecords
+        .filter(record => record.type === "日报")
+        .filter(record => (!start || record.date >= start) && (!end || record.date <= end))
+        .filter(record => !mall || !record.mall || record.mall === mall)
+        .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+      renderWeeklyReadout();
+    }
+
+    function renderWeeklyReadout() {
+      const readout = document.getElementById("weeklyReadout");
+      if (!weeklyDailies.length) {
+        readout.innerHTML = '<div class="readout-box"><div class="subtle">当前周期暂无日报记录，请先生成并保存日报，或手动补充周报说明。</div></div>';
+        return;
+      }
+      readout.innerHTML = `
+        <div class="readout-box">
+          <div>
+            <div class="history-title">已读取日报 ${weeklyDailies.length} 天</div>
+            <div class="subtle">${weeklyDailies.map(record => record.date).join("、")}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function summarizeLines(items, fallback, limit = 5) {
+      const clean = items
+        .map(item => String(item || "").trim())
+        .filter(Boolean)
+        .map(item => item.replace(/\n+/g, "，"));
+      if (!clean.length) return fallback;
+      return [...new Set(clean)].slice(0, limit).map((item, index) => `${index + 1}. ${polish(item)}`).join("\n");
+    }
+
+    function summarizeActions(records) {
+      const actions = records.flatMap(record => record.actions || []);
+      const unique = [...new Set(actions)];
+      if (!unique.length) {
+        return "1. 本周围绕主动营销点将基础工作推进，持续关注客户跟进、客户复盘和转化动作落地。";
+      }
+      return unique.slice(0, 6).map((action, index) => `${index + 1}. ${ACTION_TEXT[action] || action}`).join("\n");
+    }
+
+    function generateWeeklyFromDailies() {
+      if (!weeklyDailies.length) {
+        readWeeklyDailies();
+      }
+      const base = getBaseInfo();
+      const start = getValue("weeklyStart") || "-";
+      const end = getValue("weeklyEnd") || "-";
+      const mall = getValue("weeklyMall") || base.mall || "未填写";
+      const weekSign = weeklyDailies.reduce((sum, record) => sum + (Number(record.todaySign) || 0), 0);
+      const totalSign = weeklyDailies.length ? Math.max(...weeklyDailies.map(record => Number(record.totalSign) || 0)) : 0;
+      const workSummary = summarizeActions(weeklyDailies);
+      const customerSummary = summarizeLines(
+        weeklyDailies.map(record => record.workText).filter(text => /量房|方案|报价|签单|客户|复盘|跟进/.test(text)),
+        "本周主要围绕客户跟进、客户复盘、量房推进、方案报价和签单转化动作进行推进，实际进度以每日主动营销工作日报为准。"
+      );
+      const problemSummary = "本周暂无需重点反馈的问题，后续继续关注客户跟进节奏、客户来源质量及转化动作落地。";
+      const nextPlan = summarizeLines(
+        weeklyDailies.map(record => record.tomorrowPlan),
+        "1. 下周继续围绕重点客户跟进、客户状态推进、数据复盘和转化动作开展工作。",
+        4
+      );
+      const supplement = polish(getValue("weeklySupplement"));
+      const report = [
+        "【主动营销点将周报】",
+        `点将商场：${mall}`,
+        `周报周期：${start} - ${end}`,
+        "",
+        "一、本周基础数据",
+        `订单目标：${base.orderTarget || 0}户`,
+        `本周签单：${weekSign}户`,
+        `累计签单：${totalSign}户`,
+        `本周日报记录：${weeklyDailies.length}天`,
+        "",
+        "二、本周重点工作",
+        workSummary,
+        supplement ? `\n补充说明：${supplement}` : "",
+        "",
+        "三、客户推进情况",
+        customerSummary,
+        "",
+        "四、本周问题与卡点",
+        problemSummary,
+        "",
+        "五、下周工作计划",
+        nextPlan,
+        "",
+        "六、需协调事项",
+        "暂无。"
+      ].filter(item => item !== "").join("\n");
+      setValue("weeklyOutput", report);
+      setText("weeklyTip", "");
+    }
+
+    function generateStage() {
+      const project = getValue("stageProject") || getBaseInfo().mall || "当前点将项目";
+      const period = `${getValue("stageStart") || "-"} 至 ${getValue("stageEnd") || "-"}`;
+      const stats = [
+        lineIf("新增客户", num("stageNew")),
+        lineIf("跟进客户", num("stageFollow")),
+        lineIf("量房", num("stageMeasure")),
+        lineIf("报价", num("stageQuote")),
+        lineIf("签单", num("stageSign"))
+      ].filter(Boolean).join("，") || "阶段暂无明确客户数据";
+      const report = [
+        "【主动营销阶段汇报】",
+        `当前项目：${project}`,
+        `阶段周期：${period}`,
+        "",
+        `一、阶段基础数据\n${stats}。${getValue("stageSources") ? `主要客户来源：${getValue("stageSources")}。` : ""}`,
+        `\n二、阶段重点动作\n${polish(getValue("stageResults")) || "本阶段主要围绕主动营销点将客户录入、客户跟进、客户状态梳理和后续转化动作开展工作。"}`,
+        `\n三、客户推进情况\n阶段内重点关注客户从线索、沟通、量房、报价到签单的推进情况，实际结果以当前填写数据为准，不额外编造未发生的成果。`,
+        `\n四、主要问题与风险\n${polish(getValue("stageRisks")) || "当前暂无额外补充的问题与风险，后续仍需持续关注线索质量、客户承接、方案报价和签单转化节奏。"}`,
+        `\n五、后续建议\n${polish(getValue("stageAdvice")) || "后续建议继续围绕重点客户跟进、有效线索承接、阶段转化复盘和门店执行协同推进。"}`,
+        `\n六、交接事项\n${polish(getValue("stageHandover")) || "暂无。"}`
+      ].join("\n");
+      setValue("stageOutput", report);
+      setText("stageTip", "");
+    }
+
+    function lineIf(label, value, unit = "组") {
+      return value > 0 ? `${label}${value}${unit}` : "";
+    }
+
+    function weeklyMeta() {
+      return { project: getValue("weeklyMall") || getBaseInfo().mall || "当前点将项目", period: `${getValue("weeklyStart") || "-"} 至 ${getValue("weeklyEnd") || "-"}` };
+    }
+
+    function stageMeta() {
+      return { project: getValue("stageProject") || getBaseInfo().mall || "当前点将项目", period: `${getValue("stageStart") || "-"} 至 ${getValue("stageEnd") || "-"}` };
+    }
+
+    function saveCurrentReport(type, meta, content, tipId) {
+      if (!content) {
+        alert("请先生成内容");
+        return;
+      }
+      reportRecords.unshift({
+        id: `report-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        type,
+        project: meta.project,
+        period: meta.period,
+        content,
+        createdAt: new Date().toISOString()
+      });
+      saveReports();
+      renderHistory();
+      setText(tipId, `${type}已保存`);
+    }
+
+    function normalizeRecord(record) {
+      if (record.type === "日报" && !record.date) {
+        record.date = record.period || today();
+      }
+      return record;
+    }
+
+    function loadReports() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(REPORT_STORAGE_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed.map(normalizeRecord) : [];
+      } catch (error) {
+        console.error("报表历史读取失败", error);
+        return [];
+      }
+    }
+
+    function saveReports() {
+      localStorage.setItem(REPORT_STORAGE_KEY, JSON.stringify(reportRecords));
+    }
+
+    function renderHistory() {
+      const list = document.getElementById("historyList");
+      if (!reportRecords.length) {
+        list.innerHTML = '<div class="subtle">暂无历史记录</div>';
+        return;
+      }
+      list.innerHTML = reportRecords.map(record => `
+        <div class="history-item">
+          <div>
+            <div class="history-title">${escapeHtml(record.type)} · ${escapeHtml(record.project || record.mall || "-")}</div>
+            <div class="subtle">${escapeHtml(record.date || record.period || "-")} · ${escapeHtml(formatDateTime(record.createdAt))}</div>
+            <div class="subtle">${escapeHtml(record.content || "").slice(0, 180)}${(record.content || "").length > 180 ? "..." : ""}</div>
+          </div>
+          <div class="button-row">
+            <button class="btn-blue" onclick="viewHistory('${record.id}')">查看</button>
+            <button class="btn-green" onclick="copyHistory('${record.id}')">复制</button>
+            <button class="btn-red" onclick="deleteHistory('${record.id}')">删除</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function viewHistory(id) {
+      const record = reportRecords.find(item => item.id === id);
+      if (record) alert(record.content);
+    }
+
+    function copyHistory(id) {
+      const record = reportRecords.find(item => item.id === id);
+      if (record) copyText(record.content, "历史内容已复制", null);
+    }
+
+    function deleteHistory(id) {
+      const record = reportRecords.find(item => item.id === id);
+      if (!confirm(`确定要删除${record ? record.type : "该"}记录吗？`)) return;
+      reportRecords = reportRecords.filter(item => item.id !== id);
+      saveReports();
+      renderHistory();
+    }
+
+    function copyOutput(outputId, tipId, message) {
+      const text = getValue(outputId);
+      if (!text) {
+        alert("请先生成内容");
+        return;
+      }
+      copyText(text, message, tipId);
+    }
+
+    function copyText(text, message, tipId) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          if (tipId) setText(tipId, message);
+        }).catch(() => fallbackCopy(text, message, tipId));
+      } else {
+        fallbackCopy(text, message, tipId);
+      }
+    }
+
+    function fallbackCopy(text, message, tipId) {
+      const temp = document.createElement("textarea");
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      temp.remove();
+      if (tipId) setText(tipId, message);
+    }
+
+    function formatDateTime(value) {
+      if (!value) return "-";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function init() {
+      renderChecks("dailyActions", "dailyAction", DAILY_ACTIONS);
+      fillBaseInfo();
+      setValue("dailyDate", today());
+      setValue("weeklyEnd", today());
+      setValue("stageEnd", today());
+      renderHistory();
+    }
+
+    init();
+  </script>
+</body>
+</html>

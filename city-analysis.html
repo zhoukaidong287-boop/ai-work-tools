@@ -357,6 +357,18 @@
       color: #334155;
     }
 
+    .return-home-btn {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      color: #172554;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+    }
+
+    .return-home-btn:hover {
+      background: #fff;
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.24);
+    }
+
     .btn-small {
       min-height: 31px;
       padding: 6px 9px;
@@ -1291,7 +1303,7 @@
         <h1>AI城市点将研判</h1>
         <p>新城市调研、客户画像、老板沟通、前7天打法和投流初判。只生成可复制给 AI 的调研指令，不联网、不编造城市数据。</p>
         <div class="city-hero-actions">
-          <button class="btn-light" onclick="location.href='index.html'">返回工具库首页</button>
+          <button class="btn-light return-home-btn" onclick="location.href='index.html'">返回工具库首页</button>
           <button class="btn-primary" onclick="generatePreJudgePrompt()">生成AI调研指令</button>
           <button class="btn-blue" onclick="copyPreJudgePrompt()">复制调研指令</button>
         </div>
@@ -1395,7 +1407,7 @@
         <button class="btn-primary" onclick="generatePreJudgePrompt()">生成AI调研指令</button>
         <button class="btn-blue" onclick="copyPreJudgePrompt()">复制调研指令</button>
         <button class="btn-green" onclick="savePreJudgeRecord()">保存城市研判记录</button>
-        <button class="btn-light" onclick="location.href='index.html'">返回工具库首页</button>
+        <button class="btn-light return-home-btn" onclick="location.href='index.html'">返回工具库首页</button>
       </div>
     </section>
   </main>
