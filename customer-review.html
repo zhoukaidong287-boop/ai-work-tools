@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>客户池复盘工具</title>
+  <style>
+    :root {
+      --bg: #eef3fb;
+      --panel: #ffffff;
+      --line: #dbe4f0;
+      --text: #172033;
+      --muted: #64748b;
+      --brand: #4657f0;
+      --blue: #2563eb;
+      --green: #12945a;
+      --red: #d04444;
+      --teal: #0891b2;
+      --amber: #d97706;
+      --shadow: 0 18px 50px rgba(21, 34, 66, 0.09);
+      --gradient-primary: linear-gradient(135deg, #3861ff 0%, #6757f5 52%, #08b6d8 100%);
+      --gradient-dark: radial-gradient(circle at 18% 16%, rgba(77, 208, 255, 0.28), transparent 34%),
+        radial-gradient(circle at 86% 8%, rgba(132, 92, 255, 0.34), transparent 30%),
+        linear-gradient(135deg, #111827 0%, #172554 50%, #0f172a 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(70, 87, 240, 0.14), transparent 28%),
+        radial-gradient(circle at 96% 12%, rgba(8, 182, 216, 0.13), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    header {
+      background: var(--gradient-dark);
+      color: #fff;
+      overflow: hidden;
+      padding: 36px 40px 82px;
+      position: relative;
+    }
+
+    header::before {
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+      background-size: 42px 42px;
+      content: "";
+      inset: 0;
+      opacity: 0.32;
+      position: absolute;
+    }
+
+    .hero {
+      align-items: center;
+      display: grid;
+      gap: 22px;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      margin: 0 auto;
+      max-width: 1280px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      color: #c7f1ff;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      padding: 7px 12px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(32px, 4vw, 48px);
+      letter-spacing: 0;
+      line-height: 1.12;
+    }
+
+    .subtitle {
+      color: #dbeafe;
+      line-height: 1.75;
+      margin-top: 12px;
+      max-width: 780px;
+    }
+
+    main {
+      margin: -46px auto 0;
+      max-width: 1280px;
+      padding: 0 32px 44px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(219, 228, 240, 0.92);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .section-head {
+      align-items: flex-start;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .section-note {
+      color: var(--muted);
+      line-height: 1.65;
+      margin-top: 7px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .wide {
+      grid-column: span 2;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: #344054;
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    input,
+    textarea {
+      background: #fbfdff;
+      border: 1px solid #d7e0ec;
+      border-radius: 10px;
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      padding: 10px 11px;
+      width: 100%;
+    }
+
+    textarea {
+      line-height: 1.65;
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus {
+      background: #fff;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(70, 87, 240, 0.13);
+    }
+
+    button,
+    a.button-link {
+      align-items: center;
+      border: 0;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      justify-content: center;
+      min-height: 38px;
+      padding: 9px 14px;
+      text-decoration: none;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+      white-space: nowrap;
+    }
+
+    button:hover,
+    a.button-link:hover {
+      filter: brightness(0.96);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      box-shadow: 0 12px 26px rgba(70, 87, 240, 0.22);
+    }
+
+    .btn-blue {
+      background: var(--blue);
+    }
+
+    .btn-green {
+      background: var(--green);
+    }
+
+    .btn-red {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      color: #be123c;
+    }
+
+    .btn-light {
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(96, 165, 250, 0.75);
+      color: #172554 !important;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
+    }
+
+    .btn-light:hover {
+      background: #fff;
+      border-color: rgba(37, 99, 235, 0.9);
+      color: #0f172a !important;
+      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.28);
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .check-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .check-card {
+      align-items: center;
+      background: #f8fbff;
+      border: 1px solid #dbe6f5;
+      border-radius: 12px;
+      color: #22324d;
+      cursor: pointer;
+      display: flex;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 750;
+      min-height: 42px;
+      padding: 10px;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+    }
+
+    .check-card:hover {
+      border-color: rgba(70, 87, 240, 0.42);
+      box-shadow: 0 10px 20px rgba(21, 34, 66, 0.07);
+      transform: translateY(-1px);
+    }
+
+    .check-card input {
+      accent-color: var(--brand);
+      flex: 0 0 auto;
+      width: auto;
+    }
+
+    .report-output {
+      min-height: 420px;
+      white-space: pre-wrap;
+    }
+
+    .copy-tip {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .history-item {
+      background: #f8fbff;
+      border: 1px solid #dbe6f5;
+      border-radius: 14px;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      padding: 14px;
+    }
+
+    .history-title {
+      font-weight: 900;
+      line-height: 1.45;
+    }
+
+    .history-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 4px;
+    }
+
+    .empty {
+      background: #f8fbff;
+      border: 1px dashed #cbd5e1;
+      border-radius: 14px;
+      color: var(--muted);
+      padding: 18px;
+      text-align: center;
+    }
+
+    footer {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      margin: 8px auto 0;
+      max-width: 1280px;
+      padding: 0 32px 36px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      header {
+        padding: 28px 20px 74px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      main,
+      footer {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .check-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .history-item {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .form-grid,
+      .check-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wide,
+      .full {
+        grid-column: auto;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .section-head {
+        display: block;
+      }
+
+      button,
+      a.button-link {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <div>
+        <span class="eyebrow">主动营销点将 · 客户池摸底</span>
+        <h1>客户池复盘工具</h1>
+        <p class="subtitle">用于主动营销点将期间，对商场客户池进行快速摸底和复盘，判断客户来源、客户阶段、转化卡点和后续推进重点。</p>
+      </div>
+      <a class="button-link btn-light return-home-btn" href="index.html">返回工具库首页</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>复盘基础信息</h2>
+          <p class="section-note">用于记录本次到店摸底的基础口径，后续报告会基于这些内容生成。</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label for="reviewMall">点将商场</label>
+          <input id="reviewMall" type="text" placeholder="例如：中卫欧派整装大家居" />
+        </div>
+        <div>
+          <label for="reviewDate">复盘日期</label>
+          <input id="reviewDate" type="date" />
+        </div>
+        <div>
+          <label for="totalCustomers">客户总数</label>
+          <input id="totalCustomers" type="number" min="0" placeholder="例如：80" />
+        </div>
+        <div>
+          <label for="salesCount">销售人数</label>
+          <input id="salesCount" type="number" min="0" placeholder="例如：4" />
+        </div>
+        <div>
+          <label for="designerCount">设计师人数</label>
+          <input id="designerCount" type="number" min="0" placeholder="例如：3" />
+        </div>
+        <div class="wide">
+          <label for="sourceNote">客户来源说明</label>
+          <input id="sourceNote" type="text" placeholder="例如：老客户转介绍、抖音留资、自然到店为主" />
+        </div>
+        <div class="full">
+          <label for="reviewNote">备注</label>
+          <textarea id="reviewNote" placeholder="可补充商场当前状态、老板关注点、客户池特殊情况等。"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>客户阶段统计</h2>
+          <p class="section-note">录入客户当前所处阶段，系统会据此判断主要卡点和优先推进方向。</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div><label for="stageNew">新线索客户</label><input id="stageNew" type="number" min="0" value="0" /></div>
+        <div><label for="stageContacted">已联系客户</label><input id="stageContacted" type="number" min="0" value="0" /></div>
+        <div><label for="stageVisited">已进店客户</label><input id="stageVisited" type="number" min="0" value="0" /></div>
+        <div><label for="stageMeasured">已量房客户</label><input id="stageMeasured" type="number" min="0" value="0" /></div>
+        <div><label for="stagePlan">已出方案客户</label><input id="stagePlan" type="number" min="0" value="0" /></div>
+        <div><label for="stageQuoted">已报价客户</label><input id="stageQuoted" type="number" min="0" value="0" /></div>
+        <div><label for="stageDeposit">已交定金客户</label><input id="stageDeposit" type="number" min="0" value="0" /></div>
+        <div><label for="stageSigned">已签单客户</label><input id="stageSigned" type="number" min="0" value="0" /></div>
+        <div><label for="stageSleeping">沉睡客户</label><input id="stageSleeping" type="number" min="0" value="0" /></div>
+        <div><label for="stageLost">流失客户</label><input id="stageLost" type="number" min="0" value="0" /></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>客户来源统计</h2>
+          <p class="section-note">用于判断客户入口质量和前端流量基础，不会读取或修改 CRM 客户数据。</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div><label for="sourceWalkIn">自然到店</label><input id="sourceWalkIn" type="number" min="0" value="0" /></div>
+        <div><label for="sourceDouyin">抖音/新媒体</label><input id="sourceDouyin" type="number" min="0" value="0" /></div>
+        <div><label for="sourceEcom">电商线索</label><input id="sourceEcom" type="number" min="0" value="0" /></div>
+        <div><label for="sourceLive">直播留资</label><input id="sourceLive" type="number" min="0" value="0" /></div>
+        <div><label for="sourceAgent">经纪人推荐</label><input id="sourceAgent" type="number" min="0" value="0" /></div>
+        <div><label for="sourceReferral">老客户转介绍</label><input id="sourceReferral" type="number" min="0" value="0" /></div>
+        <div><label for="sourceCommunity">小区/地推</label><input id="sourceCommunity" type="number" min="0" value="0" /></div>
+        <div><label for="sourceOther">其他来源</label><input id="sourceOther" type="number" min="0" value="0" /></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>当前转化卡点</h2>
+          <p class="section-note">勾选当前最明显的问题，报告会按流量入口、触达邀约、转化链路、流程管理进行归纳。</p>
+        </div>
+      </div>
+      <div class="check-grid" id="bottleneckChecks"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>客户池复盘报告</h2>
+          <p class="section-note">生成后可复制到工作日报，也可以保存为独立历史记录。</p>
+        </div>
+      </div>
+      <textarea id="reviewReportOutput" class="report-output" readonly placeholder="点击“生成客户池复盘报告”后在这里显示完整报告。"></textarea>
+      <div class="button-row">
+        <button class="btn-primary" type="button" id="generateReviewBtn">生成客户池复盘报告</button>
+        <button class="btn-blue" type="button" id="copyReviewBtn">复制复盘报告</button>
+        <button class="btn-green" type="button" id="saveReviewBtn">保存客户池复盘记录</button>
+      </div>
+      <div class="copy-tip" id="reviewTip"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>历史复盘记录</h2>
+          <p class="section-note">历史记录仅保存到本浏览器的 <strong>customerReviewRecords</strong>，不会影响其它工具数据。</p>
+        </div>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </section>
+  </main>
+
+  <footer>
+    客户池复盘工具为独立调研录入与分析工具，数据仅保存在当前设备浏览器中。
+  </footer>
+
+  <script>
+    const STORAGE_KEY = "customerReviewRecords";
+    const bottleneckOptions = [
+      "客户进不来",
+      "电话接通率低",
+      "客户只问价格",
+      "客户不愿到店",
+      "量房后不到店",
+      "方案后不报价",
+      "报价后不签单",
+      "设计师承接慢",
+      "销售跟进不及时",
+      "客户预算不明确",
+      "客户来源质量差",
+      "老客户未复洗",
+      "客户跟进记录不清晰",
+      "客户分配不清晰",
+      "数据统计不规范"
+    ];
+
+    const stageLabels = {
+      new: "新线索客户",
+      contacted: "已联系客户",
+      visited: "已进店客户",
+      measured: "已量房客户",
+      plan: "已出方案客户",
+      quoted: "已报价客户",
+      deposit: "已交定金客户",
+      signed: "已签单客户",
+      sleeping: "沉睡客户",
+      lost: "流失客户"
+    };
+
+    const sourceLabels = {
+      walkIn: "自然到店",
+      douyin: "抖音/新媒体",
+      ecom: "电商线索",
+      live: "直播留资",
+      agent: "经纪人推荐",
+      referral: "老客户转介绍",
+      community: "小区/地推",
+      other: "其他来源"
+    };
+
+    function el(id) {
+      return document.getElementById(id);
+    }
+
+    function today() {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function getValue(id) {
+      return (el(id).value || "").trim();
+    }
+
+    function getNumber(id) {
+      const value = Number(getValue(id));
+      return Number.isFinite(value) && value > 0 ? value : 0;
+    }
+
+    function formatDateTime(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value || "";
+      return date.toLocaleString("zh-CN", { hour12: false });
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function showTip(message) {
+      el("reviewTip").textContent = message;
+      if (message) {
+        window.setTimeout(() => {
+          if (el("reviewTip").textContent === message) el("reviewTip").textContent = "";
+        }, 2200);
+      }
+    }
+
+    function loadRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveRecords(records) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function renderBottleneckChecks() {
+      el("bottleneckChecks").innerHTML = bottleneckOptions.map((item) => `
+        <label class="check-card">
+          <input type="checkbox" name="bottleneck" value="${escapeHtml(item)}" />
+          <span>${escapeHtml(item)}</span>
+        </label>
+      `).join("");
+    }
+
+    function getCheckedBottlenecks() {
+      return Array.from(document.querySelectorAll('input[name="bottleneck"]:checked')).map((item) => item.value);
+    }
+
+    function collectBaseInfo() {
+      return {
+        mall: getValue("reviewMall"),
+        reviewDate: getValue("reviewDate"),
+        totalCustomers: getNumber("totalCustomers"),
+        salesCount: getNumber("salesCount"),
+        designerCount: getNumber("designerCount"),
+        sourceNote: getValue("sourceNote"),
+        note: getValue("reviewNote")
+      };
+    }
+
+    function collectStageStats() {
+      return {
+        new: getNumber("stageNew"),
+        contacted: getNumber("stageContacted"),
+        visited: getNumber("stageVisited"),
+        measured: getNumber("stageMeasured"),
+        plan: getNumber("stagePlan"),
+        quoted: getNumber("stageQuoted"),
+        deposit: getNumber("stageDeposit"),
+        signed: getNumber("stageSigned"),
+        sleeping: getNumber("stageSleeping"),
+        lost: getNumber("stageLost")
+      };
+    }
+
+    function collectSourceStats() {
+      return {
+        walkIn: getNumber("sourceWalkIn"),
+        douyin: getNumber("sourceDouyin"),
+        ecom: getNumber("sourceEcom"),
+        live: getNumber("sourceLive"),
+        agent: getNumber("sourceAgent"),
+        referral: getNumber("sourceReferral"),
+        community: getNumber("sourceCommunity"),
+        other: getNumber("sourceOther")
+      };
+    }
+
+    function sumValues(data) {
+      return Object.values(data).reduce((sum, value) => sum + Number(value || 0), 0);
+    }
+
+    function nonZeroList(data, labels) {
+      return Object.entries(data)
+        .filter(([, value]) => Number(value) > 0)
+        .map(([key, value]) => `${labels[key]}${value}组`);
+    }
+
+    function buildOverallJudgement(base, stage, source) {
+      const total = base.totalCustomers || sumValues(stage);
+      const laterStage = stage.visited + stage.measured + stage.plan + stage.quoted + stage.deposit + stage.signed;
+      const activeOpportunity = stage.measured + stage.plan + stage.quoted + stage.deposit;
+      const frontFlow = source.douyin + source.ecom + source.live + source.community;
+      const channelBase = source.agent + source.referral;
+      const judgements = [];
+
+      if (!total) {
+        judgements.push("当前客户总数未填写或客户阶段数据不完整，客户池储备情况仍需到店后补齐客户台账再判断。");
+      } else if (total < 30) {
+        judgements.push(`当前录入客户总数为${total}组，客户储备偏少，短期需要同步补充前端获客入口和存量客户复洗动作。`);
+      } else {
+        judgements.push(`当前录入客户总数为${total}组，客户池具备基础复盘价值，重点应放在阶段推进、负责人分配和下一步动作确认。`);
+      }
+
+      if ((stage.new + stage.contacted) > laterStage && (stage.new + stage.contacted) > 0) {
+        judgements.push("新线索和已联系客户占比较高，但进店、量房、报价等后续阶段偏弱，说明当前客户池有量但推进链路需要加强。");
+      }
+
+      if (activeOpportunity > 0) {
+        judgements.push(`已量房、已出方案、已报价和已交定金客户合计${activeOpportunity}组，具备继续推进方案、报价沟通和成交动作的机会。`);
+      }
+
+      if (stage.sleeping > 0) {
+        judgements.push(`沉睡客户${stage.sleeping}组，需要整理复洗名单，优先确认客户当前装修进度、预算变化和二次邀约可能。`);
+      }
+
+      if (frontFlow <= 2) {
+        judgements.push("抖音/新媒体、电商线索、直播留资和小区/地推数据偏少，前端流量基础不足，需要进一步判断是否补充内容、直播或小预算投流测试。");
+      }
+
+      if (channelBase > 0) {
+        judgements.push(`经纪人推荐和老客户转介绍合计${channelBase}组，说明本地渠道仍有可挖空间，可以作为优先复洗和渠道推进方向。`);
+      }
+
+      return judgements.join("\n");
+    }
+
+    function buildStageAnalysis(stage) {
+      const lines = nonZeroList(stage, stageLabels);
+      const topStage = Object.entries(stage)
+        .sort((a, b) => b[1] - a[1])
+        .find(([, value]) => value > 0);
+      const analysis = [];
+
+      analysis.push(lines.length ? `当前阶段分布为：${lines.join("、")}。` : "当前尚未填写客户阶段数据，建议先补齐客户台账中的阶段字段。");
+
+      if (topStage) {
+        analysis.push(`从数量看，当前客户主要集中在“${stageLabels[topStage[0]]}”阶段，需要围绕该阶段明确负责人、跟进时间和下一步动作。`);
+      }
+
+      if (stage.new + stage.contacted > stage.visited + stage.measured + stage.plan + stage.quoted) {
+        analysis.push("新线索和已联系客户较多，但进店、量房和报价推进不足，重点卡点可能在电话触达、微信承接、客户需求挖掘和到店邀约。");
+      }
+
+      if (stage.measured > 0 || stage.plan > 0 || stage.quoted > 0) {
+        analysis.push("已量房、已出方案或已报价客户已经具备可推进价值，建议逐组确认方案进度、报价反馈、客户预算和成交阻力点。");
+      }
+
+      if (stage.lost > 0) {
+        analysis.push(`流失客户${stage.lost}组，建议复盘流失原因，区分价格原因、需求不匹配、竞品成交或跟进节奏问题。`);
+      }
+
+      return analysis.join("\n");
+    }
+
+    function buildSourceAnalysis(source, sourceNote) {
+      const lines = nonZeroList(source, sourceLabels);
+      const sorted = Object.entries(source).filter(([, value]) => value > 0).sort((a, b) => b[1] - a[1]);
+      const frontFlow = source.douyin + source.ecom + source.live;
+      const localChannel = source.agent + source.referral + source.community;
+      const analysis = [];
+
+      analysis.push(lines.length ? `当前来源分布为：${lines.join("、")}。` : "当前尚未填写客户来源统计，来源质量需要到店后结合客户名单继续补充。");
+
+      if (sorted.length) {
+        const top = sorted.slice(0, 3).map(([key, value]) => `${sourceLabels[key]}${value}组`).join("、");
+        analysis.push(`当前主要来源集中在${top}，后续复盘时应重点看这些来源的有效客户占比和阶段推进情况。`);
+      }
+
+      if (frontFlow <= 2) {
+        analysis.push("抖音/新媒体、电商线索和直播留资数量偏少，说明线上前端流量入口不足或尚未形成稳定留资，需要进一步判断账号内容、投流素材和直播咨询承接基础。");
+      }
+
+      if (localChannel > 0) {
+        analysis.push("经纪人推荐、老客户转介绍或小区/地推已有一定基础，可优先梳理报备规则、转介绍利益点和后续承接流程。");
+      }
+
+      if (sourceNote) {
+        analysis.push(`补充来源说明：${sourceNote}`);
+      }
+
+      return analysis.join("\n");
+    }
+
+    function buildBottleneckAnalysis(bottlenecks) {
+      if (!bottlenecks.length) {
+        return "暂未勾选明确卡点。建议到店后围绕客户来源、电话触达、到店邀约、量房报价、客户分配和跟进记录完整度逐项核查。";
+      }
+
+      const groups = [
+        {
+          name: "流量入口",
+          items: ["客户进不来", "客户来源质量差"],
+          summary: "前端客户入口和线索质量需要重点判断，不能只看客户数量，还要看有效客户占比和后续转化阶段。"
+        },
+        {
+          name: "触达邀约",
+          items: ["电话接通率低", "客户只问价格", "客户不愿到店", "销售跟进不及时"],
+          summary: "客户触达、邀约和需求挖掘存在压力，需要统一电话/微信跟进节奏，减少线索沉淀。"
+        },
+        {
+          name: "量房报价转化",
+          items: ["量房后不到店", "方案后不报价", "报价后不签单", "客户预算不明确", "设计师承接慢"],
+          summary: "量房、方案、报价到签单链路存在转化卡点，需要销售和设计师共同明确客户预算、方案进度和成交阻力。"
+        },
+        {
+          name: "团队流程/数据管理",
+          items: ["老客户未复洗", "客户跟进记录不清晰", "客户分配不清晰", "数据统计不规范"],
+          summary: "客户分配、跟进台账和数据复盘机制需要完善，否则后续无法持续追踪客户推进动作。"
+        }
+      ];
+
+      const matched = groups
+        .map((group) => {
+          const found = group.items.filter((item) => bottlenecks.includes(item));
+          return found.length ? `${group.name}：${group.summary}当前勾选问题包括${found.join("、")}。` : "";
+        })
+        .filter(Boolean)
+        .slice(0, 4);
+
+      return matched.join("\n");
+    }
+
+    function buildPriorityDirections(stage) {
+      const directions = [];
+      if (stage.measured > 0) directions.push(`已量房客户${stage.measured}组，优先推进方案设计、预算测算和客户二次到店。`);
+      if (stage.plan > 0) directions.push(`已出方案客户${stage.plan}组，优先推进方案反馈、报价沟通和套餐匹配。`);
+      if (stage.quoted > 0) directions.push(`已报价客户${stage.quoted}组，优先推进价格沟通、活动政策说明和成交动作。`);
+      if (stage.sleeping > 0) directions.push(`沉睡客户${stage.sleeping}组，优先整理复洗名单，确认客户当前装修进度和二次触达方式。`);
+      if (stage.new > 0 || stage.contacted > 0) directions.push(`新线索和已联系客户合计${stage.new + stage.contacted}组，优先完成电话/微信触达、需求确认和下一步跟进时间设置。`);
+      if (stage.visited > 0) directions.push(`已进店客户${stage.visited}组，优先做二次邀约，推动量房或方案沟通。`);
+      if (!directions.length) directions.push("当前阶段数据不足，建议先补齐客户名单、客户来源、当前阶段和下一步动作，再确定优先推进客户。");
+      return directions.map((item, index) => `${index + 1}. ${item}`).join("\n");
+    }
+
+    function buildTomorrowFocus(stage, bottlenecks) {
+      const actions = [];
+      if (stage.measured > 0 || stage.plan > 0 || stage.quoted > 0) actions.push("优先复盘已量房、已出方案和已报价客户，逐组确认客户预算、方案反馈、报价阻力和成交推进动作。");
+      if (stage.sleeping > 0 || bottlenecks.includes("老客户未复洗")) actions.push("梳理沉睡客户和老客户复洗名单，明确二次触达话术、负责人和跟进时间。");
+      if (stage.new > 0 || stage.contacted > 0) actions.push("对新线索和已联系客户建立触达台账，明确每组客户是否接通、是否加微信、是否具备到店或量房可能。");
+      if (bottlenecks.includes("客户分配不清晰") || bottlenecks.includes("客户跟进记录不清晰") || bottlenecks.includes("数据统计不规范")) actions.push("建立每日客户跟进台账，统一客户阶段、跟进记录、下次动作和负责人，避免客户无人持续推进。");
+      if (bottlenecks.includes("销售跟进不及时") || bottlenecks.includes("设计师承接慢")) actions.push("和销售、设计师确认客户承接分工，推动重点客户到店、量房、方案沟通和报价反馈。");
+      if (!actions.length) actions.push("明日建议先完成客户名单核对、阶段归类、重点客户标记和负责人分配，再推进到店、量房、方案和报价动作。");
+      return actions.map((item, index) => `${index + 1}. ${item}`).join("\n");
+    }
+
+    function buildBossSupport(bottlenecks) {
+      const items = [
+        "提供完整客户名单，包括来源、当前阶段、最近跟进记录、负责人和下一步动作。",
+        "明确客户分配规则，避免重点客户多人跟进或无人跟进。",
+        "协调销售和设计师配合，保证量房、方案、报价和客户问题反馈及时推进。",
+        "确认重点客户推进节奏，每天复盘客户进展和卡点。"
+      ];
+
+      if (bottlenecks.includes("客户进不来") || bottlenecks.includes("客户来源质量差")) {
+        items.push("确认是否支持新媒体内容、直播、经纪人渠道或小预算投流测试，用于补充前端客户入口。");
+      } else {
+        items.push("确认是否需要补充新媒体、直播、投流或渠道动作，作为后续客户来源优化方向。");
+      }
+
+      return items.map((item, index) => `${index + 1}. ${item}`).join("\n");
+    }
+
+    function buildDailyMaterial(base, stage) {
+      const focus = [];
+      if (stage.measured > 0 || stage.plan > 0 || stage.quoted > 0) focus.push("量房报价进度");
+      if (stage.sleeping > 0) focus.push("沉睡客户情况");
+      if (stage.new > 0 || stage.contacted > 0) focus.push("新线索触达情况");
+      const focusText = focus.length ? focus.join("、") : "客户当前阶段";
+      const mall = base.mall ? `围绕${base.mall}现有客户池` : "围绕商场现有客户池";
+
+      return `今日${mall}进行复盘梳理，重点查看客户来源、${focusText}及当前转化卡点，并初步明确后续重点客户推进方向和销售/设计师承接分工。作为主动营销老师，后续将继续围绕客户台账、阶段推进、数据跟踪和每日复盘节奏开展工作，为正式点将动作提供基础判断。`;
+    }
+
+    function generateReport() {
+      const base = collectBaseInfo();
+      const stage = collectStageStats();
+      const source = collectSourceStats();
+      const bottlenecks = getCheckedBottlenecks();
+
+      const lines = [
+        "【客户池复盘报告】",
+        "",
+        "一、客户池总体判断",
+        buildOverallJudgement(base, stage, source),
+        "",
+        "二、客户阶段结构分析",
+        buildStageAnalysis(stage),
+        "",
+        "三、客户来源质量判断",
+        buildSourceAnalysis(source, base.sourceNote),
+        "",
+        "四、当前核心卡点",
+        buildBottleneckAnalysis(bottlenecks),
+        "",
+        "五、优先推进客户方向",
+        buildPriorityDirections(stage),
+        "",
+        "六、销售/设计师分工建议",
+        "销售负责客户邀约、需求确认、跟进时间和客户状态更新；设计师负责量房、方案、报价沟通和客户专业问题解答；主动营销老师负责客户池复盘、节奏推进、数据跟踪和复盘。",
+        "",
+        "七、明日客户跟进重点",
+        buildTomorrowFocus(stage, bottlenecks),
+        "",
+        "八、老板/负责人需要配合事项",
+        buildBossSupport(bottlenecks),
+        "",
+        "九、可复制到日报的内容",
+        buildDailyMaterial(base, stage)
+      ];
+
+      el("reviewReportOutput").value = lines.join("\n");
+      showTip("客户池复盘报告已生成。");
+    }
+
+    async function copyText(text, successMessage) {
+      if (!text.trim()) {
+        alert("请先生成复盘报告。");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+      }
+      showTip(successMessage);
+    }
+
+    function saveReviewRecord() {
+      const report = el("reviewReportOutput").value.trim();
+      if (!report) {
+        alert("请先生成客户池复盘报告，再保存历史记录。");
+        return;
+      }
+
+      const baseInfo = collectBaseInfo();
+      const record = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        createdAt: new Date().toISOString(),
+        mall: baseInfo.mall,
+        reviewDate: baseInfo.reviewDate,
+        baseInfo,
+        stageStats: collectStageStats(),
+        sourceStats: collectSourceStats(),
+        bottlenecks: getCheckedBottlenecks(),
+        report
+      };
+
+      const records = loadRecords();
+      records.unshift(record);
+      saveRecords(records);
+      renderHistory();
+      showTip("客户池复盘记录已保存。");
+    }
+
+    function renderHistory() {
+      const records = loadRecords();
+      if (!records.length) {
+        el("historyList").innerHTML = '<div class="empty">暂无历史复盘记录。</div>';
+        return;
+      }
+
+      el("historyList").innerHTML = records.map((record) => `
+        <article class="history-item">
+          <div>
+            <div class="history-title">${escapeHtml(record.mall || "未填写点将商场")}</div>
+            <div class="history-meta">
+              复盘日期：${escapeHtml(record.reviewDate || "未填写")} · 创建时间：${escapeHtml(formatDateTime(record.createdAt))}
+            </div>
+          </div>
+          <div class="button-row" style="margin-top: 0;">
+            <button class="btn-blue" type="button" data-action="view" data-id="${escapeHtml(record.id)}">查看</button>
+            <button class="btn-green" type="button" data-action="copy" data-id="${escapeHtml(record.id)}">复制复盘报告</button>
+            <button class="btn-red" type="button" data-action="delete" data-id="${escapeHtml(record.id)}">删除</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function findRecord(id) {
+      return loadRecords().find((record) => record.id === id);
+    }
+
+    function handleHistoryAction(event) {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
+      const id = button.dataset.id;
+      const record = findRecord(id);
+      if (!record) return;
+
+      if (action === "view") {
+        alert(record.report);
+      }
+
+      if (action === "copy") {
+        copyText(record.report, "历史复盘报告已复制。");
+      }
+
+      if (action === "delete") {
+        if (!confirm("确认删除这条客户池复盘记录吗？删除后不可恢复。")) return;
+        const nextRecords = loadRecords().filter((item) => item.id !== id);
+        saveRecords(nextRecords);
+        renderHistory();
+        showTip("客户池复盘记录已删除。");
+      }
+    }
+
+    function init() {
+      el("reviewDate").value = today();
+      renderBottleneckChecks();
+      renderHistory();
+      el("generateReviewBtn").addEventListener("click", generateReport);
+      el("copyReviewBtn").addEventListener("click", () => copyText(el("reviewReportOutput").value, "复盘报告已复制。"));
+      el("saveReviewBtn").addEventListener("click", saveReviewRecord);
+      el("historyList").addEventListener("click", handleHistoryAction);
+    }
+
+    init();
+  </script>
+</body>
+</html>
