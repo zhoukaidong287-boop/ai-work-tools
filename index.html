@@ -146,6 +146,59 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .quick-entry {
+      background:
+        radial-gradient(circle at 90% 12%, rgba(14, 165, 233, 0.18), transparent 34%),
+        linear-gradient(135deg, #f8fbff 0%, #eef6ff 52%, #ffffff 100%);
+      border: 1px solid rgba(59, 130, 246, 0.28);
+      border-radius: 20px;
+      box-shadow: 0 16px 38px rgba(37, 99, 235, 0.12);
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 1fr auto;
+      margin-bottom: 20px;
+      overflow: hidden;
+      padding: 22px;
+      position: relative;
+    }
+
+    .quick-entry::before {
+      background: var(--gradient-primary);
+      content: "";
+      inset: 0 auto 0 0;
+      position: absolute;
+      width: 5px;
+    }
+
+    .quick-entry-badge {
+      background: #ecfeff;
+      border: 1px solid #bae6fd;
+      border-radius: 999px;
+      color: #0369a1;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 12px;
+      padding: 6px 10px;
+    }
+
+    .quick-entry h2 {
+      font-size: 23px;
+      margin: 0;
+    }
+
+    .quick-entry p {
+      color: var(--muted);
+      line-height: 1.75;
+      margin-top: 10px;
+      max-width: 780px;
+    }
+
+    .quick-entry-action {
+      align-items: center;
+      display: flex;
+    }
+
     .tool-card {
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.96)),
@@ -299,6 +352,15 @@
         grid-template-columns: 1fr;
       }
 
+      .quick-entry {
+        grid-template-columns: 1fr;
+        padding: 18px;
+      }
+
+      .quick-entry-action {
+        align-items: flex-start;
+      }
+
       .tool-card {
         min-height: auto;
         padding: 18px;
@@ -324,6 +386,17 @@
           <p>选择当前要处理的点将任务。已上线工具会在当前浏览器继续读取原有本地数据。</p>
         </div>
       </div>
+
+      <article class="quick-entry">
+        <div>
+          <span class="quick-entry-badge">明日调研优先使用</span>
+          <h2>中卫点将调研快捷入口</h2>
+          <p>明天到中卫欧派整装大家居后，可一键进入 AI 城市研判页，并自动填入中卫点将调研预设，用于第一天调研、摸底和后天正式启动前的判断。</p>
+        </div>
+        <div class="quick-entry-action">
+          <a class="btn-primary" href="city-analysis.html?preset=zhongwei">进入中卫调研</a>
+        </div>
+      </article>
 
       <div class="tool-grid">
         <article class="tool-card">

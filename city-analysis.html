@@ -2875,6 +2875,14 @@
       setText("preJudgePresetTip", "已填入中卫点将调研预设，可直接生成AI调研指令。");
     }
 
+    function applyPresetFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("preset") === "zhongwei") {
+        applyZhongweiPreset();
+        setText("preJudgePresetTip", "已自动进入中卫点将调研预设，可直接生成AI调研指令。");
+      }
+    }
+
     function renderPreJudgeChoiceGroups() {
       renderPreJudgeChoices("preJudgeGoalChecks", "preJudgeGoal", PREJUDGE_GOAL_OPTIONS);
       renderPreJudgeChoices("preJudgeTrafficChecks", "preJudgeTraffic", PREJUDGE_TRAFFIC_OPTIONS);
@@ -3652,6 +3660,7 @@
     }
     renderPreJudgeChoiceGroups();
     renderPreJudgeHistory();
+    applyPresetFromUrl();
   </script>
 </body>
 </html>
