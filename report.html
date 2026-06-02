@@ -386,6 +386,7 @@
         <button class="btn-blue" onclick="readWeeklyDailies()">读取本周日报</button>
         <button class="btn-primary" onclick="generateWeeklyFromDailies()">根据日报生成周报</button>
         <button class="btn-green" onclick="copyOutput('weeklyOutput', 'weeklyTip', '周报已复制')">复制周报</button>
+        <button class="btn-green" onclick="downloadWeeklyWord()">下载周报文档版</button>
         <button class="btn-blue" onclick="saveCurrentReport('周报', weeklyMeta(), getValue('weeklyOutput'), 'weeklyTip')">保存周报</button>
       </div>
     </section>
@@ -457,6 +458,20 @@
       "数据复盘": "对客户来源、跟进状态和阶段转化情况进行数据复盘，明确后续重点方向。",
       "老板/负责人沟通": "与老板/负责人同步点将工作进展、客户推进重点和需要协同解决的事项。",
       "其他": "同步处理主动营销点将期间其他相关工作，保障客户跟进和门店执行持续推进。"
+    };
+    const TOMORROW_PLAN_TEXT = {
+      "客户跟进": "明日继续围绕重点客户、待跟进客户及意向客户开展跟进，明确客户需求、预算方向和下一步推进动作。",
+      "客户信息复盘": "明日继续复盘客户来源、当前进度、成交阻力点及后续跟进节奏，避免客户线索沉淀后无人持续推进。",
+      "量房推进": "明日重点推进已沟通客户量房，并根据量房情况推动后续方案设计、预算测算和报价沟通。",
+      "方案沟通": "明日继续推进已量房客户方案沟通和报价反馈，结合客户预算、装修需求和套餐匹配度推动成交转化。",
+      "报价沟通": "明日继续推进已量房客户方案沟通和报价反馈，结合客户预算、装修需求和套餐匹配度推动成交转化。",
+      "新媒体文案输出": "明日继续围绕本地客户装修痛点、预算透明、工地可看、整装省心等方向优化信息流文案和短视频脚本。",
+      "短视频脚本输出": "明日继续围绕本地客户装修痛点、预算透明、工地可看、整装省心等方向优化信息流文案和短视频脚本。",
+      "视频拍摄": "明日继续推进视频素材拍摄和剪辑优化，重点围绕开头钩子、客户痛点、画面节奏和咨询引导进行调整。",
+      "视频剪辑": "明日继续推进视频素材拍摄和剪辑优化，重点围绕开头钩子、客户痛点、画面节奏和咨询引导进行调整。",
+      "信息流投放沟通": "明日继续围绕投流素材、预算控制、线索质量和客户承接路径进行复盘，优先小预算测试有效线索质量。",
+      "经纪人渠道沟通": "明日继续推进经纪人渠道客户报备、转介绍和后续承接流程，提升渠道客户有效转化。",
+      "数据复盘": "明日继续结合客户来源、跟进状态、量房报价进度和签单转化情况进行复盘，明确重点客户和重点动作。"
     };
 
     let reportRecords = loadReports();
@@ -576,11 +591,27 @@
       return lines.join("\n");
     }
 
+    function buildTomorrowPlan(actions, manualPlan) {
+      const manual = polish(manualPlan);
+      if (manual) return manual;
+      const lines = [];
+      actions.forEach(action => {
+        const text = TOMORROW_PLAN_TEXT[action];
+        if (text && !lines.includes(text)) {
+          lines.push(text);
+        }
+      });
+      if (!lines.length) {
+        lines.push("明日将继续围绕客户跟进、客户状态推进、数据复盘及后续转化动作开展工作。");
+      }
+      return lines.join("\n");
+    }
+
     function generateDaily() {
       const base = getBaseInfo();
       const actions = checked("dailyAction");
       const workSummary = getValue("dailyWorkSummary");
-      const tomorrow = polish(getValue("dailyTomorrow")) || "明日继续围绕重点客户跟进、客户状态推进、数据复盘及后续转化动作开展工作。";
+      const tomorrow = buildTomorrowPlan(actions, getValue("dailyTomorrow"));
       const workText = buildDailyWork(actions, workSummary);
       const report = [
         "【主动营销工作日报】",
@@ -620,6 +651,7 @@
     function collectDailyRecord(content) {
       const base = getBaseInfo();
       const actions = checked("dailyAction");
+      const tomorrowPlan = buildTomorrowPlan(actions, getValue("dailyTomorrow"));
       return {
         id: `report-${Date.now()}-${Math.random().toString(16).slice(2)}`,
         type: "日报",
@@ -634,7 +666,7 @@
         actions,
         workSummary: getValue("dailyWorkSummary"),
         workText: buildDailyWork(actions, getValue("dailyWorkSummary")),
-        tomorrowPlan: getValue("dailyTomorrow"),
+        tomorrowPlan,
         content,
         project: base.mall,
         createdAt: new Date().toISOString()
@@ -699,6 +731,164 @@
       return unique.slice(0, 6).map((action, index) => `${index + 1}. ${ACTION_TEXT[action] || action}`).join("\n");
     }
 
+    function getWeeklyActions(records) {
+      return [...new Set(records.flatMap(record => record.actions || []))];
+    }
+
+    function hasAny(actions, options) {
+      return options.some(option => actions.includes(option));
+    }
+
+    function numbered(lines) {
+      const clean = lines.map(line => polish(line)).filter(Boolean);
+      return clean.length ? clean.map((line, index) => `${index + 1}. ${line}`).join("\n") : "";
+    }
+
+    function collectWeeklyText(records) {
+      return records.map(record => [record.workSummary, record.workText, record.tomorrowPlan, record.content].filter(Boolean).join("\n")).join("\n");
+    }
+
+    function getWeeklyKeywordCount(text, keywords) {
+      return keywords.some(keyword => text.includes(keyword)) ? "有记录" : "未填写";
+    }
+
+    function buildWeeklyOverview(actions, records, mall) {
+      const parts = [];
+      if (hasAny(actions, ["客户跟进", "客户信息复盘", "数据复盘"])) {
+        parts.push("客户跟进、客户信息复盘和阶段数据复盘");
+      }
+      if (hasAny(actions, ["量房推进", "方案沟通", "报价沟通", "签单转化"])) {
+        parts.push("量房推进、方案报价沟通和签单转化");
+      }
+      if (hasAny(actions, ["新媒体文案输出", "短视频脚本输出", "视频拍摄", "视频剪辑"])) {
+        parts.push("信息流内容输出、短视频脚本、视频拍摄及素材整理");
+      }
+      if (hasAny(actions, ["信息流投放沟通"])) {
+        parts.push("投流素材、预算测试和线索承接路径沟通");
+      }
+      if (hasAny(actions, ["经纪人渠道沟通"])) {
+        parts.push("经纪人渠道沟通和客户转介绍承接");
+      }
+      if (hasAny(actions, ["活动政策梳理", "老板/负责人沟通"])) {
+        parts.push("活动政策梳理、老板/负责人沟通和门店承接协同");
+      }
+      const scope = parts.length ? parts.join("，") : "客户跟进、客户状态整理和后续转化动作准备";
+      return `本周${mall && mall !== "未填写" ? `围绕${mall}` : ""}主动营销点将工作，重点围绕${scope}展开。整体工作以日报历史为基础，持续梳理客户池、重点客户与待跟进客户状态，结合门店现阶段承接能力推进后续动作。已记录日报${records.length}天，当前周报主要用于大区查看和个人留档，重点呈现本周实际推进过程、阶段数据、存在问题及下周重点动作；未在日报中明确记录的数据和结果不做额外编造。`;
+    }
+
+    function buildWeeklyFocus(actions) {
+      const lines = [];
+      if (hasAny(actions, ["客户跟进", "客户信息复盘", "数据复盘"])) {
+        lines.push("客户跟进与客户复盘：本周围绕客户池、重点客户、待跟进客户和意向客户进行持续跟进与复盘，重点梳理客户来源、客户状态、需求预算、推进节点及后续优先级。");
+      }
+      if (hasAny(actions, ["量房推进", "方案沟通", "报价沟通", "签单转化"])) {
+        lines.push("量房、方案与报价推进：围绕已沟通客户推动量房、方案沟通、报价反馈和签单转化动作，重点关注客户预算、装修需求、方案匹配度和成交阻力点。");
+      }
+      if (hasAny(actions, ["新媒体文案输出", "短视频脚本输出", "视频拍摄", "视频剪辑"])) {
+        lines.push("新媒体内容与信息流素材：结合本地客户装修痛点、预算透明、整装省心、工地可看等方向，推进信息流文案、短视频脚本、视频拍摄和素材整理。");
+      }
+      if (hasAny(actions, ["信息流投放沟通"])) {
+        lines.push("投流沟通与素材测试：围绕投流素材方向、预算控制、线索质量和客户承接路径进行沟通，保持小预算测试、先看有效线索再决定是否放量的节奏。");
+      }
+      if (hasAny(actions, ["经纪人渠道沟通"])) {
+        lines.push("经纪人渠道与本地获客：围绕经纪人客户报备、转介绍和后续承接流程推进，提升本地渠道客户进入门店承接链路的效率。");
+      }
+      if (hasAny(actions, ["活动政策梳理", "老板/负责人沟通"])) {
+        lines.push("门店承接与团队协同：围绕活动政策、客户沟通口径、老板/负责人协同和门店承接流程进行梳理，推动客户跟进动作更清晰。");
+      }
+      if (!lines.length) {
+        lines.push("主动营销基础工作：本周日报中具体工作动作记录有限，主要围绕客户资料整理、客户跟进准备和后续转化动作安排进行推进。");
+      }
+      return numbered(lines.slice(0, 6));
+    }
+
+    function buildCustomerProgress(actions, text) {
+      const lines = [];
+      if (hasAny(actions, ["客户跟进"])) {
+        lines.push("客户跟进方面，本周围绕重点客户、待跟进客户和意向客户持续确认需求、预算方向、装修节点及下一步推进动作。");
+      }
+      if (hasAny(actions, ["客户信息复盘", "数据复盘"])) {
+        lines.push("客户复盘方面，重点整理客户来源、跟进状态、成交阻力点和后续跟进节奏，减少线索沉淀后无人持续推进的情况。");
+      }
+      if (hasAny(actions, ["量房推进"])) {
+        lines.push("量房推进方面，本周有围绕已沟通客户推动量房及后续方案准备的记录。");
+      }
+      if (hasAny(actions, ["方案沟通", "报价沟通"])) {
+        lines.push("方案报价方面，本周围绕客户预算、装修需求和套餐匹配度进行方案沟通或报价反馈。");
+      }
+      if (hasAny(actions, ["签单转化"])) {
+        lines.push("签单转化方面，本周围绕报价后客户和重点意向客户推进异议处理与成交动作。");
+      }
+      if (!lines.length || !/客户|跟进|量房|方案|报价|签单/.test(text)) {
+        return "本周日报中客户推进信息记录有限，后续建议持续完善客户量房、方案、报价及签单阶段数据，便于后续复盘转化链路。";
+      }
+      return lines.join("\n");
+    }
+
+    function buildMediaSummary(actions) {
+      const lines = [];
+      if (hasAny(actions, ["新媒体文案输出", "短视频脚本输出"])) {
+        lines.push("内容方向上，本周围绕本地客户装修痛点、预算透明、整装省心、工地可看等方向推进信息流文案或短视频脚本输出。");
+      }
+      if (hasAny(actions, ["视频拍摄", "视频剪辑"])) {
+        lines.push("视频素材上，本周围绕门店卖点、客户痛点、案例内容、开头钩子和咨询引导推进拍摄或剪辑优化。");
+      }
+      if (hasAny(actions, ["信息流投放沟通"])) {
+        lines.push("投流沟通上，本周围绕素材方向、预算控制、有效线索质量和客户承接路径进行复盘，后续仍建议保持小预算测试节奏。");
+      }
+      if (!lines.length) {
+        return "本周日报中暂无明显新媒体/投流相关记录，后续如开展信息流文案、短视频脚本、视频拍摄或投流测试，建议在日报中持续记录素材方向和线索承接情况。";
+      }
+      return lines.join("\n");
+    }
+
+    function buildWeeklyProblems(text) {
+      const problemMap = [
+        ["客户来源不足", ["来源不足", "客户来源较少", "获客不足", "线索少"]],
+        ["客户预算不明确", ["预算不明确", "预算模糊"]],
+        ["客户跟进节奏不稳定", ["跟进不及时", "跟进节奏", "未跟进"]],
+        ["设计师承接不及时", ["设计师承接", "方案进度"]],
+        ["报价转化弱", ["报价转化", "报价不清晰", "报价弱"]],
+        ["信息流素材不足", ["素材不足", "素材方向"]],
+        ["投流数据样本不足", ["样本不足", "有效线索", "投流数据"]],
+        ["团队执行不稳定", ["执行不稳定", "配合不稳定", "承接流程"]]
+      ];
+      const found = problemMap
+        .filter(([, keywords]) => keywords.some(keyword => text.includes(keyword)))
+        .map(([label]) => label);
+      if (!found.length) {
+        return "本周暂无需重点反馈的问题，后续继续关注客户跟进节奏、客户来源质量、量房报价推进及转化动作落地。";
+      }
+      return `本周日报中需要关注的问题主要包括：${[...new Set(found)].join("、")}。后续建议结合客户数据复盘和门店承接情况，逐项明确责任人、跟进节奏和调整动作。`;
+    }
+
+    function buildNextWeekPlan(records, actions) {
+      const planText = records.map(record => record.tomorrowPlan).filter(Boolean).join("\n");
+      const lines = [];
+      if (/重点客户|待跟进|意向客户|客户跟进/.test(planText) || hasAny(actions, ["客户跟进"])) {
+        lines.push("继续跟进重点客户、待跟进客户和意向客户，明确需求、预算方向和下一步推进节点。");
+      }
+      if (/量房|方案|报价/.test(planText) || hasAny(actions, ["量房推进", "方案沟通", "报价沟通"])) {
+        lines.push("推进已沟通客户量房、方案沟通和报价反馈，重点关注客户预算、方案匹配度和成交阻力点。");
+      }
+      if (/复盘|客户来源|转化/.test(planText) || hasAny(actions, ["客户信息复盘", "数据复盘"])) {
+        lines.push("继续复盘客户来源、跟进状态、量房报价进度和签单转化情况，明确重点客户和重点动作。");
+      }
+      if (/文案|脚本|视频|素材/.test(planText) || hasAny(actions, ["新媒体文案输出", "短视频脚本输出", "视频拍摄", "视频剪辑"])) {
+        lines.push("优化信息流文案、短视频脚本和视频素材，围绕本地客户痛点、预算透明和咨询引导提升内容可用度。");
+      }
+      if (/经纪人|报备|转介绍/.test(planText) || hasAny(actions, ["经纪人渠道沟通"])) {
+        lines.push("推进经纪人渠道客户报备、转介绍和后续承接流程，提升渠道客户有效转化。");
+      }
+      if (/投流|预算|线索/.test(planText) || hasAny(actions, ["信息流投放沟通"])) {
+        lines.push("围绕投流素材、预算控制、线索质量和客户承接路径进行小预算测试复盘。");
+      }
+      if (!lines.length) {
+        lines.push("下周继续围绕重点客户跟进、客户状态推进、数据复盘和后续转化动作开展工作。");
+      }
+      return numbered(lines.slice(0, 6));
+    }
+
     function generateWeeklyFromDailies() {
       if (!weeklyDailies.length) {
         readWeeklyDailies();
@@ -707,49 +897,227 @@
       const start = getValue("weeklyStart") || "-";
       const end = getValue("weeklyEnd") || "-";
       const mall = getValue("weeklyMall") || base.mall || "未填写";
+      const actions = getWeeklyActions(weeklyDailies);
+      const weeklyText = collectWeeklyText(weeklyDailies);
       const weekSign = weeklyDailies.reduce((sum, record) => sum + (Number(record.todaySign) || 0), 0);
       const totalSign = weeklyDailies.length ? Math.max(...weeklyDailies.map(record => Number(record.totalSign) || 0)) : 0;
-      const workSummary = summarizeActions(weeklyDailies);
-      const customerSummary = summarizeLines(
-        weeklyDailies.map(record => record.workText).filter(text => /量房|方案|报价|签单|客户|复盘|跟进/.test(text)),
-        "本周主要围绕客户跟进、客户复盘、量房推进、方案报价和签单转化动作进行推进，实际进度以每日主动营销工作日报为准。"
-      );
-      const problemSummary = "本周暂无需重点反馈的问题，后续继续关注客户跟进节奏、客户来源质量及转化动作落地。";
-      const nextPlan = summarizeLines(
-        weeklyDailies.map(record => record.tomorrowPlan),
-        "1. 下周继续围绕重点客户跟进、客户状态推进、数据复盘和转化动作开展工作。",
-        4
-      );
+      const overview = buildWeeklyOverview(actions, weeklyDailies, mall);
+      const focusSummary = buildWeeklyFocus(actions);
+      const customerSummary = buildCustomerProgress(actions, weeklyText);
+      const mediaSummary = buildMediaSummary(actions);
+      const problemSummary = buildWeeklyProblems(`${weeklyText}\n${getValue("weeklySupplement")}`);
+      const nextPlan = buildNextWeekPlan(weeklyDailies, actions);
       const supplement = polish(getValue("weeklySupplement"));
       const report = [
         "【主动营销点将周报】",
         `点将商场：${mall}`,
         `周报周期：${start} - ${end}`,
+        `商场类型：${base.mallType || "未填写"}`,
+        `订单目标：${base.orderTarget ? `${base.orderTarget}户` : "未填写"}`,
         "",
-        "一、本周基础数据",
-        `订单目标：${base.orderTarget || 0}户`,
-        `本周签单：${weekSign}户`,
-        `累计签单：${totalSign}户`,
+        "一、本周工作概述",
+        overview,
+        "",
+        "二、本周关键数据",
         `本周日报记录：${weeklyDailies.length}天`,
+        `订单目标：${base.orderTarget ? `${base.orderTarget}户` : "未填写"}`,
+        `本周签单：${weeklyDailies.length ? `${weekSign}户` : "不详"}`,
+        `累计签单：${weeklyDailies.length ? `${totalSign}户` : "不详"}`,
+        `本周新增客户：${getWeeklyKeywordCount(weeklyText, ["新增客户", "今日新增"])}`,
+        `本周量房：${getWeeklyKeywordCount(weeklyText, ["量房"])}`,
+        `本周报价：${getWeeklyKeywordCount(weeklyText, ["报价"])}`,
         "",
-        "二、本周重点工作",
-        workSummary,
+        "三、本周重点工作展开",
+        focusSummary,
         supplement ? `\n补充说明：${supplement}` : "",
         "",
-        "三、客户推进情况",
+        "四、客户推进情况",
         customerSummary,
         "",
-        "四、本周问题与卡点",
+        "五、新媒体与投流相关工作",
+        mediaSummary,
+        "",
+        "六、本周问题与卡点",
         problemSummary,
         "",
-        "五、下周工作计划",
+        "七、下周重点计划",
         nextPlan,
         "",
-        "六、需协调事项",
+        "八、需协调事项",
         "暂无。"
       ].filter(item => item !== "").join("\n");
       setValue("weeklyOutput", report);
       setText("weeklyTip", "");
+    }
+
+    function downloadWeeklyWord() {
+      const content = getValue("weeklyOutput");
+      if (!content) {
+        alert("请先生成周报");
+        return;
+      }
+      const mall = sanitizeFileName(getValue("weeklyMall") || getBaseInfo().mall || "未填写商场");
+      const start = sanitizeFileName(getValue("weeklyStart") || "开始日期");
+      const end = sanitizeFileName(getValue("weeklyEnd") || "结束日期");
+      const fileName = `主动营销点将周报-${mall}-${start}至${end}.rtf`;
+      const rtf = buildWeeklyRtf(content);
+      const blob = new Blob([rtf], { type: "application/rtf;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setText("weeklyTip", "周报文档版已下载");
+    }
+
+    function buildWeeklyRtf(content) {
+      const parsed = parseWeeklyReport(content);
+      const dataRows = (parsed.sections["二、本周关键数据"] || "")
+        .split("\n")
+        .map(line => line.trim())
+        .filter(Boolean)
+        .filter(line => !line.startsWith("订单目标："))
+        .map(line => {
+          const [label, ...rest] = line.split("：");
+          return [label || "数据项", rest.join("：") || "未填写"];
+        });
+      const keyDataRows = [
+        ["点将商场", parsed.meta["点将商场"] || "未填写"],
+        ["商场类型", parsed.meta["商场类型"] || "未填写"],
+        ["订单目标", parsed.meta["订单目标"] || "未填写"],
+        ...dataRows
+      ];
+      const mainline = buildWordMainline(parsed);
+      const parts = [
+        rtfTitle(parsed.title || "【主动营销点将周报】"),
+        rtfCenter(`工作周期：${parsed.meta["周报周期"] || "未填写"}`),
+        rtfCenter("汇报人：周楷东"),
+        rtfMainline(mainline),
+        buildRtfFocusSection(parsed.sections["三、本周重点工作展开"] || ""),
+        buildRtfDataList(keyDataRows),
+        buildRtfSection("三、客户推进情况", parsed.sections["四、客户推进情况"] || "本周暂无明显记录。"),
+        buildRtfSection("四、新媒体与投流相关工作", parsed.sections["五、新媒体与投流相关工作"] || "本周暂无明显记录。"),
+        buildRtfSection("五、本周问题与卡点", parsed.sections["六、本周问题与卡点"] || "本周暂无需重点反馈的问题。"),
+        buildRtfSection("六、下周重点计划", parsed.sections["七、下周重点计划"] || "下周继续围绕重点客户跟进、客户状态推进和转化动作开展工作。"),
+        buildRtfSection("七、需协调事项", parsed.sections["八、需协调事项"] || "暂无。")
+      ];
+      return `{\\rtf1\\ansi\\deff0\\uc1\\viewkind4\\paperw11906\\paperh16838\\margl1080\\margr1080\\margt960\\margb960{\\fonttbl{\\f0 Microsoft YaHei;}{\\f1 SimSun;}}{\\colortbl;\\red17\\green24\\blue39;\\red243\\green244\\blue246;\\red209\\green213\\blue219;}\\f0\\cf1\n${parts.join("")}}`;
+    }
+
+    function parseWeeklyReport(content) {
+      const lines = content.split(/\n+/).map(line => line.trim()).filter(Boolean);
+      const parsed = { title: "", meta: {}, sections: {} };
+      let currentSection = "";
+      lines.forEach(line => {
+        if (/^【主动营销点将周报】/.test(line)) {
+          parsed.title = line;
+          return;
+        }
+        const metaMatch = line.match(/^(点将商场|周报周期|商场类型|订单目标)：(.+)$/);
+        if (metaMatch && !currentSection) {
+          parsed.meta[metaMatch[1]] = metaMatch[2];
+          return;
+        }
+        if (/^[一二三四五六七八]、/.test(line)) {
+          currentSection = line;
+          parsed.sections[currentSection] = "";
+          return;
+        }
+        if (currentSection) {
+          parsed.sections[currentSection] += `${parsed.sections[currentSection] ? "\n" : ""}${line}`;
+        }
+      });
+      return parsed;
+    }
+
+    function buildWordMainline(parsed) {
+      const source = parsed.sections["一、本周工作概述"] || "";
+      const clean = source.replace(/\s+/g, "").trim();
+      if (clean) {
+        return clean.length > 180 ? `${clean.slice(0, 178)}。` : clean;
+      }
+      return "本周围绕主动营销点将工作展开，重点关注客户跟进、量房推进、内容素材输出、渠道沟通和门店承接流程梳理，结合日报记录对本周重点动作、客户推进、问题卡点和下周计划进行复盘。";
+    }
+
+    function rtfEscape(value) {
+      return String(value || "").replace(/\r/g, "").split("").map(char => {
+        if (char === "\n") return "\\line ";
+        if (char === "\\\\") return "\\\\";
+        if (char === "{") return "\\{";
+        if (char === "}") return "\\}";
+        const code = char.charCodeAt(0);
+        if (code <= 0x7f) return char;
+        const signed = code > 32767 ? code - 65536 : code;
+        return `\\u${signed}?`;
+      }).join("");
+    }
+
+    function rtfTitle(text) {
+      return `\\pard\\qc\\b\\fs40 ${rtfEscape(text)}\\b0\\par\\par\n`;
+    }
+
+    function rtfCenter(text) {
+      return `\\pard\\qc\\fs26 ${rtfEscape(text)}\\par\n`;
+    }
+
+    function rtfHeading1(text) {
+      return `\\pard\\ql\\sb360\\sa180\\b\\fs32 ${rtfEscape(text)}\\b0\\par\n`;
+    }
+
+    function rtfHeading2(text) {
+      return `\\pard\\ql\\sb240\\sa120\\b\\fs29 ${rtfEscape(text)}\\b0\\par\n`;
+    }
+
+    function rtfParagraph(text, indent = true) {
+      const firstIndent = indent ? "\\fi560" : "\\fi0";
+      return `\\pard\\ql${firstIndent}\\sl360\\slmult1\\sa160\\fs28 ${rtfEscape(polish(text))}\\par\n`;
+    }
+
+    function rtfMainline(text) {
+      return [
+        "\\pard\\ql\\sb300\\sa260\\sl360\\slmult1\\brdrt\\brdrs\\brdrw10\\brdrcf3\\brdrl\\brdrs\\brdrw10\\brdrcf3\\brdrb\\brdrs\\brdrw10\\brdrcf3\\brdrr\\brdrs\\brdrw10\\brdrcf3\\shading1000\\cb2\\fs28 ",
+        `\\b ${rtfEscape("本周工作主线：")}\\b0\\line ${rtfEscape(text)}`,
+        "\\par\\par\n"
+      ].join("");
+    }
+
+    function buildRtfDataList(rows) {
+      return rtfHeading1("二、本周关键数据") + rows.map((row, index) => {
+        return rtfParagraph(`${index + 1}. ${row[0]}：${row[1]}`, false);
+      }).join("");
+    }
+
+    function buildRtfFocusSection(text) {
+      const lines = String(text || "")
+        .split("\n")
+        .map(line => line.trim())
+        .filter(Boolean);
+      if (!lines.length) return buildRtfSection("一、本周重点工作完成情况", "本周暂无明显记录。");
+      const body = lines.map(line => {
+        const match = line.match(/^\d+\.\s*([^：:]+)[：:](.+)$/);
+        if (match) {
+          return `${rtfHeading2(match[1])}${rtfParagraph(match[2])}`;
+        }
+        return rtfParagraph(line);
+      }).join("");
+      return `${rtfHeading1("一、本周重点工作完成情况")}${body}`;
+    }
+
+    function buildRtfSection(title, text) {
+      const paragraphs = String(text || "")
+        .split("\n")
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => rtfParagraph(line, !/^\d+\./.test(line)))
+        .join("");
+      return `${rtfHeading1(title)}${paragraphs || rtfParagraph("未填写。")}`;
+    }
+
+    function sanitizeFileName(value) {
+      return String(value || "").trim().replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, "") || "未填写";
     }
 
     function generateStage() {
