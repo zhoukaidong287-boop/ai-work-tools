@@ -1356,6 +1356,10 @@
               <textarea id="preJudge-note" placeholder="补充你希望 AI 重点关注的问题，例如预算有限、老板想做抖音、门店线索少等"></textarea>
             </div>
           </div>
+          <div class="button-row" style="margin-top: 14px;">
+            <button class="btn-green" onclick="applyZhongweiPreset()">一键填入中卫调研预设</button>
+          </div>
+          <div id="preJudgePresetTip" class="copy-tip"></div>
         </section>
 
         <section>
@@ -1567,6 +1571,16 @@
       "数据统计不规范",
       "会议复盘机制弱"
     ];
+    const ZHONGWEI_PREJUDGE_PRESET = {
+      cityName: "中卫",
+      mallName: "中卫欧派整装大家居",
+      brandCategory: "欧派整装大家居",
+      note: "明天第一天到店，主要做调研、摸底、建判断，不是正式开打。重点关注商场问题、客户池情况、团队承接、新媒体基础、直播可行性、投流风险和后天正式启动动作。",
+      goalCategories: ["综合诊断", "前端流量获客", "客户承接转化", "团队流程管理"],
+      trafficDirections: ["短视频内容获客", "信息流投放", "直播获客", "经纪人渠道", "老客户转介绍", "朋友圈/私域获客"],
+      conversionIssues: ["客户跟进不及时", "客户需求挖掘不足", "销售话术弱", "设计师承接弱", "方案转化弱", "报价转签单弱", "客户回访机制弱"],
+      processIssues: ["客户分配不清晰", "跟进机制不清晰", "数据统计不规范", "新媒体人员不足", "会议复盘机制弱"]
+    };
 
     let customers = [];
     let editingId = "";
@@ -2853,6 +2867,14 @@
       setCheckedValues("preJudgeProcess", normalizePreJudgeArray(data.processIssues));
     }
 
+    function applyZhongweiPreset() {
+      renderPreJudgeChoiceGroups();
+      setPreJudgeData(ZHONGWEI_PREJUDGE_PRESET);
+      setValue("preJudgePromptOutput", "");
+      setText("preJudgeCopyTip", "");
+      setText("preJudgePresetTip", "已填入中卫点将调研预设，可直接生成AI调研指令。");
+    }
+
     function renderPreJudgeChoiceGroups() {
       renderPreJudgeChoices("preJudgeGoalChecks", "preJudgeGoal", PREJUDGE_GOAL_OPTIONS);
       renderPreJudgeChoices("preJudgeTrafficChecks", "preJudgeTraffic", PREJUDGE_TRAFFIC_OPTIONS);
@@ -3110,10 +3132,11 @@
       ].filter(Boolean);
       const goalText = goalLines.length ? `\n${goalLines.join("\n")}` : "";
       const noteText = data.note ? `\n补充备注：${data.note}` : "";
+      const zhongweiText = isZhongweiPreJudge(data) ? `\n\n${buildZhongweiPreJudgePromptSection()}` : "";
 
       return [
         `请你以“装修整装行业点将前置研判”的角度，帮我调研【${data.cityName}】市场情况${mallText}${brandText}，生成一份点将前置研判报告。`,
-        `${goalText}${noteText}`,
+        `${goalText}${noteText}${zhongweiText}`,
         "",
         "请先结合我选择的点将目标和诊断方向，判断当前门店主要问题属于哪几类：",
         "- 前端流量问题",
@@ -3212,6 +3235,56 @@
         "- 输出内容要适合主动营销老师到新城市点将使用。",
         "- 语气务实，不要太官方。",
         "- 重点是可落地执行。"
+      ].join("\n");
+    }
+
+    function isZhongweiPreJudge(data) {
+      return String(data.cityName || "").trim() === "中卫";
+    }
+
+    function buildZhongweiPreJudgePromptSection() {
+      return [
+        "中卫点将调研专项要求：",
+        "1. 当前是中卫欧派整装大家居点将前置调研。",
+        "2. 明天第一天不是正式开打，而是调研、摸底、建判断；重点是把商场问题、客户池情况、团队承接和前端流量基础摸清楚。",
+        "3. 调研重点包括：",
+        "- 商场当前核心问题",
+        "- 客户池情况",
+        "- 已量房、已报价、待跟进、沉睡客户情况",
+        "- 销售和设计师承接能力",
+        "- 新媒体账号基础",
+        "- 抖音直播可行性",
+        "- 信息流投放可行性",
+        "- 投流是否容易跑飞",
+        "- 直播是否适合先做测试",
+        "- 经纪人渠道和老客户转介绍可能性",
+        "- 老板/负责人需要配合的事项",
+        "4. 需要输出：",
+        "- 中卫调研问题清单",
+        "- 到店第一天调研动作",
+        "- 需要向老板/负责人了解的问题",
+        "- 需要向销售/设计师了解的问题",
+        "- 客户池复盘表方向",
+        "- 新媒体/直播基础判断",
+        "- 投流前置判断",
+        "- 后天正式启动建议",
+        "5. 不要编造中卫交房量、楼盘数量、线索成本；如果公开信息不足，要明确提示到店后需要补充哪些资料。",
+        "6. 投流建议保持小预算测试逻辑，不要建议一开始大预算。",
+        "7. 直播建议围绕抖音、中卫欧派整装大家居官方号、装修咨询直播、私信咨询和留电话展开。",
+        "8. 直播 KT 板目前没有，请建议先用简易直播背景或小区清单方式过渡。",
+        "",
+        "请优先按以下结构输出：",
+        "【中卫点将调研报告】",
+        "一、商场当前情况初判",
+        "二、明日到店调研清单",
+        "三、客户池复盘重点",
+        "四、销售/设计师承接情况判断",
+        "五、新媒体账号与直播基础判断",
+        "六、信息流投放前置判断",
+        "七、直播测试建议",
+        "八、老板/负责人沟通问题",
+        "九、后天正式启动建议",
+        "十、风险提醒与需要补充资料"
       ].join("\n");
     }
 
