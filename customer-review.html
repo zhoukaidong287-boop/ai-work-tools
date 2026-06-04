@@ -567,11 +567,16 @@
       <div class="form-grid">
         <div>
           <label for="salesName">销售姓名</label>
-          <input id="salesName" type="text" placeholder="例如：王顾问" />
+          <input id="salesName" type="text" list="salesNameList" placeholder="例如：王玉玲" />
+          <datalist id="salesNameList"></datalist>
         </div>
         <div>
           <label for="salesTotal">负责客户总数</label>
           <input id="salesTotal" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesNew">新线索客户数量</label>
+          <input id="salesNew" type="number" min="0" value="0" />
         </div>
         <div>
           <label for="salesGradeA">A类客户数量</label>
@@ -626,6 +631,7 @@
         <button class="btn-primary" type="button" id="addSalesReviewBtn">添加销售复盘</button>
         <button class="btn-green" type="button" id="summarizeSalesReviewBtn">根据销售复盘自动汇总全店数据</button>
         <button class="btn-light" type="button" id="clearSalesReviewBtn">清空当前填写内容</button>
+        <button class="btn-light" type="button" id="cancelSalesEditBtn" style="display:none;">取消编辑</button>
       </div>
       <div class="sales-review-list" id="salesReviewList"></div>
       <div id="salesSummaryResult"></div>
@@ -756,6 +762,7 @@
   <script>
     const STORAGE_KEY = "customerReviewRecords";
     const DRAFT_KEY = "customerReviewDraft";
+    const ZHONGWEI_SALES = ["王玉玲", "李瑞兰", "朱丽", "折秀萍", "王淑慧", "詹莉君"];
     const bottleneckOptions = [
       "客户进不来",
       "电话接通率低",
@@ -791,6 +798,7 @@
 
     let salesReviewItems = [];
     let salesReviewSummary = null;
+    let editingSalesReviewId = "";
 
     const stageLabels = {
       new: "新线索客户",
@@ -1001,6 +1009,7 @@
       salesReviewItems = [];
       salesReviewSummary = null;
       clearSalesReviewForm();
+      setSalesReviewEditMode("");
       renderSalesReviewList();
       renderSalesSummaryResult();
       el("reviewReportOutput").value = "";
@@ -1066,6 +1075,10 @@
       `).join("");
     }
 
+    function renderSalesNameList() {
+      el("salesNameList").innerHTML = ZHONGWEI_SALES.map((name) => `<option value="${escapeHtml(name)}"></option>`).join("");
+    }
+
     function getCheckedBottlenecks() {
       return Array.from(document.querySelectorAll('input[name="bottleneck"]:checked')).map((item) => item.value);
     }
@@ -1119,6 +1132,7 @@
         id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
         salesName: getValue("salesName"),
         totalCustomers: getNumber("salesTotal"),
+        newCustomers: getNumber("salesNew"),
         gradeA: getNumber("salesGradeA"),
         gradeB: getNumber("salesGradeB"),
         gradeC: getNumber("salesGradeC"),
@@ -1138,6 +1152,7 @@
       [
         "salesName",
         "salesTotal",
+        "salesNew",
         "salesGradeA",
         "salesGradeB",
         "salesGradeC",
@@ -1173,6 +1188,7 @@
             <div class="sales-review-title">${escapeHtml(item.salesName || "未填写销售姓名")}</div>
             <div class="sales-review-meta">
               <span>客户总数：${item.totalCustomers}组</span>
+              <span>新线索：${item.newCustomers || 0}组</span>
               <span>A/B/C：${item.gradeA}/${item.gradeB}/${item.gradeC}组</span>
               <span>死单：${item.dead || 0}组</span>
               <span>已量房：${item.measured}组</span>
@@ -1186,16 +1202,54 @@
             <div class="sales-review-note">明日跟进动作：${escapeHtml(item.tomorrowAction || "未填写")}</div>
           </div>
           <div class="button-row" style="margin-top: 0;">
+            <button class="btn-blue" type="button" data-sales-action="edit" data-id="${escapeHtml(item.id)}">编辑</button>
+            <button class="btn-cyan" type="button" data-sales-action="crm" data-id="${escapeHtml(item.id)}">录入该销售客户</button>
             <button class="btn-red" type="button" data-sales-action="delete" data-id="${escapeHtml(item.id)}">删除</button>
           </div>
         </article>
       `).join("");
     }
 
+    function setSalesReviewEditMode(id = "") {
+      editingSalesReviewId = id;
+      el("addSalesReviewBtn").textContent = id ? "保存销售复盘修改" : "添加销售复盘";
+      el("cancelSalesEditBtn").style.display = id ? "inline-flex" : "none";
+    }
+
+    function setSalesReviewForm(item) {
+      setValue("salesName", item.salesName || "");
+      setValue("salesTotal", String(item.totalCustomers || 0));
+      setValue("salesNew", String(item.newCustomers || 0));
+      setValue("salesGradeA", String(item.gradeA || 0));
+      setValue("salesGradeB", String(item.gradeB || 0));
+      setValue("salesGradeC", String(item.gradeC || 0));
+      setValue("salesDead", String(item.dead || 0));
+      setValue("salesMeasured", String(item.measured || 0));
+      setValue("salesQuoted", String(item.quoted || 0));
+      setValue("salesSigned", String(item.signed || 0));
+      setValue("salesNeedFollow", String(item.needFollow || 0));
+      setValue("salesSleeping", String(item.sleeping || 0));
+      setValue("salesKeyCustomers", item.keyCustomers || "");
+      setValue("salesTomorrowAction", item.tomorrowAction || "");
+      document.querySelectorAll('input[name="salesBottleneck"]').forEach((checkbox) => {
+        checkbox.checked = Array.isArray(item.bottlenecks) && item.bottlenecks.includes(checkbox.value);
+      });
+    }
+
+    function editSalesReview(id) {
+      const item = salesReviewItems.find((record) => record.id === id);
+      if (!item) return;
+      setSalesReviewForm(item);
+      setSalesReviewEditMode(id);
+      el("salesName").focus();
+      showTip("已进入销售复盘编辑状态。");
+    }
+
     function buildSalesSummary(records) {
       return records.reduce((summary, item) => {
         summary.salesCount += 1;
         summary.totalCustomers += item.totalCustomers;
+        summary.newCustomers += item.newCustomers || 0;
         summary.gradeA += item.gradeA;
         summary.gradeB += item.gradeB;
         summary.gradeC += item.gradeC;
@@ -1209,6 +1263,7 @@
       }, {
         salesCount: 0,
         totalCustomers: 0,
+        newCustomers: 0,
         gradeA: 0,
         gradeB: 0,
         gradeC: 0,
@@ -1230,6 +1285,7 @@
       const items = [
         ["销售人数", `${salesReviewSummary.salesCount}人`],
         ["客户总数", `${salesReviewSummary.totalCustomers}组`],
+        ["新线索客户", `${salesReviewSummary.newCustomers || 0}组`],
         ["A类客户", `${salesReviewSummary.gradeA}组`],
         ["B类客户", `${salesReviewSummary.gradeB}组`],
         ["C类客户", `${salesReviewSummary.gradeC}组`],
@@ -1262,6 +1318,7 @@
       salesReviewSummary = buildSalesSummary(salesReviewItems);
       setValue("totalCustomers", String(salesReviewSummary.totalCustomers));
       setValue("salesCount", String(salesReviewSummary.salesCount));
+      setValue("stageNew", String(salesReviewSummary.newCustomers || 0));
       setValue("stageMeasured", String(salesReviewSummary.measured));
       setValue("stageQuoted", String(salesReviewSummary.quoted));
       setValue("stageSigned", String(salesReviewSummary.signed));
@@ -1278,22 +1335,53 @@
         alert("请先填写销售姓名。");
         return;
       }
-      salesReviewItems.push(item);
+      const isEditing = !!editingSalesReviewId;
+      if (isEditing) {
+        item.id = editingSalesReviewId;
+        salesReviewItems = salesReviewItems.map((record) => record.id === editingSalesReviewId ? item : record);
+      } else {
+        salesReviewItems.push(item);
+      }
       salesReviewSummary = null;
       renderSalesReviewList();
       renderSalesSummaryResult();
       clearSalesReviewForm();
+      setSalesReviewEditMode("");
       saveDraft();
-      showTip("销售个人客户池复盘已添加。");
+      showTip(isEditing ? "销售个人客户池复盘已更新。" : "销售个人客户池复盘已添加。");
+    }
+
+    function cancelSalesReviewEdit() {
+      clearSalesReviewForm();
+      setSalesReviewEditMode("");
+      showTip("已取消销售复盘编辑。");
     }
 
     function handleSalesReviewListAction(event) {
       const button = event.target.closest("button[data-sales-action]");
       if (!button) return;
       const id = button.dataset.id;
+      if (button.dataset.salesAction === "edit") {
+        editSalesReview(id);
+        return;
+      }
+      if (button.dataset.salesAction === "crm") {
+        const item = salesReviewItems.find((record) => record.id === id);
+        if (!item || !item.salesName) {
+          alert("请先填写销售姓名。");
+          return;
+        }
+        saveDraft();
+        window.location.href = `crm.html?sales=${encodeURIComponent(item.salesName)}`;
+        return;
+      }
       if (button.dataset.salesAction === "delete") {
         if (!confirm("确认删除这条销售复盘记录吗？")) return;
         salesReviewItems = salesReviewItems.filter((item) => item.id !== id);
+        if (editingSalesReviewId === id) {
+          clearSalesReviewForm();
+          setSalesReviewEditMode("");
+        }
         salesReviewSummary = null;
         renderSalesReviewList();
         renderSalesSummaryResult();
@@ -1495,10 +1583,10 @@
       const focusText = focus.length ? focus.join("、") : "客户当前阶段";
       const mall = base.mall ? `围绕${base.mall}现有客户池` : "围绕商场现有客户池";
       const salesText = salesReviews.length
-        ? "同时逐步按销售人员梳理各自负责客户情况，重点查看每位销售手中的A/B/C/死单客户、已量房客户、已报价客户、沉睡客户及明日重点推进客户，初步明确销售个人客户推进方向和需要设计师、老板配合的事项。"
+        ? "同时逐步按销售人员梳理各自负责客户情况，重点查看每位销售手中的新线索、A/B/C/死单客户、已量房客户、已报价客户、沉睡客户及明日重点推进客户，初步明确销售个人客户推进方向和需要设计师、老板配合的事项。"
         : "";
 
-      return `今日按销售人员逐一复盘客户池，重点梳理各销售手中的 A类、B类、C类、死单客户数量及客户阶段情况，并对已量房、已报价、待跟进、沉睡客户和明日推进动作进行整理。${salesText}后续将结合复盘结果，把 A/B/C/死单客户逐步录入 CRM，形成完整客户台账，为客户漏斗统计、销售跟进责任和后续签单转化提供数据基础。`;
+      return `今日按销售人员逐一复盘客户池，并同步统计各销售当前新线索、A/B/C类客户、已量房、已报价、待跟进和沉睡客户情况。后续新增线索将按负责人归属到对应销售客户池，便于持续跟进和客户漏斗复盘。${salesText}后续将结合复盘结果，把 A/B/C/死单客户逐步录入 CRM，形成完整客户台账，为客户漏斗统计、销售跟进责任和后续签单转化提供数据基础。`;
     }
 
     function getTopSalesBy(records, key) {
@@ -1514,6 +1602,7 @@
         "销售复盘汇总结果：",
         `- 销售人数：${summary.salesCount}人`,
         `- 客户总数：${summary.totalCustomers}组`,
+        `- 新线索客户：${summary.newCustomers || 0}组`,
         `- A类客户：${summary.gradeA}组`,
         `- B类客户：${summary.gradeB}组`,
         `- C类客户：${summary.gradeC}组`,
@@ -1534,7 +1623,14 @@
       const total = summary ? summary.totalCustomers : records.reduce((sum, item) => sum + item.totalCustomers, 0);
       const supportNeeds = records.filter((item) => item.bottlenecks.includes("需要设计师配合") || item.bottlenecks.includes("需要老板协助"));
       const currentSummary = summary || buildSalesSummary(records);
+      const topNewSales = getTopSalesBy(records, "newCustomers");
       const gradeAnalysis = [
+        currentSummary.newCustomers > 0
+          ? `新线索客户${currentSummary.newCustomers}组，已按销售负责人归属到个人客户池，后续需要尽快完成首次联系、需求判断和A/B/C分级。`
+          : "当前销售复盘中暂未统计新线索客户，后续新增线索仍建议按负责人归属到对应销售客户池。",
+        currentSummary.newCustomers > 0 && currentSummary.gradeA <= 0
+          ? "当前有新线索但A类客户较少，需要提升新线索首次触达、需求挖掘和有效转化，避免线索停留在未分级状态。"
+          : "",
         currentSummary.gradeA > 0
           ? `A类客户${currentSummary.gradeA}组，需要判断是否足够支撑近期签单，并逐组确认决策人、预算、方案反馈和逼单动作。`
           : "A类客户数量暂未形成明显支撑，近期签单需要继续从B类客户中筛选可推进对象。",
@@ -1550,12 +1646,14 @@
       ].join("\n");
       const overview = records.map((item, index) => {
         const bottleneckText = item.bottlenecks.length ? `当前卡点为${item.bottlenecks.join("、")}` : "当前卡点未明确";
-        return `${index + 1}. ${item.salesName || "未填写销售姓名"}：负责客户${item.totalCustomers}组，A/B/C/死单客户${item.gradeA}/${item.gradeB}/${item.gradeC}/${item.dead || 0}组，已量房${item.measured}组，已报价${item.quoted}组，已签单${item.signed}组，待跟进${item.needFollow}组，沉睡客户${item.sleeping}组，${bottleneckText}。`;
+        return `${index + 1}. ${item.salesName || "未填写销售姓名"}：负责客户${item.totalCustomers}组，新线索${item.newCustomers || 0}组，A/B/C/死单客户${item.gradeA}/${item.gradeB}/${item.gradeC}/${item.dead || 0}组，已量房${item.measured}组，已报价${item.quoted}组，已签单${item.signed}组，待跟进${item.needFollow}组，沉睡客户${item.sleeping}组，${bottleneckText}。`;
       }).join("\n");
 
       const summaryParts = [
         `本次已添加${records.length}名销售个人复盘记录，合计复盘销售名下客户${total}组。`,
+        "本次客户池复盘包含各销售当前客户池和后续分配到个人名下的新线索客户，新线索不是全店公共池，而是按销售负责人归属到对应销售客户池。",
         getTopSalesBy(records, "totalCustomers") ? `负责客户较多的是${getTopSalesBy(records, "totalCustomers")}。` : "",
+        topNewSales ? `新线索较多的是${topNewSales}，需要优先完成首次联系、微信触达、客户需求判断和A/B/C分级。` : "",
         getTopSalesBy(records, "gradeA") ? `A类客户较多的是${getTopSalesBy(records, "gradeA")}。` : "",
         getTopSalesBy(records, "gradeB") || getTopSalesBy(records, "gradeC")
           ? `B/C类客户较多的销售是主要培育对象复盘重点，B类较多：${getTopSalesBy(records, "gradeB") || "暂无"}，C类较多：${getTopSalesBy(records, "gradeC") || "暂无"}。`
@@ -1588,12 +1686,13 @@
         "",
         "3. 主动营销老师复盘建议",
         "1. 明日优先逐个找销售确认 A/B/C/死单客户，明确每组客户的需求、预算、阻力点、死单原因和下一步动作。",
-        "2. 已量房、已报价客户进入夕会复盘，重点看方案进度、报价反馈、成交阻力和需要设计师配合事项。",
-        "3. B类客户作为主要培育对象，需要明确预算、决策人、方案方向和下次触达动作；C类客户如果占比过高，需要复盘线索质量和客户承接口径。",
-        "4. 沉睡客户整理复洗名单，确认二次触达方式、话术和负责人。",
-        "5. 每个销售明确客户下一步动作和跟进时间，避免客户线索沉淀后无人持续推进。",
-        "6. 需要设计师或老板配合的客户单独标注，由主动营销老师推动资源协调。",
-        "7. 建议将本次复盘出的 A/B/C/死单客户逐步录入 CRM，形成完整客户台账。后续通过 CRM 持续记录客户来源、销售负责人、客户等级、客户阶段、当前卡点、跟进动作和死单原因，便于每日复盘客户漏斗和转化质量。"
+        "2. 新线索按销售负责人归属到个人客户池，优先完成首次联系和分级判断，尽快区分为A/B/C或死单并进入对应跟进动作。",
+        "3. 已量房、已报价客户进入夕会复盘，重点看方案进度、报价反馈、成交阻力和需要设计师配合事项。",
+        "4. B类客户作为主要培育对象，需要明确预算、决策人、方案方向和下次触达动作；C类客户如果占比过高，需要复盘线索质量和客户承接口径。",
+        "5. 沉睡客户整理复洗名单，确认二次触达方式、话术和负责人。",
+        "6. 每个销售明确客户下一步动作和跟进时间，避免客户线索沉淀后无人持续推进。",
+        "7. 需要设计师或老板配合的客户单独标注，由主动营销老师推动资源协调。",
+        "8. 建议将本次复盘出的 A/B/C/死单客户逐步录入 CRM，形成完整客户台账。后续通过 CRM 持续记录客户来源、销售负责人、客户等级、客户阶段、当前卡点、跟进动作和死单原因，便于每日复盘客户漏斗和转化质量。"
       ].join("\n");
     }
 
@@ -1610,6 +1709,7 @@
       const stage = salesReviewSummary
         ? {
             ...originalStage,
+            new: salesReviewSummary.newCustomers || 0,
             measured: salesReviewSummary.measured,
             quoted: salesReviewSummary.quoted,
             signed: salesReviewSummary.signed,
@@ -1768,6 +1868,7 @@
       el("reviewDate").value = today();
       renderBottleneckChecks();
       renderSalesBottleneckChecks();
+      renderSalesNameList();
       renderHistory();
       if (!restoreDraft()) {
         renderSalesReviewList();
@@ -1777,6 +1878,7 @@
       el("addSalesReviewBtn").addEventListener("click", addSalesReview);
       el("summarizeSalesReviewBtn").addEventListener("click", summarizeSalesReviews);
       el("clearSalesReviewBtn").addEventListener("click", clearSalesReviewForm);
+      el("cancelSalesEditBtn").addEventListener("click", cancelSalesReviewEdit);
       el("clearDraftBtn").addEventListener("click", clearDraft);
       el("salesReviewList").addEventListener("click", handleSalesReviewListAction);
       el("generateReviewBtn").addEventListener("click", generateReport);

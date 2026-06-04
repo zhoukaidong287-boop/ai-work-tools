@@ -369,6 +369,16 @@
       box-shadow: 0 16px 34px rgba(37, 99, 235, 0.24);
     }
 
+    .sales-preset-notice {
+      background: #eef5ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      color: #1d4ed8;
+      font-weight: 800;
+      margin-top: 12px;
+      padding: 10px 12px;
+    }
+
     .btn-small {
       min-height: 31px;
       padding: 6px 9px;
@@ -1355,6 +1365,7 @@
         <div class="ops-panel">
           <div class="hero-actions">
             <button class="btn-light return-home-btn" onclick="location.href='index.html'">返回工具库首页</button>
+            <button class="btn-light return-home-btn" onclick="location.href='customer-review.html'">返回客户池复盘</button>
             <button class="btn-blue" onclick="openPreJudgeModal()">AI城市研判</button>
             <button class="btn-primary" onclick="openDailyReportModal()">生成工作日报</button>
             <button class="btn-green" onclick="focusCustomerForm()">新增客户</button>
@@ -1504,6 +1515,7 @@
         <div>
           <h2 id="formTitle">新增客户</h2>
           <p class="section-note">客户姓名和手机号必填，其余字段可后续补充。</p>
+          <p class="sales-preset-notice" id="salesPresetNotice" style="display:none;"></p>
         </div>
       </div>
 
@@ -1608,7 +1620,8 @@
 
         <div>
           <label for="owner">所属销售</label>
-          <input id="owner" placeholder="例如：李顾问" />
+          <input id="owner" list="ownerSalesList" placeholder="例如：王玉玲" />
+          <datalist id="ownerSalesList"></datalist>
         </div>
 
         <div>
@@ -1960,6 +1973,8 @@
       "活动获客": "地推获客"
     };
 
+    const ZHONGWEI_SALES = ["王玉玲", "李瑞兰", "朱丽", "折秀萍", "王淑慧", "詹莉君"];
+
     const GRADE_OPTIONS = [
       "A类客户",
       "B类客户",
@@ -2174,6 +2189,7 @@
     let currentDisplayCustomers = [];
     let projectInfo = loadProjectInfo();
     let preJudgeRecords = loadPreJudgeRecords();
+    let presetSalesName = "";
 
     function loadProjectInfo() {
       const fallback = {
@@ -2205,6 +2221,31 @@
       setValue("pointProjectName", projectInfo.name || DEFAULT_PROJECT_NAME);
       setValue("pointStartDate", projectInfo.startDate);
       setValue("pointEndDate", projectInfo.endDate);
+    }
+
+    function renderOwnerSalesList() {
+      const list = document.getElementById("ownerSalesList");
+      if (!list) return;
+      list.innerHTML = ZHONGWEI_SALES.map(name => `<option value="${escapeHtml(name)}"></option>`).join("");
+    }
+
+    function initPresetSales() {
+      const params = new URLSearchParams(window.location.search);
+      presetSalesName = String(params.get("sales") || "").trim();
+      const notice = document.getElementById("salesPresetNotice");
+
+      if (!notice) return;
+
+      if (presetSalesName) {
+        notice.innerHTML = `当前正在录入【${escapeHtml(presetSalesName)}】负责的客户，新增客户时已自动带入所属销售。`;
+        notice.style.display = "block";
+        if (!editingId) {
+          setValue("owner", presetSalesName);
+        }
+      } else {
+        notice.innerHTML = "";
+        notice.style.display = "none";
+      }
     }
 
     function saveProjectInfo() {
@@ -2902,6 +2943,9 @@
       setValue("budget", "待确认");
       setValue("grade", "C类客户");
       setValue("status", "新线索");
+      if (presetSalesName) {
+        setValue("owner", presetSalesName);
+      }
       editingId = "";
       document.getElementById("formTitle").innerText = "新增客户";
       document.getElementById("saveButton").innerText = "添加客户";
@@ -4341,12 +4385,14 @@
     }
 
     renderProjectInfo();
+    renderOwnerSalesList();
     renderChoiceFields();
     renderDailyActionChecks();
     renderPreJudgeChoiceGroups();
     renderPreJudgeHistory();
     fillFilterOptions();
     toggleLayoutOther();
+    initPresetSales();
     renderCustomers();
   </script>
 </body>
