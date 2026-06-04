@@ -559,6 +559,77 @@
     <section class="card">
       <div class="section-head">
         <div>
+          <h2>销售人员客户池复盘</h2>
+          <p class="section-note">用于按销售人员分别复盘客户池，适合主动营销老师逐个找销售了解客户情况，判断每个销售手上的A/B/C类客户、量房报价客户、沉睡客户和明日重点推进方向。</p>
+          <p class="section-note">建议现场先逐个找销售复盘客户池，再点击“根据销售复盘自动汇总全店数据”，由系统自动汇总全店客户总数、A/B/C类客户、已量房、已报价、已签单、待跟进和沉睡客户数据。</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div>
+          <label for="salesName">销售姓名</label>
+          <input id="salesName" type="text" placeholder="例如：王顾问" />
+        </div>
+        <div>
+          <label for="salesTotal">负责客户总数</label>
+          <input id="salesTotal" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesGradeA">A类客户数量</label>
+          <input id="salesGradeA" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesGradeB">B类客户数量</label>
+          <input id="salesGradeB" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesGradeC">C类客户数量</label>
+          <input id="salesGradeC" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesMeasured">已量房客户数量</label>
+          <input id="salesMeasured" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesQuoted">已报价客户数量</label>
+          <input id="salesQuoted" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesSigned">已签单客户数量</label>
+          <input id="salesSigned" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesNeedFollow">待跟进客户数量</label>
+          <input id="salesNeedFollow" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesSleeping">沉睡客户数量</label>
+          <input id="salesSleeping" type="number" min="0" value="0" />
+        </div>
+        <div class="wide">
+          <label for="salesKeyCustomers">今日重点推进客户</label>
+          <textarea id="salesKeyCustomers" placeholder="例如：张先生报价跟进、李女士量房邀约、沉睡客户二次触达"></textarea>
+        </div>
+        <div class="wide">
+          <label for="salesTomorrowAction">明日跟进动作</label>
+          <textarea id="salesTomorrowAction" placeholder="例如：明日优先确认A类客户预算，推进已报价客户活动政策沟通。"></textarea>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <label>当前主要卡点</label>
+        <div class="check-grid" id="salesBottleneckChecks"></div>
+      </div>
+      <div class="button-row">
+        <button class="btn-primary" type="button" id="addSalesReviewBtn">添加销售复盘</button>
+        <button class="btn-green" type="button" id="summarizeSalesReviewBtn">根据销售复盘自动汇总全店数据</button>
+        <button class="btn-light" type="button" id="clearSalesReviewBtn">清空当前填写内容</button>
+      </div>
+      <div class="sales-review-list" id="salesReviewList"></div>
+      <div id="salesSummaryResult"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
           <h2>复盘基础信息</h2>
           <p class="section-note">用于记录本次到店摸底的基础口径，后续报告会基于这些内容生成。</p>
         </div>
@@ -643,77 +714,6 @@
         </div>
       </div>
       <div class="check-grid" id="bottleneckChecks"></div>
-    </section>
-
-    <section class="card">
-      <div class="section-head">
-        <div>
-          <h2>销售人员客户池复盘</h2>
-          <p class="section-note">用于按销售人员分别复盘客户池，适合主动营销老师逐个找销售了解客户情况，判断每个销售手上的A/B/C类客户、量房报价客户、沉睡客户和明日重点推进方向。</p>
-          <p class="section-note">建议现场先逐个找销售复盘客户池，再点击“根据销售复盘自动汇总全店数据”，由系统自动汇总全店客户总数、A/B/C类客户、已量房、已报价、已签单、待跟进和沉睡客户数据。</p>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div>
-          <label for="salesName">销售姓名</label>
-          <input id="salesName" type="text" placeholder="例如：王顾问" />
-        </div>
-        <div>
-          <label for="salesTotal">负责客户总数</label>
-          <input id="salesTotal" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="salesGradeA">A类客户数量</label>
-          <input id="salesGradeA" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="salesGradeB">B类客户数量</label>
-          <input id="salesGradeB" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="salesGradeC">C类客户数量</label>
-          <input id="salesGradeC" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="salesMeasured">已量房客户数量</label>
-          <input id="salesMeasured" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="salesQuoted">已报价客户数量</label>
-          <input id="salesQuoted" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="salesSigned">已签单客户数量</label>
-          <input id="salesSigned" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="salesNeedFollow">待跟进客户数量</label>
-          <input id="salesNeedFollow" type="number" min="0" value="0" />
-        </div>
-        <div>
-          <label for="salesSleeping">沉睡客户数量</label>
-          <input id="salesSleeping" type="number" min="0" value="0" />
-        </div>
-        <div class="wide">
-          <label for="salesKeyCustomers">今日重点推进客户</label>
-          <textarea id="salesKeyCustomers" placeholder="例如：张先生报价跟进、李女士量房邀约、沉睡客户二次触达"></textarea>
-        </div>
-        <div class="wide">
-          <label for="salesTomorrowAction">明日跟进动作</label>
-          <textarea id="salesTomorrowAction" placeholder="例如：明日优先确认A类客户预算，推进已报价客户活动政策沟通。"></textarea>
-        </div>
-      </div>
-      <div style="margin-top:16px;">
-        <label>当前主要卡点</label>
-        <div class="check-grid" id="salesBottleneckChecks"></div>
-      </div>
-      <div class="button-row">
-        <button class="btn-primary" type="button" id="addSalesReviewBtn">添加销售复盘</button>
-        <button class="btn-green" type="button" id="summarizeSalesReviewBtn">根据销售复盘自动汇总全店数据</button>
-        <button class="btn-light" type="button" id="clearSalesReviewBtn">清空当前填写内容</button>
-      </div>
-      <div class="sales-review-list" id="salesReviewList"></div>
-      <div id="salesSummaryResult"></div>
     </section>
 
     <section class="card">
