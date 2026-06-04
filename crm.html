@@ -589,6 +589,46 @@
       width: auto;
     }
 
+    .quick-choice-field {
+      display: grid;
+      gap: 10px;
+    }
+
+    .quick-choice-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quick-choice {
+      background: #f8fbff;
+      border: 1px solid #dbe4f0;
+      border-radius: 999px;
+      box-shadow: none;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+      min-height: 32px;
+      padding: 7px 11px;
+    }
+
+    .quick-choice:hover {
+      background: #eef5ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+    }
+
+    .quick-choice.active {
+      background: linear-gradient(135deg, #3861ff 0%, #6757f5 100%);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(70, 87, 240, 0.18);
+    }
+
+    .compat-textarea {
+      display: none;
+    }
+
     .action-checks {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -1582,18 +1622,30 @@
         </div>
 
         <div class="wide">
-          <label for="blockReason">当前卡点 / 死单原因</label>
-          <textarea id="blockReason" placeholder="例如：客户联系不上、客户只问价格、客户预算不明确、客户不愿到店、量房后未进店、方案后未报价、报价后未签单、已选择其他公司、已装修、暂时不装、区域不符、电话无效、长期不回复、其他原因"></textarea>
+          <label>当前卡点 / 死单原因</label>
+          <div class="quick-choice-field">
+            <div class="quick-choice-grid" id="blockReasonChoices"></div>
+            <textarea id="blockReasonText" placeholder="例如：客户说预算偏高，需明天二次沟通；电话无人接，下午再回访。" oninput="syncChoiceHiddenField('blockReason')"></textarea>
+            <textarea id="blockReason" class="compat-textarea" tabindex="-1" aria-hidden="true"></textarea>
+          </div>
         </div>
 
         <div class="wide">
-          <label for="nextAction">下一步动作</label>
-          <textarea id="nextAction" placeholder="例如：明天电话回访确认预算；邀约到店看方案；约设计师补报价；死单客户归档原因。"></textarea>
+          <label>下一步动作</label>
+          <div class="quick-choice-field">
+            <div class="quick-choice-grid" id="nextActionChoices"></div>
+            <textarea id="nextActionText" placeholder="例如：明天上午电话回访确认预算，下午邀约到店看方案。" oninput="syncChoiceHiddenField('nextAction')"></textarea>
+            <textarea id="nextAction" class="compat-textarea" tabindex="-1" aria-hidden="true"></textarea>
+          </div>
         </div>
 
         <div class="wide">
-          <label for="need">备注 / 装修需求</label>
-          <textarea id="need" placeholder="例如：整装、旧改、局改、风格偏好、重点关注项、客户卡点、死单原因补充等"></textarea>
+          <label>备注 / 装修需求</label>
+          <div class="quick-choice-field">
+            <div class="quick-choice-grid" id="needChoices"></div>
+            <textarea id="needText" placeholder="例如：客户重点关注厨房和卫生间改造，预算控制在8万左右。" oninput="syncChoiceHiddenField('need')"></textarea>
+            <textarea id="need" class="compat-textarea" tabindex="-1" aria-hidden="true"></textarea>
+          </div>
         </div>
       </div>
 
@@ -1955,6 +2007,75 @@
       "局部改造"
     ];
 
+    const CHOICE_FIELD_CONFIGS = {
+      blockReason: {
+        choicesId: "blockReasonChoices",
+        textId: "blockReasonText",
+        options: [
+          "客户联系不上",
+          "客户只问价格",
+          "客户预算不明确",
+          "客户不愿到店",
+          "量房后未进店",
+          "方案后未报价",
+          "报价后未签单",
+          "已选择其他公司",
+          "已装修",
+          "暂时不装",
+          "区域不符",
+          "电话无效",
+          "长期不回复",
+          "需要设计师配合",
+          "需要老板协助",
+          "其他原因"
+        ]
+      },
+      nextAction: {
+        choicesId: "nextActionChoices",
+        textId: "nextActionText",
+        options: [
+          "电话回访",
+          "微信跟进",
+          "邀约到店",
+          "预约量房",
+          "设计师出方案",
+          "推进报价",
+          "报价后二次邀约",
+          "邀约看工地",
+          "发送案例",
+          "发送活动政策",
+          "老板协助逼单",
+          "设计师协助沟通",
+          "朋友圈持续触达",
+          "暂不重点推进",
+          "标记死单原因"
+        ]
+      },
+      need: {
+        choicesId: "needChoices",
+        textId: "needText",
+        options: [
+          "整装",
+          "旧改",
+          "局部改造",
+          "橱柜",
+          "衣柜",
+          "厨房",
+          "卫生间",
+          "全屋定制",
+          "预算敏感",
+          "关注环保",
+          "关注施工",
+          "关注交付周期",
+          "关注品牌",
+          "关注价格",
+          "需要看方案",
+          "需要看工地",
+          "需要报价"
+        ]
+      }
+    };
+
     const DAILY_WORK_ACTIONS = [
       "客户跟进",
       "客户信息复盘",
@@ -2221,6 +2342,114 @@
       otherInput.placeholder = getValue("layout") === "其他" ? "请填写具体户型或改造类型" : "选择“其他”时填写";
     }
 
+    function renderChoiceFields() {
+      Object.entries(CHOICE_FIELD_CONFIGS).forEach(([fieldId, config]) => {
+        const container = document.getElementById(config.choicesId);
+
+        if (!container) {
+          return;
+        }
+
+        container.innerHTML = config.options
+          .map(option => `
+            <button type="button" class="quick-choice" data-field="${fieldId}" data-value="${escapeHtml(option)}" onclick="toggleChoiceOption(this)">
+              ${escapeHtml(option)}
+            </button>
+          `)
+          .join("");
+      });
+    }
+
+    function toggleChoiceOption(button) {
+      button.classList.toggle("active");
+      syncChoiceHiddenField(button.dataset.field);
+    }
+
+    function getSelectedChoiceValues(fieldId) {
+      return Array.from(document.querySelectorAll(`.quick-choice[data-field="${fieldId}"].active`))
+        .map(button => button.dataset.value)
+        .filter(Boolean);
+    }
+
+    function composeChoiceFieldValue(fieldId) {
+      const config = CHOICE_FIELD_CONFIGS[fieldId];
+
+      if (!config) {
+        return getValue(fieldId);
+      }
+
+      const selected = getSelectedChoiceValues(fieldId);
+      const supplement = getValue(config.textId);
+      const parts = [];
+
+      if (selected.length) {
+        parts.push(selected.join("、"));
+      }
+
+      if (supplement) {
+        parts.push(supplement);
+      }
+
+      return parts.join("；");
+    }
+
+    function syncChoiceHiddenField(fieldId) {
+      setValue(fieldId, composeChoiceFieldValue(fieldId));
+    }
+
+    function parseChoiceFieldValue(fieldId, value) {
+      const config = CHOICE_FIELD_CONFIGS[fieldId];
+      const text = String(value || "").trim();
+
+      if (!config || !text) {
+        return {
+          selected: [],
+          supplement: text
+        };
+      }
+
+      const separatorMatch = text.match(/[；;]/);
+      const choicePart = separatorMatch ? text.slice(0, separatorMatch.index) : text;
+      const supplementPart = separatorMatch ? text.slice(separatorMatch.index + 1).trim() : text;
+      const selected = config.options.filter(option => choicePart.includes(option));
+
+      return {
+        selected,
+        supplement: supplementPart
+      };
+    }
+
+    function setChoiceFieldValue(fieldId, value) {
+      const config = CHOICE_FIELD_CONFIGS[fieldId];
+
+      if (!config) {
+        setValue(fieldId, value);
+        return;
+      }
+
+      const parsed = parseChoiceFieldValue(fieldId, value);
+      document.querySelectorAll(`.quick-choice[data-field="${fieldId}"]`).forEach(button => {
+        button.classList.toggle("active", parsed.selected.includes(button.dataset.value));
+      });
+      setValue(config.textId, parsed.supplement);
+      syncChoiceHiddenField(fieldId);
+    }
+
+    function clearChoiceField(fieldId) {
+      const config = CHOICE_FIELD_CONFIGS[fieldId];
+
+      if (!config) {
+        setValue(fieldId, "");
+        return;
+      }
+
+      document.querySelectorAll(`.quick-choice[data-field="${fieldId}"]`).forEach(button => {
+        button.classList.remove("active");
+      });
+      setValue(config.textId, "");
+      setValue(fieldId, "");
+    }
+
     function saveCustomer() {
       const now = getNowString();
       const existing = customers.find(customer => customer.id === editingId);
@@ -2232,10 +2461,10 @@
         area: getValue("area"),
         layout: getLayoutValue(),
         source: getValue("source"),
-        need: getValue("need"),
+        need: composeChoiceFieldValue("need"),
         designer: getValue("designer"),
-        blockReason: getValue("blockReason"),
-        nextAction: getValue("nextAction"),
+        blockReason: composeChoiceFieldValue("blockReason"),
+        nextAction: composeChoiceFieldValue("nextAction"),
         budget: getValue("budget"),
         grade: getValue("grade"),
         status: getValue("status"),
@@ -2632,10 +2861,10 @@
       setValue("status", customer.status);
       setValue("owner", customer.owner);
       setValue("designer", customer.designer || "");
-      setValue("blockReason", customer.blockReason || "");
-      setValue("nextAction", customer.nextAction || "");
+      setChoiceFieldValue("blockReason", customer.blockReason || "");
+      setChoiceFieldValue("nextAction", customer.nextAction || "");
       setValue("nextFollowDate", normalizeDateValue(customer.nextFollowDate));
-      setValue("need", customer.need);
+      setChoiceFieldValue("need", customer.need);
 
       editingId = id;
       document.getElementById("formTitle").innerText = "编辑客户";
@@ -2666,7 +2895,8 @@
     }
 
     function clearForm() {
-      ["name", "phone", "community", "area", "layoutOther", "owner", "designer", "blockReason", "nextAction", "nextFollowDate", "need"].forEach(id => setValue(id, ""));
+      ["name", "phone", "community", "area", "layoutOther", "owner", "designer", "nextFollowDate"].forEach(id => setValue(id, ""));
+      ["blockReason", "nextAction", "need"].forEach(clearChoiceField);
       setLayoutValue("三室两厅一厨两卫");
       setValue("source", "自然到店");
       setValue("budget", "待确认");
@@ -4111,6 +4341,7 @@
     }
 
     renderProjectInfo();
+    renderChoiceFields();
     renderDailyActionChecks();
     renderPreJudgeChoiceGroups();
     renderPreJudgeHistory();
