@@ -381,6 +381,38 @@
       margin-top: 8px;
     }
 
+    .summary-grid {
+      background: #f8fbff;
+      border: 1px solid #dbe6f5;
+      border-radius: 14px;
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-top: 16px;
+      padding: 14px;
+    }
+
+    .summary-item {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .summary-item span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .summary-item strong {
+      color: #172554;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
     .history-item {
       background: #f8fbff;
       border: 1px solid #dbe6f5;
@@ -449,6 +481,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .history-item {
         grid-template-columns: 1fr;
       }
@@ -465,6 +501,10 @@
     @media (max-width: 560px) {
       .form-grid,
       .check-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
         grid-template-columns: 1fr;
       }
 
@@ -610,6 +650,7 @@
         <div>
           <h2>销售人员客户池复盘</h2>
           <p class="section-note">用于按销售人员分别复盘客户池，适合主动营销老师逐个找销售了解客户情况，判断每个销售手上的A/B/C类客户、量房报价客户、沉睡客户和明日重点推进方向。</p>
+          <p class="section-note">建议现场先逐个找销售复盘客户池，再点击“根据销售复盘自动汇总全店数据”，由系统自动汇总全店客户总数、A/B/C类客户、已量房、已报价、已签单、待跟进和沉睡客户数据。</p>
         </div>
       </div>
       <div class="form-grid">
@@ -668,9 +709,11 @@
       </div>
       <div class="button-row">
         <button class="btn-primary" type="button" id="addSalesReviewBtn">添加销售复盘</button>
+        <button class="btn-green" type="button" id="summarizeSalesReviewBtn">根据销售复盘自动汇总全店数据</button>
         <button class="btn-light" type="button" id="clearSalesReviewBtn">清空当前填写内容</button>
       </div>
       <div class="sales-review-list" id="salesReviewList"></div>
+      <div id="salesSummaryResult"></div>
     </section>
 
     <section class="card">
@@ -741,6 +784,7 @@
     ];
 
     let salesReviewItems = [];
+    let salesReviewSummary = null;
 
     const stageLabels = {
       new: "新线索客户",
@@ -780,6 +824,10 @@
 
     function getValue(id) {
       return (el(id).value || "").trim();
+    }
+
+    function setValue(id, value) {
+      el(id).value = value;
     }
 
     function getNumber(id) {
@@ -964,6 +1012,81 @@
       `).join("");
     }
 
+    function buildSalesSummary(records) {
+      return records.reduce((summary, item) => {
+        summary.salesCount += 1;
+        summary.totalCustomers += item.totalCustomers;
+        summary.gradeA += item.gradeA;
+        summary.gradeB += item.gradeB;
+        summary.gradeC += item.gradeC;
+        summary.measured += item.measured;
+        summary.quoted += item.quoted;
+        summary.signed += item.signed;
+        summary.needFollow += item.needFollow;
+        summary.sleeping += item.sleeping;
+        return summary;
+      }, {
+        salesCount: 0,
+        totalCustomers: 0,
+        gradeA: 0,
+        gradeB: 0,
+        gradeC: 0,
+        measured: 0,
+        quoted: 0,
+        signed: 0,
+        needFollow: 0,
+        sleeping: 0
+      });
+    }
+
+    function renderSalesSummaryResult() {
+      if (!salesReviewSummary) {
+        el("salesSummaryResult").innerHTML = "";
+        return;
+      }
+
+      const items = [
+        ["销售人数", `${salesReviewSummary.salesCount}人`],
+        ["客户总数", `${salesReviewSummary.totalCustomers}组`],
+        ["A类客户", `${salesReviewSummary.gradeA}组`],
+        ["B类客户", `${salesReviewSummary.gradeB}组`],
+        ["C类客户", `${salesReviewSummary.gradeC}组`],
+        ["已量房客户", `${salesReviewSummary.measured}组`],
+        ["已报价客户", `${salesReviewSummary.quoted}组`],
+        ["已签单客户", `${salesReviewSummary.signed}组`],
+        ["待跟进客户", `${salesReviewSummary.needFollow}组`],
+        ["沉睡客户", `${salesReviewSummary.sleeping}组`]
+      ];
+
+      el("salesSummaryResult").innerHTML = `
+        <div class="section-note" style="margin-top:16px;font-weight:800;color:#172554;">销售复盘汇总结果</div>
+        <div class="summary-grid">
+          ${items.map(([label, value]) => `
+            <div class="summary-item">
+              <strong>${escapeHtml(label)}：${escapeHtml(value)}</strong>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function summarizeSalesReviews() {
+      if (!salesReviewItems.length) {
+        alert("请先添加至少一条销售复盘记录。");
+        return;
+      }
+
+      salesReviewSummary = buildSalesSummary(salesReviewItems);
+      setValue("totalCustomers", String(salesReviewSummary.totalCustomers));
+      setValue("salesCount", String(salesReviewSummary.salesCount));
+      setValue("stageMeasured", String(salesReviewSummary.measured));
+      setValue("stageQuoted", String(salesReviewSummary.quoted));
+      setValue("stageSigned", String(salesReviewSummary.signed));
+      setValue("stageSleeping", String(salesReviewSummary.sleeping));
+      renderSalesSummaryResult();
+      showTip("已根据销售复盘自动汇总全店客户池数据。");
+    }
+
     function addSalesReview() {
       const item = collectSalesReviewForm();
       if (!item.salesName) {
@@ -971,7 +1094,9 @@
         return;
       }
       salesReviewItems.push(item);
+      salesReviewSummary = null;
       renderSalesReviewList();
+      renderSalesSummaryResult();
       clearSalesReviewForm();
       showTip("销售个人客户池复盘已添加。");
     }
@@ -983,7 +1108,9 @@
       if (button.dataset.salesAction === "delete") {
         if (!confirm("确认删除这条销售复盘记录吗？")) return;
         salesReviewItems = salesReviewItems.filter((item) => item.id !== id);
+        salesReviewSummary = null;
         renderSalesReviewList();
+        renderSalesSummaryResult();
         showTip("销售复盘记录已删除。");
       }
     }
@@ -1194,12 +1321,29 @@
       return `${top.salesName || "未填写销售姓名"}（${top[key]}组）`;
     }
 
-    function buildSalesPersonalReview(records) {
+    function buildSalesSummaryText(summary) {
+      if (!summary) return "";
+      return [
+        "销售复盘汇总结果：",
+        `- 销售人数：${summary.salesCount}人`,
+        `- 客户总数：${summary.totalCustomers}组`,
+        `- A类客户：${summary.gradeA}组`,
+        `- B类客户：${summary.gradeB}组`,
+        `- C类客户：${summary.gradeC}组`,
+        `- 已量房客户：${summary.measured}组`,
+        `- 已报价客户：${summary.quoted}组`,
+        `- 已签单客户：${summary.signed}组`,
+        `- 待跟进客户：${summary.needFollow}组`,
+        `- 沉睡客户：${summary.sleeping}组`
+      ].join("\n");
+    }
+
+    function buildSalesPersonalReview(records, summary) {
       if (!records.length) {
         return "十、销售个人客户池复盘\n当前尚未添加销售个人客户池复盘记录。建议明日逐个找销售确认A/B/C类客户、已量房、已报价、沉睡客户和明日重点推进客户。";
       }
 
-      const total = records.reduce((sum, item) => sum + item.totalCustomers, 0);
+      const total = summary ? summary.totalCustomers : records.reduce((sum, item) => sum + item.totalCustomers, 0);
       const supportNeeds = records.filter((item) => item.bottlenecks.includes("需要设计师配合") || item.bottlenecks.includes("需要老板协助"));
       const overview = records.map((item, index) => {
         const bottleneckText = item.bottlenecks.length ? `当前卡点为${item.bottlenecks.join("、")}` : "当前卡点未明确";
@@ -1225,6 +1369,8 @@
 
       return [
         "十、销售个人客户池复盘",
+        summary ? buildSalesSummaryText(summary) : "",
+        summary ? "" : "",
         "1. 各销售客户池概况",
         summaryParts,
         overview,
@@ -1242,14 +1388,34 @@
     }
 
     function generateReport() {
-      const base = collectBaseInfo();
-      const stage = collectStageStats();
+      const originalBase = collectBaseInfo();
+      const originalStage = collectStageStats();
+      const base = salesReviewSummary
+        ? {
+            ...originalBase,
+            totalCustomers: salesReviewSummary.totalCustomers,
+            salesCount: salesReviewSummary.salesCount
+          }
+        : originalBase;
+      const stage = salesReviewSummary
+        ? {
+            ...originalStage,
+            measured: salesReviewSummary.measured,
+            quoted: salesReviewSummary.quoted,
+            signed: salesReviewSummary.signed,
+            sleeping: salesReviewSummary.sleeping
+          }
+        : originalStage;
       const source = collectSourceStats();
       const bottlenecks = getCheckedBottlenecks();
       const salesReviews = salesReviewItems.slice();
+      const dataSourceNote = salesReviewSummary
+        ? "本次客户池复盘基于各销售个人客户池数据汇总形成，数据来源为逐个销售复盘结果。"
+        : "";
 
       const lines = [
         "【客户池复盘报告】",
+        dataSourceNote,
         "",
         "一、客户池总体判断",
         buildOverallJudgement(base, stage, source),
@@ -1278,7 +1444,7 @@
         "九、可复制到日报的内容",
         buildDailyMaterial(base, stage, salesReviews),
         "",
-        buildSalesPersonalReview(salesReviews)
+        buildSalesPersonalReview(salesReviews, salesReviewSummary)
       ];
 
       el("reviewReportOutput").value = lines.join("\n");
@@ -1321,6 +1487,8 @@
         sourceStats: collectSourceStats(),
         bottlenecks: getCheckedBottlenecks(),
         salesReviews: salesReviewItems.map((item) => ({ ...item })),
+        salesReviewSummary: salesReviewSummary ? { ...salesReviewSummary } : null,
+        useSalesSummary: !!salesReviewSummary,
         report
       };
 
@@ -1389,8 +1557,10 @@
       renderBottleneckChecks();
       renderSalesBottleneckChecks();
       renderSalesReviewList();
+      renderSalesSummaryResult();
       renderHistory();
       el("addSalesReviewBtn").addEventListener("click", addSalesReview);
+      el("summarizeSalesReviewBtn").addEventListener("click", summarizeSalesReviews);
       el("clearSalesReviewBtn").addEventListener("click", clearSalesReviewForm);
       el("salesReviewList").addEventListener("click", handleSalesReviewListAction);
       el("generateReviewBtn").addEventListener("click", generateReport);
