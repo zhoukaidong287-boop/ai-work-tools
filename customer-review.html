@@ -541,7 +541,8 @@
         <p class="subtitle">用于主动营销点将期间，对商场客户池进行快速摸底和复盘，判断客户来源、客户阶段、转化卡点和后续推进重点。</p>
       </div>
       <div class="hero-actions">
-        <a class="button-link btn-cyan" href="crm.html">录入重点客户</a>
+        <a class="button-link btn-cyan" href="crm.html">录入客户明细</a>
+        <button class="btn-light" type="button" id="clearDraftBtn">清空当前草稿</button>
         <a class="button-link btn-light return-home-btn" href="index.html">返回工具库首页</a>
       </div>
     </div>
@@ -550,18 +551,17 @@
   <main>
     <section class="card usage-notice">
       <div>
-        <strong>先复盘客户池，再录入重点客户</strong>
-        <p>客户池复盘工具用于统计客户总量、阶段结构、来源结构和转化卡点；如果需要录入单个重点客户，请进入“点将客户跟进工具”。</p>
+        <strong>先复盘客户池，再录入完整客户台账</strong>
+        <p>客户池复盘工具用于逐个销售复盘客户池，先梳理每个销售手中的 A类、B类、C类、死单客户，再自动汇总全店客户池数据。复盘后建议将 A/B/C/死单客户逐步录入 CRM，形成完整客户台账，便于后续查看客户漏斗、跟进责任、客户阶段和死单原因。</p>
       </div>
-      <a class="button-link btn-cyan" href="crm.html">录入重点客户</a>
+      <a class="button-link btn-cyan" href="crm.html">录入客户明细</a>
     </section>
 
     <section class="card">
       <div class="section-head">
         <div>
           <h2>销售人员客户池复盘</h2>
-          <p class="section-note">用于按销售人员分别复盘客户池，适合主动营销老师逐个找销售了解客户情况，判断每个销售手上的A/B/C类客户、量房报价客户、沉睡客户和明日重点推进方向。</p>
-          <p class="section-note">建议现场先逐个找销售复盘客户池，再点击“根据销售复盘自动汇总全店数据”，由系统自动汇总全店客户总数、A/B/C类客户、已量房、已报价、已签单、待跟进和沉睡客户数据。</p>
+          <p class="section-note">现场建议先逐个找销售复盘客户池，记录每个销售手中的客户总数、A/B/C类客户、死单客户、已量房、已报价、已签单、待跟进和沉睡客户。复盘完成后，再进入 CRM 录入客户明细，不只录 A 类客户，B 类、C 类和死单客户也要进入 CRM 形成完整台账。</p>
         </div>
       </div>
       <div class="form-grid">
@@ -584,6 +584,10 @@
         <div>
           <label for="salesGradeC">C类客户数量</label>
           <input id="salesGradeC" type="number" min="0" value="0" />
+        </div>
+        <div>
+          <label for="salesDead">死单客户数量</label>
+          <input id="salesDead" type="number" min="0" value="0" />
         </div>
         <div>
           <label for="salesMeasured">已量房客户数量</label>
@@ -683,7 +687,7 @@
         <div><label for="stageDeposit">已交定金客户</label><input id="stageDeposit" type="number" min="0" value="0" /></div>
         <div><label for="stageSigned">已签单客户</label><input id="stageSigned" type="number" min="0" value="0" /></div>
         <div><label for="stageSleeping">沉睡客户</label><input id="stageSleeping" type="number" min="0" value="0" /></div>
-        <div><label for="stageLost">流失客户</label><input id="stageLost" type="number" min="0" value="0" /></div>
+        <div><label for="stageLost">死单客户</label><input id="stageLost" type="number" min="0" value="0" /></div>
       </div>
     </section>
 
@@ -728,8 +732,9 @@
         <button class="btn-primary" type="button" id="generateReviewBtn">生成客户池复盘报告</button>
         <button class="btn-blue" type="button" id="copyReviewBtn">复制复盘报告</button>
         <button class="btn-green" type="button" id="saveReviewBtn">保存客户池复盘记录</button>
-        <a class="button-link btn-cyan" href="crm.html">去录入重点客户</a>
+        <a class="button-link btn-cyan" href="crm.html">去CRM录入客户</a>
       </div>
+      <p class="section-note">复盘后将各销售手中的 A/B/C/死单客户录入 CRM，形成完整客户台账，便于后续统计客户漏斗、跟进责任、转化阶段和死单原因。</p>
       <div class="copy-tip" id="reviewTip"></div>
     </section>
 
@@ -750,6 +755,7 @@
 
   <script>
     const STORAGE_KEY = "customerReviewRecords";
+    const DRAFT_KEY = "customerReviewDraft";
     const bottleneckOptions = [
       "客户进不来",
       "电话接通率低",
@@ -796,7 +802,7 @@
       deposit: "已交定金客户",
       signed: "已签单客户",
       sleeping: "沉睡客户",
-      lost: "流失客户"
+      lost: "死单客户"
     };
 
     const sourceLabels = {
@@ -869,6 +875,177 @@
 
     function saveRecords(records) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function collectDraft() {
+      return {
+        updatedAt: new Date().toISOString(),
+        baseInfo: collectBaseInfo(),
+        stageStats: collectStageStats(),
+        sourceStats: collectSourceStats(),
+        bottlenecks: getCheckedBottlenecks(),
+        salesReviews: salesReviewItems.map((item) => ({ ...item })),
+        salesReviewSummary: salesReviewSummary ? { ...salesReviewSummary } : null,
+        report: el("reviewReportOutput").value || ""
+      };
+    }
+
+    function saveDraft() {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(collectDraft()));
+    }
+
+    function loadDraft() {
+      try {
+        return JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function setCheckedByValues(name, values = []) {
+      const selected = new Set(values);
+      document.querySelectorAll(`input[name="${name}"]`).forEach((item) => {
+        item.checked = selected.has(item.value);
+      });
+    }
+
+    function restoreDraft() {
+      const draft = loadDraft();
+      if (!draft) return false;
+
+      const baseInfo = draft.baseInfo || {};
+      const stageStats = draft.stageStats || {};
+      const sourceStats = draft.sourceStats || {};
+
+      setValue("reviewMall", baseInfo.mall || "");
+      setValue("reviewDate", baseInfo.reviewDate || today());
+      setValue("totalCustomers", baseInfo.totalCustomers ? String(baseInfo.totalCustomers) : "");
+      setValue("salesCount", baseInfo.salesCount ? String(baseInfo.salesCount) : "");
+      setValue("designerCount", baseInfo.designerCount ? String(baseInfo.designerCount) : "");
+      setValue("sourceNote", baseInfo.sourceNote || "");
+      setValue("reviewNote", baseInfo.note || "");
+
+      setValue("stageNew", String(stageStats.new || 0));
+      setValue("stageContacted", String(stageStats.contacted || 0));
+      setValue("stageVisited", String(stageStats.visited || 0));
+      setValue("stageMeasured", String(stageStats.measured || 0));
+      setValue("stagePlan", String(stageStats.plan || 0));
+      setValue("stageQuoted", String(stageStats.quoted || 0));
+      setValue("stageDeposit", String(stageStats.deposit || 0));
+      setValue("stageSigned", String(stageStats.signed || 0));
+      setValue("stageSleeping", String(stageStats.sleeping || 0));
+      setValue("stageLost", String(stageStats.lost || 0));
+
+      setValue("sourceWalkIn", String(sourceStats.walkIn || 0));
+      setValue("sourceDouyin", String(sourceStats.douyin || 0));
+      setValue("sourceEcom", String(sourceStats.ecom || 0));
+      setValue("sourceLive", String(sourceStats.live || 0));
+      setValue("sourceAgent", String(sourceStats.agent || 0));
+      setValue("sourceReferral", String(sourceStats.referral || 0));
+      setValue("sourceCommunity", String(sourceStats.community || 0));
+      setValue("sourceOther", String(sourceStats.other || 0));
+
+      setCheckedByValues("bottleneck", draft.bottlenecks || []);
+      salesReviewItems = Array.isArray(draft.salesReviews) ? draft.salesReviews.map((item) => ({ ...item })) : [];
+      salesReviewSummary = draft.salesReviewSummary ? { ...draft.salesReviewSummary } : null;
+      el("reviewReportOutput").value = draft.report || "";
+      renderSalesReviewList();
+      renderSalesSummaryResult();
+      showTip("已恢复上次未保存的客户池复盘草稿。");
+      return true;
+    }
+
+    function clearDraft() {
+      if (!confirm("确认清空当前客户池复盘草稿吗？此操作不会删除已保存的历史记录。")) return;
+      localStorage.removeItem(DRAFT_KEY);
+      [
+        "reviewMall",
+        "totalCustomers",
+        "salesCount",
+        "designerCount",
+        "sourceNote",
+        "reviewNote"
+      ].forEach((id) => setValue(id, ""));
+      setValue("reviewDate", today());
+      Object.keys(stageLabels).forEach((key) => {
+        const idMap = {
+          new: "stageNew",
+          contacted: "stageContacted",
+          visited: "stageVisited",
+          measured: "stageMeasured",
+          plan: "stagePlan",
+          quoted: "stageQuoted",
+          deposit: "stageDeposit",
+          signed: "stageSigned",
+          sleeping: "stageSleeping",
+          lost: "stageLost"
+        };
+        setValue(idMap[key], "0");
+      });
+      Object.keys(sourceLabels).forEach((key) => {
+        const idMap = {
+          walkIn: "sourceWalkIn",
+          douyin: "sourceDouyin",
+          ecom: "sourceEcom",
+          live: "sourceLive",
+          agent: "sourceAgent",
+          referral: "sourceReferral",
+          community: "sourceCommunity",
+          other: "sourceOther"
+        };
+        setValue(idMap[key], "0");
+      });
+      document.querySelectorAll('input[name="bottleneck"]').forEach((item) => {
+        item.checked = false;
+      });
+      salesReviewItems = [];
+      salesReviewSummary = null;
+      clearSalesReviewForm();
+      renderSalesReviewList();
+      renderSalesSummaryResult();
+      el("reviewReportOutput").value = "";
+      showTip("当前客户池复盘草稿已清空。");
+    }
+
+    function bindDraftAutosave() {
+      [
+        "reviewMall",
+        "reviewDate",
+        "totalCustomers",
+        "salesCount",
+        "designerCount",
+        "sourceNote",
+        "reviewNote",
+        "stageNew",
+        "stageContacted",
+        "stageVisited",
+        "stageMeasured",
+        "stagePlan",
+        "stageQuoted",
+        "stageDeposit",
+        "stageSigned",
+        "stageSleeping",
+        "stageLost",
+        "sourceWalkIn",
+        "sourceDouyin",
+        "sourceEcom",
+        "sourceLive",
+        "sourceAgent",
+        "sourceReferral",
+        "sourceCommunity",
+        "sourceOther"
+      ].forEach((id) => {
+        el(id).addEventListener("input", saveDraft);
+        el(id).addEventListener("change", saveDraft);
+      });
+
+      document.querySelectorAll('input[name="bottleneck"]').forEach((item) => {
+        item.addEventListener("change", saveDraft);
+      });
+
+      document.querySelectorAll('a[href="crm.html"]').forEach((link) => {
+        link.addEventListener("click", saveDraft);
+      });
     }
 
     function renderBottleneckChecks() {
@@ -945,6 +1122,7 @@
         gradeA: getNumber("salesGradeA"),
         gradeB: getNumber("salesGradeB"),
         gradeC: getNumber("salesGradeC"),
+        dead: getNumber("salesDead"),
         measured: getNumber("salesMeasured"),
         quoted: getNumber("salesQuoted"),
         signed: getNumber("salesSigned"),
@@ -963,6 +1141,7 @@
         "salesGradeA",
         "salesGradeB",
         "salesGradeC",
+        "salesDead",
         "salesMeasured",
         "salesQuoted",
         "salesSigned",
@@ -995,6 +1174,7 @@
             <div class="sales-review-meta">
               <span>客户总数：${item.totalCustomers}组</span>
               <span>A/B/C：${item.gradeA}/${item.gradeB}/${item.gradeC}组</span>
+              <span>死单：${item.dead || 0}组</span>
               <span>已量房：${item.measured}组</span>
               <span>已报价：${item.quoted}组</span>
               <span>已签单：${item.signed}组</span>
@@ -1019,6 +1199,7 @@
         summary.gradeA += item.gradeA;
         summary.gradeB += item.gradeB;
         summary.gradeC += item.gradeC;
+        summary.dead += item.dead || 0;
         summary.measured += item.measured;
         summary.quoted += item.quoted;
         summary.signed += item.signed;
@@ -1031,6 +1212,7 @@
         gradeA: 0,
         gradeB: 0,
         gradeC: 0,
+        dead: 0,
         measured: 0,
         quoted: 0,
         signed: 0,
@@ -1051,6 +1233,7 @@
         ["A类客户", `${salesReviewSummary.gradeA}组`],
         ["B类客户", `${salesReviewSummary.gradeB}组`],
         ["C类客户", `${salesReviewSummary.gradeC}组`],
+        ["死单客户", `${salesReviewSummary.dead || 0}组`],
         ["已量房客户", `${salesReviewSummary.measured}组`],
         ["已报价客户", `${salesReviewSummary.quoted}组`],
         ["已签单客户", `${salesReviewSummary.signed}组`],
@@ -1083,7 +1266,9 @@
       setValue("stageQuoted", String(salesReviewSummary.quoted));
       setValue("stageSigned", String(salesReviewSummary.signed));
       setValue("stageSleeping", String(salesReviewSummary.sleeping));
+      setValue("stageLost", String(salesReviewSummary.dead || 0));
       renderSalesSummaryResult();
+      saveDraft();
       showTip("已根据销售复盘自动汇总全店客户池数据。");
     }
 
@@ -1098,6 +1283,7 @@
       renderSalesReviewList();
       renderSalesSummaryResult();
       clearSalesReviewForm();
+      saveDraft();
       showTip("销售个人客户池复盘已添加。");
     }
 
@@ -1111,6 +1297,7 @@
         salesReviewSummary = null;
         renderSalesReviewList();
         renderSalesSummaryResult();
+        saveDraft();
         showTip("销售复盘记录已删除。");
       }
     }
@@ -1186,7 +1373,7 @@
       }
 
       if (stage.lost > 0) {
-        analysis.push(`流失客户${stage.lost}组，建议复盘流失原因，区分价格原因、需求不匹配、竞品成交或跟进节奏问题。`);
+        analysis.push(`死单客户${stage.lost}组，建议复盘死单原因，区分价格原因、需求不匹配、竞品成交或跟进节奏问题。`);
       }
 
       return analysis.join("\n");
@@ -1308,10 +1495,10 @@
       const focusText = focus.length ? focus.join("、") : "客户当前阶段";
       const mall = base.mall ? `围绕${base.mall}现有客户池` : "围绕商场现有客户池";
       const salesText = salesReviews.length
-        ? "同时逐步按销售人员梳理各自负责客户情况，重点查看每位销售手中的A/B/C类客户、已量房客户、已报价客户、沉睡客户及明日重点推进客户，初步明确销售个人客户推进方向和需要设计师、老板配合的事项。"
+        ? "同时逐步按销售人员梳理各自负责客户情况，重点查看每位销售手中的A/B/C/死单客户、已量房客户、已报价客户、沉睡客户及明日重点推进客户，初步明确销售个人客户推进方向和需要设计师、老板配合的事项。"
         : "";
 
-      return `今日${mall}进行复盘梳理，重点查看客户来源、${focusText}及当前转化卡点，并初步明确后续重点客户推进方向和销售/设计师承接分工。${salesText}作为主动营销老师，后续将继续围绕客户台账、阶段推进、数据跟踪和每日复盘节奏开展工作，为正式点将动作提供基础判断。`;
+      return `今日按销售人员逐一复盘客户池，重点梳理各销售手中的 A类、B类、C类、死单客户数量及客户阶段情况，并对已量房、已报价、待跟进、沉睡客户和明日推进动作进行整理。${salesText}后续将结合复盘结果，把 A/B/C/死单客户逐步录入 CRM，形成完整客户台账，为客户漏斗统计、销售跟进责任和后续签单转化提供数据基础。`;
     }
 
     function getTopSalesBy(records, key) {
@@ -1330,6 +1517,7 @@
         `- A类客户：${summary.gradeA}组`,
         `- B类客户：${summary.gradeB}组`,
         `- C类客户：${summary.gradeC}组`,
+        `- 死单客户：${summary.dead || 0}组`,
         `- 已量房客户：${summary.measured}组`,
         `- 已报价客户：${summary.quoted}组`,
         `- 已签单客户：${summary.signed}组`,
@@ -1340,20 +1528,39 @@
 
     function buildSalesPersonalReview(records, summary) {
       if (!records.length) {
-        return "十、销售个人客户池复盘\n当前尚未添加销售个人客户池复盘记录。建议明日逐个找销售确认A/B/C类客户、已量房、已报价、沉睡客户和明日重点推进客户。";
+        return "十、销售个人客户池复盘\n当前尚未添加销售个人客户池复盘记录。建议明日逐个找销售确认A/B/C/死单客户、已量房、已报价、沉睡客户和明日推进动作，并逐步录入 CRM 形成完整客户台账。";
       }
 
       const total = summary ? summary.totalCustomers : records.reduce((sum, item) => sum + item.totalCustomers, 0);
       const supportNeeds = records.filter((item) => item.bottlenecks.includes("需要设计师配合") || item.bottlenecks.includes("需要老板协助"));
+      const currentSummary = summary || buildSalesSummary(records);
+      const gradeAnalysis = [
+        currentSummary.gradeA > 0
+          ? `A类客户${currentSummary.gradeA}组，需要判断是否足够支撑近期签单，并逐组确认决策人、预算、方案反馈和逼单动作。`
+          : "A类客户数量暂未形成明显支撑，近期签单需要继续从B类客户中筛选可推进对象。",
+        currentSummary.gradeB > 0
+          ? `B类客户${currentSummary.gradeB}组，是当前主要培育对象，需要明确预算、时间、决策人和方案方向。`
+          : "B类客户数量暂未体现，建议继续补充客户等级信息。",
+        currentSummary.gradeC > currentSummary.gradeA + currentSummary.gradeB
+          ? `C类客户${currentSummary.gradeC}组，占比偏高，需要复盘线索来源质量、邀约话术和客户承接方式。`
+          : `C类客户${currentSummary.gradeC}组，需要持续观察是否可培育或归档为死单。`,
+        currentSummary.dead > 0
+          ? `死单客户${currentSummary.dead}组，需要后续在 CRM 中归档死单原因，区分电话无效、已装修、选择其他公司、区域不符或长期不回复。`
+          : "死单客户暂未统计，建议复盘时补齐死单原因，避免后续漏斗失真。"
+      ].join("\n");
       const overview = records.map((item, index) => {
         const bottleneckText = item.bottlenecks.length ? `当前卡点为${item.bottlenecks.join("、")}` : "当前卡点未明确";
-        return `${index + 1}. ${item.salesName || "未填写销售姓名"}：负责客户${item.totalCustomers}组，A/B/C类客户${item.gradeA}/${item.gradeB}/${item.gradeC}组，已量房${item.measured}组，已报价${item.quoted}组，已签单${item.signed}组，待跟进${item.needFollow}组，沉睡客户${item.sleeping}组，${bottleneckText}。`;
+        return `${index + 1}. ${item.salesName || "未填写销售姓名"}：负责客户${item.totalCustomers}组，A/B/C/死单客户${item.gradeA}/${item.gradeB}/${item.gradeC}/${item.dead || 0}组，已量房${item.measured}组，已报价${item.quoted}组，已签单${item.signed}组，待跟进${item.needFollow}组，沉睡客户${item.sleeping}组，${bottleneckText}。`;
       }).join("\n");
 
       const summaryParts = [
         `本次已添加${records.length}名销售个人复盘记录，合计复盘销售名下客户${total}组。`,
         getTopSalesBy(records, "totalCustomers") ? `负责客户较多的是${getTopSalesBy(records, "totalCustomers")}。` : "",
         getTopSalesBy(records, "gradeA") ? `A类客户较多的是${getTopSalesBy(records, "gradeA")}。` : "",
+        getTopSalesBy(records, "gradeB") || getTopSalesBy(records, "gradeC")
+          ? `B/C类客户较多的销售是主要培育对象复盘重点，B类较多：${getTopSalesBy(records, "gradeB") || "暂无"}，C类较多：${getTopSalesBy(records, "gradeC") || "暂无"}。`
+          : "",
+        getTopSalesBy(records, "dead") ? `死单客户较多的是${getTopSalesBy(records, "dead")}，建议归档死单原因并复盘是否存在来源质量、预算不匹配或跟进节奏问题。` : "",
         getTopSalesBy(records, "measured") || getTopSalesBy(records, "quoted")
           ? `已量房/已报价客户较多的销售需要进入重点复盘，量房较多：${getTopSalesBy(records, "measured") || "暂无"}，报价较多：${getTopSalesBy(records, "quoted") || "暂无"}。`
           : "",
@@ -1373,17 +1580,20 @@
         summary ? "" : "",
         "1. 各销售客户池概况",
         summaryParts,
+        gradeAnalysis,
         overview,
         "",
         "2. 销售明日跟进重点",
         tomorrowLines,
         "",
         "3. 主动营销老师复盘建议",
-        "1. 明日优先逐个找销售确认A类客户，明确每组客户的需求、预算、阻力点和下一步动作。",
+        "1. 明日优先逐个找销售确认 A/B/C/死单客户，明确每组客户的需求、预算、阻力点、死单原因和下一步动作。",
         "2. 已量房、已报价客户进入夕会复盘，重点看方案进度、报价反馈、成交阻力和需要设计师配合事项。",
-        "3. 沉睡客户整理复洗名单，确认二次触达方式、话术和负责人。",
-        "4. 每个销售明确客户下一步动作和跟进时间，避免客户线索沉淀后无人持续推进。",
-        "5. 需要设计师或老板配合的客户单独标注，由主动营销老师推动资源协调。"
+        "3. B类客户作为主要培育对象，需要明确预算、决策人、方案方向和下次触达动作；C类客户如果占比过高，需要复盘线索质量和客户承接口径。",
+        "4. 沉睡客户整理复洗名单，确认二次触达方式、话术和负责人。",
+        "5. 每个销售明确客户下一步动作和跟进时间，避免客户线索沉淀后无人持续推进。",
+        "6. 需要设计师或老板配合的客户单独标注，由主动营销老师推动资源协调。",
+        "7. 建议将本次复盘出的 A/B/C/死单客户逐步录入 CRM，形成完整客户台账。后续通过 CRM 持续记录客户来源、销售负责人、客户等级、客户阶段、当前卡点、跟进动作和死单原因，便于每日复盘客户漏斗和转化质量。"
       ].join("\n");
     }
 
@@ -1448,6 +1658,7 @@
       ];
 
       el("reviewReportOutput").value = lines.join("\n");
+      saveDraft();
       showTip("客户池复盘报告已生成。");
     }
 
@@ -1496,7 +1707,8 @@
       records.unshift(record);
       saveRecords(records);
       renderHistory();
-      showTip("客户池复盘记录已保存。");
+      saveDraft();
+      showTip("客户池复盘记录已保存。已保存到历史记录，当前草稿仍保留，如需清空请点击“清空当前草稿”。");
     }
 
     function renderHistory() {
@@ -1556,12 +1768,16 @@
       el("reviewDate").value = today();
       renderBottleneckChecks();
       renderSalesBottleneckChecks();
-      renderSalesReviewList();
-      renderSalesSummaryResult();
       renderHistory();
+      if (!restoreDraft()) {
+        renderSalesReviewList();
+        renderSalesSummaryResult();
+      }
+      bindDraftAutosave();
       el("addSalesReviewBtn").addEventListener("click", addSalesReview);
       el("summarizeSalesReviewBtn").addEventListener("click", summarizeSalesReviews);
       el("clearSalesReviewBtn").addEventListener("click", clearSalesReviewForm);
+      el("clearDraftBtn").addEventListener("click", clearDraft);
       el("salesReviewList").addEventListener("click", handleSalesReviewListAction);
       el("generateReviewBtn").addEventListener("click", generateReport);
       el("copyReviewBtn").addEventListener("click", () => copyText(el("reviewReportOutput").value, "复盘报告已复制。"));

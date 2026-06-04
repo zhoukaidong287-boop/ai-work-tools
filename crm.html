@@ -947,6 +947,12 @@
       color: #475467;
     }
 
+    .tag-grade-invalid {
+      background: #fff1f2;
+      border-color: #fecdd3;
+      color: #be123c;
+    }
+
     .tag-today {
       background: #ecfeff;
       border-color: #67e8f9;
@@ -1388,7 +1394,7 @@
           <strong id="statNeedFollow">0</strong>
         </div>
         <div class="mini-stat">
-          <span>流失客户</span>
+          <span>死单客户</span>
           <strong id="statLost">0</strong>
         </div>
         <div class="mini-stat">
@@ -1408,8 +1414,8 @@
           <strong id="statGradeC">0</strong>
         </div>
         <div class="mini-stat">
-          <span>D类客户数量</span>
-          <strong id="statGradeD">0</strong>
+          <span>死单数量</span>
+          <strong id="statInvalidGrade">0</strong>
         </div>
       </div>
     </section>
@@ -1484,7 +1490,26 @@
 
         <div>
           <label for="layout">户型</label>
-          <input id="layout" placeholder="例如：三室两厅一厨两卫" />
+          <select id="layout" onchange="toggleLayoutOther()">
+            <option>一室一厅一厨一卫</option>
+            <option>两室一厅一厨一卫</option>
+            <option>两室两厅一厨一卫</option>
+            <option>两室两厅一厨两卫</option>
+            <option>三室两厅一厨一卫</option>
+            <option>三室两厅一厨两卫</option>
+            <option>四室两厅一厨两卫</option>
+            <option>四室两厅一厨三卫</option>
+            <option>复式/跃层</option>
+            <option>别墅/自建房</option>
+            <option>旧房翻新</option>
+            <option>局部改造</option>
+            <option>其他</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="layoutOther">其他户型补充</label>
+          <input id="layoutOther" placeholder="选择“其他”时填写，旧客户特殊户型也会显示在这里" />
         </div>
 
         <div>
@@ -1520,27 +1545,35 @@
             <option>A类客户</option>
             <option>B类客户</option>
             <option>C类客户</option>
-            <option>D类客户</option>
+            <option>死单</option>
           </select>
+          <p class="section-note">A类：已量房、已报价、近期要装、有决策人、预算可谈、能约店或能逼单。B类：有装修需求，但时间、预算、决策人、方案方向还不明确，需要继续培育。C类：只问价格、意向弱、暂时观望、短期不急，不作为重点逼单对象。死单：电话无效、已装修、不装了、选择其他公司、区域不符、长期无效跟进。</p>
         </div>
 
         <div>
           <label for="status">客户状态</label>
           <select id="status">
             <option>新线索</option>
-            <option>已沟通</option>
+            <option>已联系</option>
+            <option>已进店</option>
             <option>已量房</option>
             <option>已出方案</option>
             <option>已报价</option>
             <option>已交定金</option>
             <option>已签单</option>
-            <option>已流失</option>
+            <option>沉睡客户</option>
+            <option>死单</option>
           </select>
         </div>
 
         <div>
-          <label for="owner">跟进人</label>
+          <label for="owner">所属销售</label>
           <input id="owner" placeholder="例如：李顾问" />
+        </div>
+
+        <div>
+          <label for="designer">配合设计师</label>
+          <input id="designer" placeholder="例如：王设计" />
         </div>
 
         <div>
@@ -1549,8 +1582,18 @@
         </div>
 
         <div class="wide">
-          <label for="need">装修需求</label>
-          <textarea id="need" placeholder="例如：整装、旧改、局改、风格偏好、重点关注项等"></textarea>
+          <label for="blockReason">当前卡点 / 死单原因</label>
+          <textarea id="blockReason" placeholder="例如：客户联系不上、客户只问价格、客户预算不明确、客户不愿到店、量房后未进店、方案后未报价、报价后未签单、已选择其他公司、已装修、暂时不装、区域不符、电话无效、长期不回复、其他原因"></textarea>
+        </div>
+
+        <div class="wide">
+          <label for="nextAction">下一步动作</label>
+          <textarea id="nextAction" placeholder="例如：明天电话回访确认预算；邀约到店看方案；约设计师补报价；死单客户归档原因。"></textarea>
+        </div>
+
+        <div class="wide">
+          <label for="need">备注 / 装修需求</label>
+          <textarea id="need" placeholder="例如：整装、旧改、局改、风格偏好、重点关注项、客户卡点、死单原因补充等"></textarea>
         </div>
       </div>
 
@@ -1825,18 +1868,21 @@
 
     const STATUS_OPTIONS = [
       "新线索",
-      "已沟通",
+      "已联系",
+      "已进店",
       "已量房",
       "已出方案",
       "已报价",
       "已交定金",
       "已签单",
-      "已流失"
+      "沉睡客户",
+      "死单"
     ];
 
     const FUNNEL_PROGRESS_STATUSES = [
       "新线索",
-      "已沟通",
+      "已联系",
+      "已进店",
       "已量房",
       "已出方案",
       "已报价",
@@ -1866,21 +1912,48 @@
       "A类客户",
       "B类客户",
       "C类客户",
-      "D类客户"
+      "死单"
     ];
 
     const GRADE_LABELS = {
       "A类客户": "重点客户",
       "B类客户": "意向客户",
       "C类客户": "培育客户",
-      "D类客户": "低意向客户"
+      "死单": "死单客户"
     };
 
     const STATUS_MAP = {
       "待联系": "新线索",
-      "已联系": "已沟通",
-      "暂缓": "已流失"
+      "已沟通": "已联系",
+      "已流失": "死单",
+      "流失客户": "死单",
+      "无效客户": "死单",
+      "已死单": "死单",
+      "暂缓": "死单"
     };
+
+    const GRADE_MAP = {
+      "D类客户": "死单",
+      "低意向客户": "死单",
+      "无效客户": "死单"
+    };
+
+    const TERMINAL_STATUSES = ["已签单", "死单"];
+
+    const LAYOUT_OPTIONS = [
+      "一室一厅一厨一卫",
+      "两室一厅一厨一卫",
+      "两室两厅一厨一卫",
+      "两室两厅一厨两卫",
+      "三室两厅一厨一卫",
+      "三室两厅一厨两卫",
+      "四室两厅一厨两卫",
+      "四室两厅一厨三卫",
+      "复式/跃层",
+      "别墅/自建房",
+      "旧房翻新",
+      "局部改造"
+    ];
 
     const DAILY_WORK_ACTIONS = [
       "客户跟进",
@@ -2051,6 +2124,7 @@
       const id = customer.id || createId();
       const status = STATUS_MAP[customer.status] || customer.status || "新线索";
       const source = SOURCE_MAP[customer.source] || customer.source || "自然到店";
+      const grade = GRADE_MAP[customer.grade] || customer.grade || "C类客户";
       const followRecords = Array.isArray(customer.followRecords)
         ? customer.followRecords.map(normalizeFollowRecord)
         : [];
@@ -2076,8 +2150,11 @@
         layout: customer.layout || "",
         source: SOURCE_OPTIONS.includes(source) ? source : "其他",
         need: customer.need || "",
+        designer: customer.designer || "",
+        blockReason: customer.blockReason || customer.lossReason || "",
+        nextAction: customer.nextAction || "",
         budget: customer.budget || "待确认",
-        grade: GRADE_OPTIONS.includes(customer.grade) ? customer.grade : "C类客户",
+        grade: GRADE_OPTIONS.includes(grade) ? grade : "C类客户",
         status: STATUS_OPTIONS.includes(status) ? status : "新线索",
         owner: customer.owner || "",
         nextFollowDate: normalizeDateValue(customer.nextFollowDate),
@@ -2119,6 +2196,31 @@
         .join("");
     }
 
+    function getLayoutValue() {
+      const layout = getValue("layout");
+      const layoutOther = getValue("layoutOther");
+      return layout === "其他" ? layoutOther : layout;
+    }
+
+    function setLayoutValue(value) {
+      const normalized = value || "三室两厅一厨两卫";
+      if (LAYOUT_OPTIONS.includes(normalized)) {
+        setValue("layout", normalized);
+        setValue("layoutOther", "");
+      } else {
+        setValue("layout", "其他");
+        setValue("layoutOther", normalized === "其他" ? "" : normalized);
+      }
+      toggleLayoutOther();
+    }
+
+    function toggleLayoutOther() {
+      const otherInput = document.getElementById("layoutOther");
+      if (!otherInput) return;
+      otherInput.disabled = getValue("layout") !== "其他";
+      otherInput.placeholder = getValue("layout") === "其他" ? "请填写具体户型或改造类型" : "选择“其他”时填写";
+    }
+
     function saveCustomer() {
       const now = getNowString();
       const existing = customers.find(customer => customer.id === editingId);
@@ -2128,9 +2230,12 @@
         phone: getValue("phone"),
         community: getValue("community"),
         area: getValue("area"),
-        layout: getValue("layout"),
+        layout: getLayoutValue(),
         source: getValue("source"),
         need: getValue("need"),
+        designer: getValue("designer"),
+        blockReason: getValue("blockReason"),
+        nextAction: getValue("nextAction"),
         budget: getValue("budget"),
         grade: getValue("grade"),
         status: getValue("status"),
@@ -2174,7 +2279,10 @@
           customer.status,
           customer.grade,
           getGradeLabel(customer.grade),
-          customer.owner
+          customer.owner,
+          customer.designer,
+          customer.blockReason,
+          customer.nextAction
         ].join(" ").toLowerCase();
 
         const matchesKeyword = !keyword || haystack.includes(keyword);
@@ -2217,7 +2325,11 @@
           <td class="compact-cell">${renderGradeTag(customer.grade)}</td>
           <td class="compact-cell">${renderStatusTags(customer, followState)}</td>
           <td class="compact-cell">${escapeHtml(customer.owner || "-")}</td>
-          <td class="text-cell">${escapeHtml(customer.need || "-")}</td>
+          <td class="text-cell">
+            <div>${escapeHtml(customer.need || "-")}</div>
+            ${customer.blockReason ? `<div class="subtle">卡点/死单原因：${escapeHtml(customer.blockReason)}</div>` : ""}
+            ${customer.nextAction ? `<div class="subtle">下一步：${escapeHtml(customer.nextAction)}</div>` : ""}
+          </td>
           <td class="text-cell">${renderLatestRecord(latestRecord)}</td>
           <td class="date-cell">${renderNextFollow(customer, followState)}</td>
           <td class="date-cell">
@@ -2264,7 +2376,7 @@
         .replace("A类客户", "tag-grade-a")
         .replace("B类客户", "tag-grade-b")
         .replace("C类客户", "tag-grade-c")
-        .replace("D类客户", "tag-grade-d");
+        .replace("死单", "tag-grade-invalid");
 
       return `
         <span class="tag ${gradeClass}">${escapeHtml(normalizedGrade)}</span>
@@ -2328,7 +2440,10 @@
             ${renderDetailItem("预算区间", customer.budget)}
             ${renderDetailItem("客户等级", `${customer.grade} · ${getGradeLabel(customer.grade)}`)}
             ${renderDetailItem("客户状态", customer.status)}
-            ${renderDetailItem("跟进人", customer.owner)}
+            ${renderDetailItem("所属销售", customer.owner)}
+            ${renderDetailItem("配合设计师", customer.designer)}
+            ${renderDetailItem("当前卡点 / 死单原因", customer.blockReason)}
+            ${renderDetailItem("下一步动作", customer.nextAction)}
             ${renderDetailItem("下次跟进时间", customer.nextFollowDate)}
             ${renderDetailItem("创建时间", formatDateTime(customer.createdAt))}
             ${renderDetailItem("更新时间", formatDateTime(customer.updatedAt))}
@@ -2510,12 +2625,15 @@
       setValue("phone", customer.phone);
       setValue("community", customer.community);
       setValue("area", customer.area);
-      setValue("layout", customer.layout);
+      setLayoutValue(customer.layout);
       setValue("source", customer.source);
       setValue("budget", customer.budget);
       setValue("grade", customer.grade);
       setValue("status", customer.status);
       setValue("owner", customer.owner);
+      setValue("designer", customer.designer || "");
+      setValue("blockReason", customer.blockReason || "");
+      setValue("nextAction", customer.nextAction || "");
       setValue("nextFollowDate", normalizeDateValue(customer.nextFollowDate));
       setValue("need", customer.need);
 
@@ -2548,7 +2666,8 @@
     }
 
     function clearForm() {
-      ["name", "phone", "community", "area", "layout", "owner", "nextFollowDate", "need"].forEach(id => setValue(id, ""));
+      ["name", "phone", "community", "area", "layoutOther", "owner", "designer", "blockReason", "nextAction", "nextFollowDate", "need"].forEach(id => setValue(id, ""));
+      setLayoutValue("三室两厅一厨两卫");
       setValue("source", "自然到店");
       setValue("budget", "待确认");
       setValue("grade", "C类客户");
@@ -2614,7 +2733,10 @@
         "客户等级",
         "等级说明",
         "客户状态",
-        "跟进人",
+        "所属销售",
+        "配合设计师",
+        "当前卡点/死单原因",
+        "下一步动作",
         "最近跟进记录",
         "下次跟进时间",
         "创建时间",
@@ -2637,6 +2759,9 @@
           getGradeLabel(customer.grade),
           customer.status,
           customer.owner,
+          customer.designer,
+          customer.blockReason,
+          customer.nextAction,
           latest ? `${formatDateTime(latest.followTime)} ${latest.method} ${latest.content}` : "",
           customer.nextFollowDate,
           formatDateTime(customer.createdAt),
@@ -2818,7 +2943,7 @@
         reportLines.push(`${reportLines.length}. ${line}`);
       });
 
-      reportLines.push(`${reportLines.length}. ${tomorrowPlan ? polishText(tomorrowPlan) : "明日重点围绕A类客户跟进、逾期客户提醒、已沟通客户量房推进及数据复盘开展工作。"}`);
+      reportLines.push(`${reportLines.length}. ${tomorrowPlan ? polishText(tomorrowPlan) : "明日重点围绕A类客户跟进、逾期客户提醒、已联系客户量房推进及数据复盘开展工作。"}`);
 
       return [
         `当前项目：${getCurrentProjectName()}    日期：${stats.today}`,
@@ -2915,13 +3040,15 @@
         todayMeasured: countTodayUpdatedByStatus("已量房", today),
         todayQuoted: countTodayUpdatedByStatus("已报价", today),
         todaySigned: countTodayUpdatedByStatus("已签单", today),
-        todayLost: countTodayUpdatedByStatus("已流失", today),
+        todayLost: TERMINAL_STATUSES
+          .filter(status => status !== "已签单")
+          .reduce((sum, status) => sum + countTodayUpdatedByStatus(status, today), 0),
         todayTodo: customers.filter(customer => getFollowState(customer) === "today").length,
         overdueTodo: customers.filter(customer => getFollowState(customer) === "overdue").length,
         gradeA: customers.filter(customer => customer.grade === "A类客户").length,
         gradeB: customers.filter(customer => customer.grade === "B类客户").length,
         gradeC: customers.filter(customer => customer.grade === "C类客户").length,
-        gradeD: customers.filter(customer => customer.grade === "D类客户").length,
+        deadGrade: customers.filter(customer => customer.grade === "死单").length,
         measuredOrLater: countAtOrAfterStatus("已量房"),
         quotedOrLater: countAtOrAfterStatus("已报价")
       };
@@ -3623,7 +3750,7 @@
     function updateStats() {
       const total = customers.length;
       const signed = customers.filter(customer => customer.status === "已签单").length;
-      const activeTotal = customers.filter(customer => customer.status !== "已流失").length;
+      const activeTotal = customers.filter(customer => !TERMINAL_STATUSES.includes(customer.status) || customer.status === "已签单").length;
       const reportStats = getDailyReportStats();
 
       setText("statTotal", total);
@@ -3635,12 +3762,12 @@
       setText("statMeasured", customers.filter(customer => customer.status === "已量房").length);
       setText("statQuoted", customers.filter(customer => customer.status === "已报价").length);
       setText("statSigned", signed);
-      setText("statLost", customers.filter(customer => customer.status === "已流失").length);
+      setText("statLost", customers.filter(customer => customer.status === "死单").length);
       setText("statConversion", activeTotal ? `${Math.round((signed / activeTotal) * 100)}%` : "0%");
       setText("statGradeA", customers.filter(customer => customer.grade === "A类客户").length);
       setText("statGradeB", customers.filter(customer => customer.grade === "B类客户").length);
       setText("statGradeC", customers.filter(customer => customer.grade === "C类客户").length);
-      setText("statGradeD", customers.filter(customer => customer.grade === "D类客户").length);
+      setText("statInvalidGrade", customers.filter(customer => customer.grade === "死单").length);
       renderStageFunnel();
       renderFollowTodos();
       renderSourceStats();
@@ -3743,7 +3870,7 @@
 
     function compareFollowTodo(a, b) {
       const stateWeight = { overdue: 0, today: 1 };
-      const gradeWeight = { "A类客户": 0, "B类客户": 1, "C类客户": 2, "D类客户": 3 };
+      const gradeWeight = { "A类客户": 0, "B类客户": 1, "C类客户": 2, "死单": 3 };
       const stateDiff = stateWeight[getFollowState(a)] - stateWeight[getFollowState(b)];
 
       if (stateDiff !== 0) {
@@ -3804,7 +3931,7 @@
     function getFollowState(customer) {
       const nextFollowDate = normalizeDateValue(customer.nextFollowDate);
 
-      if (!nextFollowDate || ["已签单", "已流失"].includes(customer.status)) {
+      if (!nextFollowDate || TERMINAL_STATUSES.includes(customer.status)) {
         return "none";
       }
 
@@ -3988,6 +4115,7 @@
     renderPreJudgeChoiceGroups();
     renderPreJudgeHistory();
     fillFilterOptions();
+    toggleLayoutOther();
     renderCustomers();
   </script>
 </body>
