@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI点将动态研判台</title>
+  <title>AI每日点将研判台</title>
 
   <style>
     :root {
@@ -1366,9 +1366,9 @@
   <header>
     <div class="hero-shell">
       <div class="hero-copy">
-        <div class="hero-eyebrow">点将工具库 · 城市研判</div>
-        <h1>AI点将动态研判台</h1>
-        <p>用于点将期间持续更新商场情况、客户池数据、CRM漏斗、销售反馈和执行动作，生成AI研判指令，辅助判断下一步打法。</p>
+        <div class="hero-eyebrow">点将工具库 · 每日研判</div>
+        <h1>AI每日点将研判台</h1>
+        <p>用于每天读取客户池、CRM、抖音线索、活动机制和现场情况，生成可复制的AI研判调令，辅助判断明日重点动作。</p>
         <div class="city-hero-actions">
           <button class="btn-light return-home-btn" onclick="location.href='index.html'">返回工具库首页</button>
           <button class="btn-primary" onclick="generatePreJudgePrompt()">生成AI调研指令</button>
@@ -1379,13 +1379,13 @@
       <section class="hero-project">
         <div class="section-head">
           <div>
-            <h2>研判方式</h2>
-            <p class="section-note">填写城市、商场、品牌和点将目标后，复制指令给 ChatGPT 联网调研；再将报告粘贴回来保存归档。</p>
+            <h2>建议流程</h2>
+            <p class="section-note">先完成客户池复盘、CRM跟进、抖音线索整理，再做AI每日研判，最后生成日报。</p>
           </div>
         </div>
         <div class="mini-stat-grid">
-          <div class="mini-stat"><span>输入方式</span><strong>少量字段</strong></div>
-          <div class="mini-stat"><span>输出内容</span><strong>AI指令</strong></div>
+          <div class="mini-stat"><span>每日顺序</span><strong>先研判</strong></div>
+          <div class="mini-stat"><span>日报顺序</span><strong>后日报</strong></div>
           <div class="mini-stat"><span>历史保存</span><strong>本机浏览器</strong></div>
         </div>
       </section>
@@ -1393,6 +1393,104 @@
   </header>
 
   <main class="city-analysis-page">
+    <section class="card module-card" id="dailyAnalysisCenter">
+      <div class="section-head">
+        <div>
+          <h2>AI每日点将研判台</h2>
+          <p class="section-note">建议先研判，后日报。每天先读取客户池、CRM、抖音线索和活动机制，生成AI研判调令，再把研判结果带入日报。</p>
+        </div>
+      </div>
+
+      <div class="dynamic-flow">
+        <div class="dynamic-step"><span>①</span>完成客户池复盘、CRM跟进、抖音线索整理</div>
+        <div class="dynamic-step"><span>②</span>读取今日系统数据</div>
+        <div class="dynamic-step"><span>③</span>补充现场情况和活动政策</div>
+        <div class="dynamic-step"><span>④</span>生成AI研判调令</div>
+        <div class="dynamic-step"><span>⑤</span>保存今日研判</div>
+        <div class="dynamic-step"><span>⑥</span>到日报工具读取研判结果</div>
+      </div>
+
+      <div class="report-options">
+        <section>
+          <h3>日期与系统数据</h3>
+          <div class="form-grid">
+            <div>
+              <label for="dailyAnalysisDate">研判日期</label>
+              <input id="dailyAnalysisDate" type="date" onchange="loadDailyAnalysisDate()" />
+            </div>
+            <div class="wide">
+              <label>操作</label>
+              <div class="button-row" style="margin-top:0;">
+                <button class="btn-blue" onclick="readDailySystemData()">读取今日系统数据</button>
+                <button class="btn-green" onclick="copyDailyText('dailySystemSummary','dailyAnalysisTip','系统数据已复制')">复制系统数据</button>
+              </div>
+            </div>
+            <div class="full">
+              <label for="dailySystemSummary">今日系统数据摘要</label>
+              <textarea id="dailySystemSummary" class="report-output" placeholder="点击“读取今日系统数据”后生成摘要，可编辑。"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3>今日研判输入草稿</h3>
+          <p class="section-note">读取数据后自动生成，可继续补充现场情况、当前卡点和明日目标；修改会自动保存。</p>
+          <textarea id="dailyAnalysisDraft" class="report-output" placeholder="读取今日系统数据后自动生成，也可以手动填写。"></textarea>
+        </section>
+
+        <section>
+          <h3>活动政策与机制资料库</h3>
+          <p class="section-note">把当前活动政策、奖励机制、套餐政策粘贴一次，后续每天自动带入AI调令。</p>
+          <div class="form-grid">
+            <div class="wide"><label for="policyTemplateName">模板名称</label><input id="policyTemplateName" placeholder="例如：中卫六月活动机制" /></div>
+            <div class="wide"><label for="policyTemplateProject">适用项目/城市</label><input id="policyTemplateProject" placeholder="例如：中卫欧派整装大家居" /></div>
+            <div class="full"><label for="currentActivityPolicy">当前活动政策/机制</label><textarea id="currentActivityPolicy" class="report-output" placeholder="粘贴当前活动政策、套餐、奖励机制、项目打法等。"></textarea></div>
+          </div>
+          <div class="button-row">
+            <button class="btn-primary" onclick="saveCurrentActivityPolicy()">保存为当前机制</button>
+            <button class="btn-green" onclick="saveActivityPolicyTemplate()">保存为机制模板</button>
+            <button class="btn-blue" onclick="insertPolicyToDailyPrompt()">插入到AI调令</button>
+            <button class="btn-light" onclick="copyDailyText('currentActivityPolicy','dailyAnalysisTip','机制内容已复制')">复制机制</button>
+          </div>
+          <div id="policyTemplateList" class="dynamic-history" style="margin-top:14px;"></div>
+        </section>
+
+        <section>
+          <h3>AI研判调令</h3>
+          <p class="section-note">调令可编辑，修改后自动保存草稿。可复制到 GPT 做每日研判。</p>
+          <textarea id="dailyAiPrompt" class="report-output" placeholder="点击“生成AI研判调令”后生成，可编辑。"></textarea>
+          <div class="button-row">
+            <button class="btn-primary" onclick="generateDailyAiPrompt()">生成AI研判调令</button>
+            <button class="btn-blue" onclick="copyDailyText('dailyAiPrompt','dailyAnalysisTip','AI调令已复制')">复制AI调令</button>
+            <button class="btn-green" onclick="saveDailyPromptTemplate()">保存为调令模板</button>
+            <button class="btn-light" onclick="restoreDefaultDailyPrompt()">恢复默认调令</button>
+            <button class="btn-red" onclick="clearDailyAiPrompt()">清空当前调令</button>
+          </div>
+        </section>
+
+        <section>
+          <h3>今日AI研判结果</h3>
+          <p class="section-note">把 GPT 返回的研判内容粘贴到这里并保存，日报工具可按日期读取。</p>
+          <textarea id="dailyAnalysisResult" class="report-output" placeholder="粘贴今日AI研判结果。"></textarea>
+          <div class="button-row">
+            <button class="btn-primary" onclick="saveDailyAnalysisResult()">保存今日研判</button>
+            <button class="btn-blue" onclick="copyDailyText('dailyAnalysisResult','dailyAnalysisTip','研判结果已复制')">复制研判结果</button>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-head">
+            <div>
+              <h3>每日研判历史</h3>
+              <p class="section-note">按日期保存，不覆盖原城市研判历史。</p>
+            </div>
+          </div>
+          <div id="dailyAnalysisHistoryList" class="dynamic-history"></div>
+          <div id="dailyAnalysisTip" class="copy-tip"></div>
+        </section>
+      </div>
+    </section>
+
     <section class="card module-card city-analysis-card">
       <div class="section-head">
         <div>
@@ -4118,10 +4216,444 @@
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
+    const DAILY_ANALYSIS_DRAFTS_KEY = "dailyAnalysisDrafts";
+    const DAILY_ANALYSIS_HISTORY_KEY = "dailyAnalysisHistory";
+    const ACTIVITY_POLICY_TEMPLATES_KEY = "activityPolicyTemplates";
+    const CURRENT_ACTIVITY_POLICY_KEY = "currentActivityPolicy";
+    const DAILY_PROMPT_TEMPLATES_KEY = "dailyAnalysisPromptTemplates";
+    const DOUYIN_LEADS_KEY = "douyinLeads";
+    const CUSTOMER_REVIEW_DRAFT_KEY = "customerReviewDraft";
+    const CUSTOMER_REVIEW_RECORDS_KEY = "customerReviewRecords";
+    const MATERIAL_HISTORY_KEY = "materialLabHistory";
+
+    function dailyToday() {
+      return getDatePart(new Date());
+    }
+
+    function dailyLocalTime() {
+      const now = new Date();
+      return `${getDatePart(now)} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function dailySafeParse(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (error) {
+        console.error(`${key} 读取失败`, error);
+        return fallback;
+      }
+    }
+
+    function dailyGetDate() {
+      return getValue("dailyAnalysisDate") || dailyToday();
+    }
+
+    function dailyDrafts() {
+      return dailySafeParse(DAILY_ANALYSIS_DRAFTS_KEY, {});
+    }
+
+    function saveDailyDraft(showTip = true) {
+      const date = dailyGetDate();
+      const all = dailyDrafts();
+      all[date] = {
+        systemData: getValue("dailySystemSummary"),
+        draft: getValue("dailyAnalysisDraft"),
+        policy: getValue("currentActivityPolicy"),
+        aiPrompt: getValue("dailyAiPrompt"),
+        analysisResult: getValue("dailyAnalysisResult"),
+        updatedAt: dailyLocalTime()
+      };
+      localStorage.setItem(DAILY_ANALYSIS_DRAFTS_KEY, JSON.stringify(all));
+      if (showTip) setText("dailyAnalysisTip", "已自动保存");
+    }
+
+    function loadDailyAnalysisDate() {
+      const date = dailyGetDate();
+      const saved = dailyDrafts()[date] || {};
+      setValue("dailySystemSummary", saved.systemData || "");
+      setValue("dailyAnalysisDraft", saved.draft || "");
+      setValue("dailyAiPrompt", saved.aiPrompt || "");
+      setValue("dailyAnalysisResult", saved.analysisResult || "");
+      const currentPolicy = localStorage.getItem(CURRENT_ACTIVITY_POLICY_KEY) || saved.policy || "";
+      setValue("currentActivityPolicy", currentPolicy);
+      renderDailyAnalysisHistory();
+      setText("dailyAnalysisTip", saved.updatedAt ? `已加载${date}草稿` : `已切换到${date}`);
+    }
+
+    function isDailyDead(customer) {
+      return customer && (customer.grade === "死单" || customer.status === "死单");
+    }
+
+    function dailyMapCount(list, key) {
+      return list.reduce((map, item) => {
+        const name = item[key] || "未填写";
+        map[name] = (map[name] || 0) + 1;
+        return map;
+      }, {});
+    }
+
+    function dailyTopMap(map, unit = "组") {
+      const rows = Object.entries(map || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      return rows.length ? rows.map(([name, count]) => `${name}${count}${unit}`).join("、") : "暂无";
+    }
+
+    function getDailyCrmStats(date) {
+      const customers = dailySafeParse(STORAGE_KEY, dailySafeParse(OLD_STORAGE_KEY, []));
+      const list = Array.isArray(customers) ? customers : [];
+      const stats = {
+        total: list.length, effective: 0, dead: 0, a: 0, b: 0, c: 0, todayFollow: 0, overdue: 0,
+        measured: 0, quoted: 0, signed: 0, sleeping: 0, deadReasons: {}, sales: {}
+      };
+      list.forEach(customer => {
+        const dead = isDailyDead(customer);
+        const owner = customer.owner || "未填写销售";
+        stats.sales[owner] = stats.sales[owner] || { total: 0, a: 0, b: 0, c: 0, dead: 0, today: 0, overdue: 0 };
+        stats.sales[owner].total += 1;
+        if (dead) {
+          stats.dead += 1;
+          stats.sales[owner].dead += 1;
+          const reason = String(customer.blockReason || "未填写原因").split(/[；、,，]/)[0] || "未填写原因";
+          stats.deadReasons[reason] = (stats.deadReasons[reason] || 0) + 1;
+          return;
+        }
+        stats.effective += 1;
+        if (customer.grade === "A类客户") { stats.a += 1; stats.sales[owner].a += 1; }
+        if (customer.grade === "B类客户") { stats.b += 1; stats.sales[owner].b += 1; }
+        if (customer.grade === "C类客户") { stats.c += 1; stats.sales[owner].c += 1; }
+        if (customer.status === "沉睡客户") stats.sleeping += 1;
+        if (customer.status === "已签单") stats.signed += 1;
+        if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是") stats.measured += 1;
+        if (["已报价", "已交定金", "已签单"].includes(customer.status)) stats.quoted += 1;
+        const next = normalizeDateValue(customer.nextFollowDate);
+        if (next && customer.status !== "已签单") {
+          if (next === date) { stats.todayFollow += 1; stats.sales[owner].today += 1; }
+          if (next < date) { stats.overdue += 1; stats.sales[owner].overdue += 1; }
+        }
+      });
+      stats.salesSummary = Object.entries(stats.sales).map(([name, s]) => `${name}客户${s.total}组/A${s.a}/B${s.b}/C${s.c}/今日${s.today}/逾期${s.overdue}/死单${s.dead}`).join("；") || "暂无销售统计";
+      return stats;
+    }
+
+    function getDailyDouyinStats(date) {
+      const leads = dailySafeParse(DOUYIN_LEADS_KEY, []);
+      const list = Array.isArray(leads) ? leads : [];
+      const stats = { total: list.length, todayNew: 0, pending: 0, valid: 0, invalid: 0, assigned: 0, transferred: 0, sources: {}, invalidReasons: {}, sales: {} };
+      list.forEach(lead => {
+        if (normalizeDateValue(lead.createdAt) === date) stats.todayNew += 1;
+        if (lead.status === "待清洗") stats.pending += 1;
+        if (lead.validity === "有效" || lead.status === "有效线索") stats.valid += 1;
+        if (lead.validity === "无效" || lead.status === "无效线索") stats.invalid += 1;
+        if (lead.assignedSales) stats.assigned += 1;
+        if (lead.status === "已转入CRM" || lead.crmCustomerId) stats.transferred += 1;
+        stats.sources[lead.source || "未填写来源"] = (stats.sources[lead.source || "未填写来源"] || 0) + 1;
+        if (lead.invalidReason) stats.invalidReasons[lead.invalidReason] = (stats.invalidReasons[lead.invalidReason] || 0) + 1;
+        if (lead.assignedSales) stats.sales[lead.assignedSales] = (stats.sales[lead.assignedSales] || 0) + 1;
+      });
+      return stats;
+    }
+
+    function getDailyReviewSource() {
+      const draft = dailySafeParse(CUSTOMER_REVIEW_DRAFT_KEY, null);
+      if (draft) return { type: "当前客户池复盘草稿", data: draft };
+      const records = dailySafeParse(CUSTOMER_REVIEW_RECORDS_KEY, []);
+      const latest = Array.isArray(records) ? records.slice().sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))[0] : null;
+      return latest ? { type: "最近客户池复盘历史", data: latest } : null;
+    }
+
+    function getDailyReviewSummary(source) {
+      if (!source) return "暂未读取到客户池复盘数据。";
+      const data = source.data || {};
+      const summary = data.salesReviewSummary || {};
+      const reviews = Array.isArray(data.salesReviews) ? data.salesReviews : [];
+      const total = Number(summary.totalCustomers || reviews.reduce((sum, r) => sum + Number(r.totalCustomers || 0), 0));
+      const newCustomers = Number(summary.newCustomers || reviews.reduce((sum, r) => sum + Number(r.newCustomers || 0), 0));
+      const a = Number(summary.gradeA || reviews.reduce((sum, r) => sum + Number(r.gradeA || 0), 0));
+      const b = Number(summary.gradeB || reviews.reduce((sum, r) => sum + Number(r.gradeB || 0), 0));
+      const c = Number(summary.gradeC || reviews.reduce((sum, r) => sum + Number(r.gradeC || 0), 0));
+      const measured = Number(summary.measured || reviews.reduce((sum, r) => sum + Number(r.measured || 0), 0));
+      const quoted = Number(summary.quoted || reviews.reduce((sum, r) => sum + Number(r.quoted || 0), 0));
+      const signed = Number(summary.signed || reviews.reduce((sum, r) => sum + Number(r.signed || 0), 0));
+      const salesLines = reviews.slice(0, 8).map(r => `${r.salesName || "未填写销售"}：客户${Number(r.totalCustomers || 0)}组，新线索${Number(r.newCustomers || 0)}组，A/B/C ${Number(r.gradeA || 0)}/${Number(r.gradeB || 0)}/${Number(r.gradeC || 0)}，重点客户：${r.keyCustomers || "-"}，明日动作：${r.tomorrowAction || "-"}`);
+      return `${source.type}：销售${reviews.length || Number(summary.salesCount || 0)}人，客户总数${total}组，新线索${newCustomers}组，A/B/C ${a}/${b}/${c}组，已量房${measured}组，已报价${quoted}组，已签单${signed}组。\n各销售摘要：${salesLines.length ? salesLines.join("；") : "暂无销售个人复盘明细。"}`;
+    }
+
+    function getDailyMaterialSummary() {
+      const history = dailySafeParse(MATERIAL_HISTORY_KEY, []);
+      if (!Array.isArray(history) || !history.length) return "暂未读取到获客素材历史。";
+      const item = history[0] || {};
+      const modules = Array.isArray(item.modules) ? item.modules : [];
+      const text = modules.map(m => `${m.title}\n${m.content}`).join("\n");
+      return `最近素材生成：${item.savedAt || item.createdAt || "未填写时间"}，城市：${item.city || "-"}，客户类型：${(item.types || []).join("、") || "-"}，内容类型：${item.contentType || "-"}，主推方向：${(item.dirs || []).join("、") || "-"}，素材矩阵：${text.includes("A组") && text.includes("D组") ? "已有A/B/C/D矩阵" : "未识别矩阵"}，脚本：${text.includes("15秒") && text.includes("30秒") && text.includes("60秒") ? "包含15/30/60秒脚本" : "未完整识别15/30/60秒脚本"}。`;
+    }
+
+    function buildDailyDraftText(date, crm, douyin, reviewText) {
+      return [
+        "一、今日基础数据",
+        `- 日期：${date}`,
+        `- 客户总数：${crm.total}`,
+        `- 有效客户：${crm.effective}`,
+        `- A/B/C：${crm.a}/${crm.b}/${crm.c}`,
+        `- 死单：${crm.dead}`,
+        `- 今日待跟进：${crm.todayFollow}`,
+        `- 逾期未跟进：${crm.overdue}`,
+        `- 已量房：${crm.measured}`,
+        `- 已报价：${crm.quoted}`,
+        `- 已签单：${crm.signed}`,
+        "",
+        "二、抖音线索情况",
+        `- 抖音线索总数：${douyin.total}`,
+        `- 今日新增：${douyin.todayNew}`,
+        `- 有效线索：${douyin.valid}`,
+        `- 无效线索：${douyin.invalid}`,
+        `- 已转入CRM：${douyin.transferred}`,
+        `- 主要来源：${dailyTopMap(douyin.sources, "条")}`,
+        `- 主要无效原因：${dailyTopMap(douyin.invalidReasons, "条")}`,
+        "",
+        "三、客户池复盘情况",
+        reviewText,
+        "",
+        "四、今日现场补充",
+        "此处留给用户手动填写。",
+        "",
+        "五、当前主要卡点",
+        "此处留给用户手动填写。",
+        "",
+        "六、明日目标",
+        "此处留给用户手动填写。"
+      ].join("\n");
+    }
+
+    function readDailySystemData() {
+      const date = dailyGetDate();
+      const crm = getDailyCrmStats(date);
+      const douyin = getDailyDouyinStats(date);
+      const review = getDailyReviewSource();
+      const reviewText = getDailyReviewSummary(review);
+      const materialText = getDailyMaterialSummary();
+      const lines = [
+        "【今日系统数据摘要】",
+        `研判日期：${date}`,
+        `CRM：客户总数${crm.total}组，有效客户${crm.effective}组，死单${crm.dead}组，A/B/C ${crm.a}/${crm.b}/${crm.c}组，今日待跟进${crm.todayFollow}组，逾期未跟进${crm.overdue}组，已量房${crm.measured}组，已报价${crm.quoted}组，已签单${crm.signed}组，沉睡${crm.sleeping}组。主要死单原因：${dailyTopMap(crm.deadReasons)}。`,
+        `按销售统计：${crm.salesSummary}`,
+        `抖音线索：总数${douyin.total}条，当日新增${douyin.todayNew}条，待清洗${douyin.pending}条，有效${douyin.valid}条，无效${douyin.invalid}条，已分配销售${douyin.assigned}条，已转入CRM${douyin.transferred}条。主要来源：${dailyTopMap(douyin.sources, "条")}。主要无效原因：${dailyTopMap(douyin.invalidReasons, "条")}。按销售分配：${dailyTopMap(douyin.sales, "条")}。`,
+        `客户池复盘：${reviewText}`,
+        `获客素材：${materialText}`
+      ];
+      setValue("dailySystemSummary", lines.join("\n"));
+      if (!getValue("dailyAnalysisDraft")) {
+        setValue("dailyAnalysisDraft", buildDailyDraftText(date, crm, douyin, reviewText));
+      }
+      saveDailyDraft();
+      setText("dailyAnalysisTip", "已读取今日系统数据并生成研判草稿");
+    }
+
+    function buildDefaultDailyAiPrompt() {
+      return [
+        "角色：",
+        "你是欧派整装大家居主动营销点将作战顾问。",
+        "",
+        "任务：",
+        "根据我提供的客户池复盘、CRM漏斗、抖音线索、活动政策、现场情况，判断今天的问题和明天的动作。",
+        "",
+        `研判日期：${dailyGetDate()}`,
+        "",
+        "今日系统数据摘要：",
+        getValue("dailySystemSummary") || "暂未读取系统数据。",
+        "",
+        "今日研判输入草稿：",
+        getValue("dailyAnalysisDraft") || "暂未填写研判草稿。",
+        "",
+        "当前活动政策/机制：",
+        getValue("currentActivityPolicy") || "暂未填写活动政策/机制。",
+        "",
+        "必须输出：",
+        "1. 今日整体判断",
+        "2. 当前最大卡点",
+        "3. 客户池是否足够支撑签单",
+        "4. 哪些销售需要重点盯",
+        "5. 哪些客户类型优先推进",
+        "6. 抖音线索质量判断",
+        "7. 信息流素材明天该补什么方向",
+        "8. 明日重点动作",
+        "9. 是否需要老板/设计师配合",
+        "10. 可直接写入日报的总结段落",
+        "",
+        "要求：不要空话，不要泛泛建议；按签单结果倒推动作；重点围绕21天点将目标；结合有效客户、A/B客户、已量房、已报价、逾期未跟进、死单原因判断；输出要具体到明天上午/下午/晚上动作。"
+      ].join("\n");
+    }
+
+    function generateDailyAiPrompt() {
+      setValue("dailyAiPrompt", buildDefaultDailyAiPrompt());
+      saveDailyDraft();
+      setText("dailyAnalysisTip", "AI研判调令已生成");
+    }
+
+    function restoreDefaultDailyPrompt() {
+      if (!confirm("确认恢复默认AI研判调令吗？当前修改会被覆盖。")) return;
+      generateDailyAiPrompt();
+    }
+
+    function clearDailyAiPrompt() {
+      if (!confirm("确认清空当前AI调令吗？")) return;
+      setValue("dailyAiPrompt", "");
+      saveDailyDraft();
+    }
+
+    function insertPolicyToDailyPrompt() {
+      const prompt = getValue("dailyAiPrompt") || buildDefaultDailyAiPrompt();
+      setValue("dailyAiPrompt", `${prompt}\n\n【补充活动政策/机制】\n${getValue("currentActivityPolicy") || "未填写"}`);
+      saveDailyDraft();
+      setText("dailyAnalysisTip", "已插入当前机制到AI调令");
+    }
+
+    function copyDailyText(id, tipId, message) {
+      const text = getValue(id);
+      if (!text) return alert("暂无可复制内容。");
+      const done = () => setText(tipId, message);
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done).catch(() => dailyFallbackCopy(text, done));
+      else dailyFallbackCopy(text, done);
+    }
+
+    function dailyFallbackCopy(text, done) {
+      const temp = document.createElement("textarea");
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      temp.remove();
+      done();
+    }
+
+    function activityTemplates() {
+      return dailySafeParse(ACTIVITY_POLICY_TEMPLATES_KEY, []);
+    }
+
+    function saveCurrentActivityPolicy() {
+      localStorage.setItem(CURRENT_ACTIVITY_POLICY_KEY, getValue("currentActivityPolicy"));
+      saveDailyDraft();
+      setText("dailyAnalysisTip", "当前机制已保存");
+    }
+
+    function saveActivityPolicyTemplate() {
+      const content = getValue("currentActivityPolicy");
+      if (!content) return alert("请先填写机制内容。");
+      const list = activityTemplates();
+      list.unshift({ id: `policy-${Date.now()}`, name: getValue("policyTemplateName") || "未命名机制", project: getValue("policyTemplateProject"), content, savedAt: dailyLocalTime(), updatedAt: dailyLocalTime() });
+      localStorage.setItem(ACTIVITY_POLICY_TEMPLATES_KEY, JSON.stringify(list));
+      renderPolicyTemplates();
+      setText("dailyAnalysisTip", "机制模板已保存");
+    }
+
+    function setCurrentPolicyTemplate(id) {
+      const item = activityTemplates().find(t => t.id === id);
+      if (!item) return;
+      setValue("currentActivityPolicy", item.content || "");
+      localStorage.setItem(CURRENT_ACTIVITY_POLICY_KEY, item.content || "");
+      saveDailyDraft();
+      setText("dailyAnalysisTip", "已设为当前机制");
+    }
+
+    function copyPolicyTemplate(id) {
+      const item = activityTemplates().find(t => t.id === id);
+      if (item) {
+        setValue("currentActivityPolicy", item.content || "");
+        copyDailyText("currentActivityPolicy", "dailyAnalysisTip", "机制模板已复制");
+      }
+    }
+
+    function deletePolicyTemplate(id) {
+      if (!confirm("确认删除这个机制模板吗？")) return;
+      localStorage.setItem(ACTIVITY_POLICY_TEMPLATES_KEY, JSON.stringify(activityTemplates().filter(t => t.id !== id)));
+      renderPolicyTemplates();
+    }
+
+    function renderPolicyTemplates() {
+      const box = document.getElementById("policyTemplateList");
+      if (!box) return;
+      const list = activityTemplates();
+      box.innerHTML = list.length ? list.map(item => `
+        <div class="dynamic-history-item">
+          <div><div class="dynamic-history-title">${escapeHtml(item.name || "未命名机制")}</div><div class="section-note">${escapeHtml(item.project || "-")} · ${escapeHtml(item.savedAt || item.updatedAt || "-")}</div></div>
+          <div class="button-row"><button class="btn-blue btn-small" onclick="setCurrentPolicyTemplate('${item.id}')">设为当前</button><button class="btn-green btn-small" onclick="copyPolicyTemplate('${item.id}')">复制</button><button class="btn-red btn-small" onclick="deletePolicyTemplate('${item.id}')">删除</button></div>
+        </div>`).join("") : '<div class="section-note">暂无机制模板。</div>';
+    }
+
+    function saveDailyPromptTemplate() {
+      const prompt = getValue("dailyAiPrompt");
+      if (!prompt) return alert("请先生成或填写AI调令。");
+      const list = dailySafeParse(DAILY_PROMPT_TEMPLATES_KEY, []);
+      list.unshift({ id: `prompt-${Date.now()}`, date: dailyGetDate(), content: prompt, savedAt: dailyLocalTime() });
+      localStorage.setItem(DAILY_PROMPT_TEMPLATES_KEY, JSON.stringify(list));
+      setText("dailyAnalysisTip", "AI调令模板已保存");
+    }
+
+    function dailyHistory() {
+      return dailySafeParse(DAILY_ANALYSIS_HISTORY_KEY, {});
+    }
+
+    function saveDailyAnalysisResult() {
+      const date = dailyGetDate();
+      const all = dailyHistory();
+      all[date] = {
+        date,
+        systemData: getValue("dailySystemSummary"),
+        draft: getValue("dailyAnalysisDraft"),
+        aiPrompt: getValue("dailyAiPrompt"),
+        analysisResult: getValue("dailyAnalysisResult"),
+        savedAt: dailyLocalTime(),
+        updatedAt: dailyLocalTime()
+      };
+      localStorage.setItem(DAILY_ANALYSIS_HISTORY_KEY, JSON.stringify(all));
+      saveDailyDraft(false);
+      renderDailyAnalysisHistory();
+      setText("dailyAnalysisTip", "今日AI研判已保存");
+    }
+
+    function viewDailyAnalysisHistory(date) {
+      const item = dailyHistory()[date];
+      if (item) alert(item.analysisResult || item.aiPrompt || "该日期暂无内容");
+    }
+
+    function deleteDailyAnalysisHistory(date) {
+      if (!confirm(`确认删除${date}的AI研判历史吗？`)) return;
+      const all = dailyHistory();
+      delete all[date];
+      localStorage.setItem(DAILY_ANALYSIS_HISTORY_KEY, JSON.stringify(all));
+      renderDailyAnalysisHistory();
+    }
+
+    function renderDailyAnalysisHistory() {
+      const box = document.getElementById("dailyAnalysisHistoryList");
+      if (!box) return;
+      const rows = Object.entries(dailyHistory()).sort((a, b) => b[0].localeCompare(a[0]));
+      box.innerHTML = rows.length ? rows.map(([date, item]) => `
+        <div class="dynamic-history-item">
+          <div><div class="dynamic-history-title">${escapeHtml(date)} AI研判</div><div class="section-note">保存：${escapeHtml(item.savedAt || item.updatedAt || "-")} · ${escapeHtml((item.analysisResult || "").slice(0, 90))}</div></div>
+          <div class="button-row"><button class="btn-blue btn-small" onclick="viewDailyAnalysisHistory('${date}')">查看</button><button class="btn-green btn-small" onclick="setValue('dailyAnalysisResult', (dailyHistory()['${date}'] || {}).analysisResult || ''); copyDailyText('dailyAnalysisResult','dailyAnalysisTip','研判历史已复制')">复制</button><button class="btn-red btn-small" onclick="deleteDailyAnalysisHistory('${date}')">删除</button></div>
+        </div>`).join("") : '<div class="section-note">暂无每日研判历史。</div>';
+    }
+
+    function bindDailyAutoSave() {
+      ["dailySystemSummary", "dailyAnalysisDraft", "currentActivityPolicy", "dailyAiPrompt", "dailyAnalysisResult"].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.addEventListener("input", () => saveDailyDraft());
+      });
+    }
+
+    function initDailyAnalysisCenter() {
+      setValue("dailyAnalysisDate", dailyToday());
+      setValue("currentActivityPolicy", localStorage.getItem(CURRENT_ACTIVITY_POLICY_KEY) || "");
+      bindDailyAutoSave();
+      loadDailyAnalysisDate();
+      renderPolicyTemplates();
+      renderDailyAnalysisHistory();
+    }
     renderPreJudgeChoiceGroups();
     renderPreJudgeHistory();
     renderDynamicHistory();
     applyPresetFromUrl();
+    initDailyAnalysisCenter();
   </script>
 </body>
 </html>

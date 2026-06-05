@@ -357,7 +357,7 @@
       <div class="section-head">
         <div>
           <h2>飞书日报生成</h2>
-          <p class="section-note">每天只填签单、重点工作和明日计划，固定项自动从项目基础信息带入。</p>
+          <p class="section-note">建议先研判，后日报。先完成客户池复盘、CRM跟进、抖音线索整理，再到AI每日点将研判台保存今日研判，最后回到这里生成可编辑日报。</p>
         </div>
       </div>
       <div class="form-grid">
@@ -368,24 +368,43 @@
       <h3 style="margin:18px 0 10px;">今日工作动作</h3>
       <div id="dailyActions" class="check-grid"></div>
       <div class="data-read-panel">
-        <h3>客户池与 CRM 数据摘要</h3>
-        <p class="section-note">可从客户池复盘草稿/历史和 CRM 客户台账读取今日数据，生成日报素材，不会修改客户数据。</p>
+        <h3>客户池与CRM数据摘要（可编辑）</h3>
+        <p class="section-note">读取后可手动修改，生成日报时使用这里的最终文本。</p>
         <div class="form-grid" style="margin-top:14px;">
           <div class="full">
             <label for="dailyDataSummary">读取结果</label>
-            <textarea id="dailyDataSummary" class="data-summary-output" readonly placeholder="点击“读取今日客户池与CRM数据”后，会在这里生成日报可用摘要。"></textarea>
+            <textarea id="dailyDataSummary" class="data-summary-output" placeholder="点击“读取客户池与CRM数据”后，会在这里生成日报可用摘要，可编辑。"></textarea>
             <div id="dailyDataTip" class="copy-tip"></div>
           </div>
         </div>
         <div class="button-row">
           <button class="btn-blue" onclick="readTodayCustomerPoolAndCrmData()">读取今日客户池与CRM数据</button>
           <button class="btn-green" onclick="copyOutput('dailyDataSummary', 'dailyDataTip', '数据摘要已复制')">复制摘要</button>
+          <button class="btn-light" onclick="saveReportDraft('data')">保存摘要草稿</button>
+          <button class="btn-red" onclick="clearReportField('dailyDataSummary','dailyDataTip','摘要已清空')">清空摘要</button>
+        </div>
+      </div>
+      <div class="data-read-panel" style="margin-top:16px;">
+        <h3>今日AI研判摘要（可编辑）</h3>
+        <p class="section-note">从 AI每日点将研判台读取当天保存的研判结果，日报会引用这里的最终文本。</p>
+        <div class="form-grid" style="margin-top:14px;">
+          <div class="full">
+            <label for="dailyAnalysisSummary">研判摘要</label>
+            <textarea id="dailyAnalysisSummary" class="data-summary-output" placeholder="点击“读取今日AI研判”后填入，可编辑。"></textarea>
+            <div id="dailyAnalysisTip" class="copy-tip"></div>
+          </div>
+        </div>
+        <div class="button-row">
+          <button class="btn-blue" onclick="readTodayAiAnalysis()">读取今日AI研判</button>
+          <button class="btn-green" onclick="copyOutput('dailyAnalysisSummary', 'dailyAnalysisTip', 'AI研判摘要已复制')">复制研判摘要</button>
+          <button class="btn-light" onclick="saveReportDraft('analysis')">保存研判草稿</button>
+          <button class="btn-red" onclick="clearReportField('dailyAnalysisSummary','dailyAnalysisTip','研判摘要已清空')">清空研判摘要</button>
         </div>
       </div>
       <div class="form-grid" style="margin-top:16px;">
         <div class="wide"><label for="dailyWorkSummary">今日重点工作简述</label><textarea id="dailyWorkSummary" placeholder="今天重点做了什么，优先按你的原话润色"></textarea></div>
         <div class="wide"><label for="dailyTomorrow">明日工作计划</label><textarea id="dailyTomorrow" placeholder="明天准备推进什么"></textarea></div>
-        <div class="full"><label for="dailyOutput">主动营销工作日报</label><textarea id="dailyOutput" class="output" readonly></textarea><div id="dailyTip" class="copy-tip"></div></div>
+        <div class="full"><label for="dailyOutput">主动营销工作日报（可编辑）</label><textarea id="dailyOutput" class="output"></textarea><div id="dailyTip" class="copy-tip"></div></div>
       </div>
       <div class="button-row">
         <button class="btn-primary" onclick="generateDaily()">生成日报</button>
@@ -473,6 +492,10 @@
     const CRM_CUSTOMERS_KEY = "decorationStoreCrmCustomers";
     const CRM_OLD_CUSTOMERS_KEY = "customers";
     const DOUYIN_LEADS_KEY = "douyinLeads";
+    const DAILY_ANALYSIS_HISTORY_KEY = "dailyAnalysisHistory";
+    const REPORT_DATA_SUMMARY_DRAFT_KEY = "reportDataSummaryDraft";
+    const REPORT_ANALYSIS_SUMMARY_DRAFT_KEY = "reportAnalysisSummaryDraft";
+    const DAILY_REPORT_DRAFT_KEY = "dailyReportDraft";
     const DAILY_ACTIONS = [
       "客户跟进", "客户信息复盘", "量房推进", "方案沟通", "报价沟通", "签单转化",
       "经纪人渠道沟通", "新媒体文案输出", "短视频脚本输出", "视频拍摄", "视频剪辑",
@@ -537,6 +560,43 @@
     function setText(id, value) {
       const element = document.getElementById(id);
       if (element) element.innerText = value;
+    }
+
+    function saveReportDraft(type = "all") {
+      if (type === "data" || type === "all") {
+        localStorage.setItem(REPORT_DATA_SUMMARY_DRAFT_KEY, getValue("dailyDataSummary"));
+        setText("dailyDataTip", "摘要草稿已保存");
+      }
+      if (type === "analysis" || type === "all") {
+        localStorage.setItem(REPORT_ANALYSIS_SUMMARY_DRAFT_KEY, getValue("dailyAnalysisSummary"));
+        setText("dailyAnalysisTip", "AI研判草稿已保存");
+      }
+      if (type === "daily" || type === "all") {
+        localStorage.setItem(DAILY_REPORT_DRAFT_KEY, getValue("dailyOutput"));
+      }
+    }
+
+    function loadReportDrafts() {
+      setValue("dailyDataSummary", localStorage.getItem(REPORT_DATA_SUMMARY_DRAFT_KEY) || "");
+      setValue("dailyAnalysisSummary", localStorage.getItem(REPORT_ANALYSIS_SUMMARY_DRAFT_KEY) || "");
+      setValue("dailyOutput", localStorage.getItem(DAILY_REPORT_DRAFT_KEY) || "");
+      ["dailyDataSummary", "dailyAnalysisSummary", "dailyOutput"].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.addEventListener("input", () => {
+          if (id === "dailyDataSummary") localStorage.setItem(REPORT_DATA_SUMMARY_DRAFT_KEY, getValue(id));
+          if (id === "dailyAnalysisSummary") localStorage.setItem(REPORT_ANALYSIS_SUMMARY_DRAFT_KEY, getValue(id));
+          if (id === "dailyOutput") localStorage.setItem(DAILY_REPORT_DRAFT_KEY, getValue(id));
+        });
+      });
+    }
+
+    function clearReportField(id, tipId, message) {
+      if (!confirm("确认清空当前内容吗？")) return;
+      setValue(id, "");
+      if (id === "dailyDataSummary") localStorage.removeItem(REPORT_DATA_SUMMARY_DRAFT_KEY);
+      if (id === "dailyAnalysisSummary") localStorage.removeItem(REPORT_ANALYSIS_SUMMARY_DRAFT_KEY);
+      if (id === "dailyOutput") localStorage.removeItem(DAILY_REPORT_DRAFT_KEY);
+      setText(tipId, message);
     }
 
     function polish(value) {
@@ -886,6 +946,7 @@
       ].filter(Boolean);
 
       setValue("dailyDataSummary", lines.join("\n"));
+      localStorage.setItem(REPORT_DATA_SUMMARY_DRAFT_KEY, getValue("dailyDataSummary"));
       setText("dailyDataTip", "已读取客户池与CRM数据");
     }
 
@@ -893,6 +954,33 @@
       const text = String(summary || "").trim();
       if (!text || text.startsWith("暂未读取到客户池复盘")) return "";
       return `今日同步读取客户池复盘和CRM客户台账数据，结合销售个人客户池、A/B/C类客户结构、已量房/已报价客户、今日待跟进与逾期客户情况，为当日客户推进和明日重点动作提供数据依据。\n${text}`;
+    }
+
+    function readTodayAiAnalysis() {
+      const date = getValue("dailyDate") || today();
+      const history = safeParseStorage(DAILY_ANALYSIS_HISTORY_KEY, {});
+      const record = history && history[date];
+      if (!record || !record.analysisResult) {
+        setValue("dailyAnalysisSummary", "暂未读取到今日AI研判，请先到AI每日点将研判台保存今日研判。");
+        setText("dailyAnalysisTip", "暂无今日AI研判");
+        saveReportDraft("analysis");
+        return;
+      }
+      const text = [
+        "【今日AI研判摘要】",
+        `研判日期：${date}`,
+        record.analysisResult,
+        record.savedAt ? `保存时间：${record.savedAt}` : ""
+      ].filter(Boolean).join("\n");
+      setValue("dailyAnalysisSummary", text);
+      localStorage.setItem(REPORT_ANALYSIS_SUMMARY_DRAFT_KEY, text);
+      setText("dailyAnalysisTip", "已读取今日AI研判");
+    }
+
+    function buildAiAnalysisWorkText(summary) {
+      const text = String(summary || "").trim();
+      if (!text || text.startsWith("暂未读取到今日AI研判")) return "";
+      return `根据今日AI研判，已进一步明确客户池、CRM漏斗、抖音线索质量和明日重点动作，后续围绕A/B类客户、已量房/已报价客户、逾期未跟进客户和有效抖音线索推进。\n${text}`;
     }
 
     function buildTomorrowPlan(actions, manualPlan) {
@@ -918,7 +1006,8 @@
       const tomorrow = buildTomorrowPlan(actions, getValue("dailyTomorrow"));
       const workText = buildDailyWork(actions, workSummary);
       const dailyDataWork = buildDailyDataWorkText(getValue("dailyDataSummary"));
-      const finalWorkText = dailyDataWork ? `${workText}\n\n${dailyDataWork}` : workText;
+      const aiAnalysisWork = buildAiAnalysisWorkText(getValue("dailyAnalysisSummary"));
+      const finalWorkText = [workText, dailyDataWork, aiAnalysisWork].filter(Boolean).join("\n\n");
       const report = [
         "【主动营销工作日报】",
         "",
@@ -951,6 +1040,7 @@
       ].join("\n");
 
       setValue("dailyOutput", report);
+      localStorage.setItem(DAILY_REPORT_DRAFT_KEY, report);
       setText("dailyTip", "");
     }
 
@@ -972,9 +1062,11 @@
         actions,
         workSummary: getValue("dailyWorkSummary"),
         dataSummary: getValue("dailyDataSummary"),
+        aiAnalysisSummary: getValue("dailyAnalysisSummary"),
         workText: [
           buildDailyWork(actions, getValue("dailyWorkSummary")),
-          buildDailyDataWorkText(getValue("dailyDataSummary"))
+          buildDailyDataWorkText(getValue("dailyDataSummary")),
+          buildAiAnalysisWorkText(getValue("dailyAnalysisSummary"))
         ].filter(Boolean).join("\n\n"),
         tomorrowPlan,
         content,
@@ -989,6 +1081,7 @@
         alert("请先生成日报");
         return;
       }
+      localStorage.setItem(DAILY_REPORT_DRAFT_KEY, content);
       reportRecords.unshift(collectDailyRecord(content));
       saveReports();
       renderHistory();
@@ -1598,6 +1691,7 @@
       setValue("dailyDate", today());
       setValue("weeklyEnd", today());
       setValue("stageEnd", today());
+      loadReportDrafts();
       renderHistory();
     }
 
