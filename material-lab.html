@@ -55,12 +55,36 @@
       <div class="copy-tip" id="tip"></div>
     </section>
     <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>信息流AI调令模式</h2>
+          <p class="section-note">当本地生成文案相似度高，或需要更高级、更适合投流测试的文案时，可以生成完整AI调令，复制到 GPT 输出更丰富、更差异化的信息流素材矩阵。</p>
+        </div>
+      </div>
+      <label for="aiPromptOutput">信息流AI调令（可编辑）</label>
+      <textarea id="aiPromptOutput" style="min-height:340px;" placeholder="点击“生成信息流AI调令”后显示，可手动修改，刷新后草稿不丢。"></textarea>
+      <div class="button-row">
+        <button class="btn-primary" type="button" onclick="generateAiPrompt()">生成信息流AI调令</button>
+        <button class="btn-blue" type="button" onclick="copyAiPrompt()">复制AI调令</button>
+        <button class="btn-green" type="button" onclick="saveAiPromptHistory()">保存AI调令历史</button>
+        <button class="btn-red" type="button" onclick="clearAiPrompt()">清空AI调令</button>
+      </div>
+      <div class="copy-tip" id="aiPromptTip"></div>
+      <div style="margin-top:18px;">
+        <h3>AI调令历史</h3>
+        <p class="section-note">历史仅保存到当前浏览器，不影响原素材矩阵历史。</p>
+        <div class="history-list" id="aiPromptHistoryList"></div>
+      </div>
+    </section>
+    <section class="card">
       <div class="section-head"><div><h2>历史记录</h2><p class="section-note">历史仅保存在当前浏览器，不影响其它工具数据。</p></div></div>
       <div class="history-list" id="historyList"></div>
     </section>
   </main>
   <script>
     const STORAGE_KEY = "materialLabHistory";
+    const AI_PROMPT_DRAFT_KEY = "materialLabAiPromptDraft";
+    const AI_PROMPT_HISTORY_KEY = "materialLabAiPromptHistory";
     const customerTypes = ["新房装修", "旧房翻新", "局部改造", "精装改造", "整装咨询", "大平层/改善型"];
     const materialGoals = ["信息流留资", "短视频获客", "私信咨询", "到店/量房"];
     const mainDirections = ["预算咨询", "发户型图看方案", "旧改翻新", "局部改造", "报价避坑", "同户型案例", "工地/施工信任", "环保材料"];
@@ -69,9 +93,15 @@
     const copyAngles = ["预算透明", "旧房翻新", "局部改造", "发户型图看方案", "效果图落地", "环保材料", "施工工地", "同户型案例", "报价避坑", "低价套餐风险", "没时间到店", "家人决策"];
     const toneStyles = ["直接犀利型", "专业顾问型", "本地生活型", "案例种草型", "老板提醒型", "避坑提醒型"];
     let currentModules = [];
+    let currentGeneratedAt = "";
     const el = id => document.getElementById(id);
     const value = id => (el(id).value || "").trim();
     const escapeHtml = text => String(text || "").replace(/[&<>"']/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s]));
+    const normalizeBreaks = text => String(text || "").replace(/\\n/g, "\n");
+    function localTime(date = new Date()) {
+      const pad = n => String(n).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
     function renderChecks(id, options) { el(id).innerHTML = options.map(item => `<label class="check-card"><input type="checkbox" value="${escapeHtml(item)}"><span>${escapeHtml(item)}</span></label>`).join(""); }
     function checked(id) { return Array.from(el(id).querySelectorAll("input:checked")).map(item => item.value); }
     function setChecked(id, values) { const set = new Set(values); el(id).querySelectorAll("input").forEach(item => item.checked = set.has(item.value)); }
@@ -105,7 +135,7 @@
         tones: checked("toneStyleChecks")
       };
     }
-    function line(text) { return String(text || "").replace(/\\n/g, "\n").trim(); }
+    function line(text) { return normalizeBreaks(text).trim(); }
     function list(items) { return items.filter(Boolean).map((item, index) => `${index + 1}. ${item}`).join("\n"); }
     function bullets(items) { return items.filter(Boolean).map(item => `- ${item}`).join("\n"); }
     function pick(arr, fallback) { return arr && arr.length ? arr.join("、") : fallback; }
@@ -235,7 +265,7 @@
       `).join("") : '<div class="section-note">点击生成后显示模块化结果。</div>';
     }
     function fullText() { return currentModules.map(m => `【${m.title}】\n${m.content}`).join("\n\n"); }
-    function generateMaterial() { currentModules = buildModules(contextText()); renderModules(); showTip("素材矩阵已生成。"); }
+    function generateMaterial() { currentModules = buildModules(contextText()); currentGeneratedAt = localTime(); renderModules(); showTip("素材矩阵已生成。"); }
     async function copyText(text, msg) {
       if (!text.trim()) return alert("请先生成内容。");
       try { await navigator.clipboard.writeText(text); } catch { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
@@ -247,29 +277,208 @@
     function saveRecord() {
       if (!currentModules.length) return alert("请先生成素材矩阵。");
       const list = records();
-      list.unshift({ id: Date.now().toString(), createdAt: new Date().toISOString(), city: value("city"), store: value("store"), modules: currentModules, content: fullText() });
+      const c = contextText();
+      list.unshift({
+        id: Date.now().toString(),
+        savedAt: localTime(),
+        createdAt: localTime(),
+        generatedAt: currentGeneratedAt || "",
+        city: c.city,
+        area: c.area,
+        store: c.store,
+        customerType: pick(c.types, ""),
+        contentType: c.contentType,
+        mainDirection: pick(c.dirs, ""),
+        copyAngle: pick(c.angles, ""),
+        toneStyle: pick(c.tones, ""),
+        modules: currentModules,
+        content: fullText()
+      });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
       renderHistory(); showTip("历史已保存。");
     }
     function renderHistory() {
       const list = records();
-      el("historyList").innerHTML = list.length ? list.map(item => `<article class="history-item"><div><strong>${escapeHtml(item.store || item.city || "未命名素材")}</strong><p class="section-note">${escapeHtml((item.createdAt || "").replace("T"," ").slice(0,16))}</p></div><div class="button-row"><button class="btn-blue" onclick="viewRecord('${item.id}')">查看</button><button class="btn-green" onclick="copyRecord('${item.id}')">复制</button><button class="btn-red" onclick="deleteRecord('${item.id}')">删除</button></div></article>`).join("") : '<div class="section-note">暂无历史记录。</div>';
+      el("historyList").innerHTML = list.length ? list.map(item => {
+        const saved = item.savedAt || (item.createdAt || "").replace("T", " ").slice(0, 16) || "历史记录";
+        const meta = [
+          `保存时间：${saved}`,
+          item.generatedAt ? `生成时间：${item.generatedAt}` : "",
+          item.city ? `城市：${item.city}` : "",
+          item.customerType ? `客户类型：${item.customerType}` : "",
+          item.contentType ? `内容类型：${item.contentType}` : "",
+          item.mainDirection ? `主推方向：${item.mainDirection}` : "",
+          item.copyAngle ? `文案角度：${item.copyAngle}` : "",
+          item.toneStyle ? `语气风格：${item.toneStyle}` : ""
+        ].filter(Boolean).join("｜") || "历史记录";
+        return `<article class="history-item"><div><strong>${escapeHtml(item.store || item.city || "未命名素材")}</strong><p class="section-note">${escapeHtml(meta)}</p></div><div class="button-row"><button class="btn-blue" onclick="viewRecord('${item.id}')">查看</button><button class="btn-green" onclick="copyRecord('${item.id}')">复制</button><button class="btn-red" onclick="deleteRecord('${item.id}')">删除</button></div></article>`;
+      }).join("") : '<div class="section-note">暂无历史记录。</div>';
     }
     function viewRecord(id) {
       const item = records().find(r => r.id === id);
       if (!item) return;
       currentModules = Array.isArray(item.modules) ? item.modules : parseLegacyContent(item.content);
+      currentGeneratedAt = item.generatedAt || "";
       renderModules();
       showTip("历史内容已回显。");
     }
     function parseLegacyContent(content) {
-      const text = String(content || "").replace(/\\n/g, "\n");
+      const text = normalizeBreaks(content);
       return text ? [{ title: "历史完整内容", content: text }] : [];
     }
-    function copyRecord(id) { const item = records().find(r => r.id === id); if (item) copyText((Array.isArray(item.modules) ? item.modules.map(m => `【${m.title}】\n${m.content}`).join("\n\n") : String(item.content || "").replace(/\\n/g, "\n")), "历史内容已复制。"); }
+    function copyRecord(id) { const item = records().find(r => r.id === id); if (item) copyText((Array.isArray(item.modules) ? item.modules.map(m => `【${m.title}】\n${m.content}`).join("\n\n") : normalizeBreaks(item.content)), "历史内容已复制。"); }
     function deleteRecord(id) { if (!confirm("确认删除这条历史记录吗？")) return; localStorage.setItem(STORAGE_KEY, JSON.stringify(records().filter(r => r.id !== id))); renderHistory(); }
+    function aiPromptRecords() { try { return JSON.parse(localStorage.getItem(AI_PROMPT_HISTORY_KEY) || "[]"); } catch { return []; } }
+    function aiPromptText() { return line(el("aiPromptOutput").value); }
+    function saveAiPromptDraft() { localStorage.setItem(AI_PROMPT_DRAFT_KEY, el("aiPromptOutput").value || ""); }
+    function buildAiPrompt() {
+      const c = contextText();
+      return line(`
+【信息流AI调令】
+
+角色：
+你是装修行业同城高客单信息流投放文案策划，熟悉欧派整装大家居、主动营销点将、抖音本地推、装修线索承接和CRM跟进。
+
+任务：
+根据以下城市、客户类型、痛点、主推方向、活动政策，生成一套可用于抖音信息流测试的素材矩阵。
+
+当前输入信息：
+城市：${c.city}
+区域/小区：${c.area}
+门店：${c.store}
+平台/账号：${c.platform}
+客户类型：${pick(c.types, "未填写")}
+内容类型：${c.contentType}
+素材目标：${pick(c.goals, "信息流留资")}
+主推方向：${pick(c.dirs, "预算咨询、发户型图看方案")}
+客户痛点：${pick(c.pains, "怕预算超、怕增项、没时间到店")}
+引流福利：${pick(c.benefits, "未填写")}
+活动政策/权益：${c.policy}
+文案角度：${pick(c.angles, "预算透明、旧房翻新、发户型图看方案、工地/案例信任")}
+语气风格：${pick(c.tones, "专业顾问型")}
+备注：${c.note || "无"}
+
+必须输出：
+
+一、素材测试总览
+
+二、A组：预算透明方向
+
+三、B组：旧改/局改避坑方向
+
+四、C组：发户型图看方案方向
+
+五、D组：工地/案例信任方向
+
+每组必须包含：
+1. 信息流标题 5条
+2. 封面字 5条
+3. 15秒信息流快测脚本 2条
+4. 30秒标准短视频脚本 2条
+5. 60秒信任种草脚本 1条
+6. 私信承接话术 2条
+7. 电话承接话术 1条
+8. 朋友圈二次触达 1条
+9. CRM记录建议
+10. 复盘指标建议
+
+强制要求：
+1. A/B/C/D四组角度必须明显不同。
+2. 不要只是替换词。
+3. 不要所有脚本结构一样。
+4. 15秒要短促直接，适合信息流快测。
+5. 30秒要结构完整，包含钩子、痛点、解决方案和行动指令。
+6. 60秒要有信任和案例感，适合种草和二次触达。
+7. 文案要适合同城装修客户，不要泛泛写全国装修。
+8. 必须包含城市关键词：${c.city}。
+9. 必须包含低门槛行动指令：发户型图、咨询预算、预约量房、到店看方案。
+10. 不要编造不存在的小区成交数据。
+11. 没有真实案例时，用“可替换为本地案例”。
+12. 不要使用违规词：最低价、全网最低、保证不增项、包赔、绝对、100%环保、马上签单、不买后悔。
+13. 要给出替代表达。
+14. 最后输出“下一轮投流复盘看什么”。
+15. 输出正常分段，不要一整坨文字。
+16. 每个模块有清晰标题。
+17. 内容要能直接复制给拍摄、剪辑、投手和销售承接使用。
+
+投流风险提示：
+- 不要承诺低价和绝对效果。
+- 不要用无法证明的成交数据、楼盘数据和案例数据。
+- 如果使用案例，请标注“可替换为本地案例”。
+- 线索承接要同步记录到CRM，方便复盘有效线索率、A/B/C比例、到店/量房/报价/签单转化。
+
+最后请单独输出：
+【下一轮投流复盘看什么】
+包括：标题点击、私信咨询、留电话、发户型图、有效线索、转入CRM、销售承接、到店、量房、报价、死单原因和下一轮素材优化方向。
+`);
+    }
+    function generateAiPrompt() {
+      el("aiPromptOutput").value = buildAiPrompt();
+      saveAiPromptDraft();
+      showAiPromptTip("AI调令已生成。");
+    }
+    function copyAiPrompt() { copyText(aiPromptText(), "AI调令已复制。"); showAiPromptTip("AI调令已复制。"); }
+    function saveAiPromptHistory() {
+      const text = aiPromptText();
+      if (!text) return alert("请先生成或填写AI调令。");
+      const c = contextText();
+      const list = aiPromptRecords();
+      list.unshift({
+        id: `ai-${Date.now()}`,
+        savedAt: localTime(),
+        city: c.city,
+        customerType: pick(c.types, ""),
+        contentType: c.contentType,
+        copyAngle: pick(c.angles, ""),
+        toneStyle: pick(c.tones, ""),
+        prompt: text
+      });
+      localStorage.setItem(AI_PROMPT_HISTORY_KEY, JSON.stringify(list));
+      renderAiPromptHistory();
+      showAiPromptTip("AI调令历史已保存。");
+    }
+    function clearAiPrompt() {
+      el("aiPromptOutput").value = "";
+      saveAiPromptDraft();
+      showAiPromptTip("AI调令已清空。");
+    }
+    function renderAiPromptHistory() {
+      const list = aiPromptRecords();
+      el("aiPromptHistoryList").innerHTML = list.length ? list.map(item => {
+        const meta = [
+          `保存时间：${item.savedAt || "历史记录"}`,
+          item.city ? `城市：${item.city}` : "",
+          item.customerType ? `客户类型：${item.customerType}` : "",
+          item.contentType ? `内容类型：${item.contentType}` : "",
+          item.copyAngle ? `文案角度：${item.copyAngle}` : "",
+          item.toneStyle ? `语气风格：${item.toneStyle}` : ""
+        ].filter(Boolean).join("｜") || "历史记录";
+        return `<article class="history-item"><div><strong>${escapeHtml(item.city || "AI调令历史")}</strong><p class="section-note">${escapeHtml(meta)}</p></div><div class="button-row"><button class="btn-blue" onclick="viewAiPromptHistory('${item.id}')">查看</button><button class="btn-green" onclick="copyAiPromptHistory('${item.id}')">复制</button><button class="btn-red" onclick="deleteAiPromptHistory('${item.id}')">删除</button></div></article>`;
+      }).join("") : '<div class="section-note">暂无AI调令历史。</div>';
+    }
+    function viewAiPromptHistory(id) {
+      const item = aiPromptRecords().find(record => record.id === id);
+      if (!item) return;
+      el("aiPromptOutput").value = normalizeBreaks(item.prompt);
+      saveAiPromptDraft();
+      showAiPromptTip("AI调令历史已回显。");
+    }
+    function copyAiPromptHistory(id) {
+      const item = aiPromptRecords().find(record => record.id === id);
+      if (item) {
+        copyText(normalizeBreaks(item.prompt), "AI调令历史已复制。");
+        showAiPromptTip("AI调令历史已复制。");
+      }
+    }
+    function deleteAiPromptHistory(id) {
+      if (!confirm("确认删除这条AI调令历史吗？")) return;
+      localStorage.setItem(AI_PROMPT_HISTORY_KEY, JSON.stringify(aiPromptRecords().filter(record => record.id !== id)));
+      renderAiPromptHistory();
+      showAiPromptTip("AI调令历史已删除。");
+    }
+    function showAiPromptTip(text) { el("aiPromptTip").textContent = text; setTimeout(() => { if (el("aiPromptTip").textContent === text) el("aiPromptTip").textContent = ""; }, 2200); }
     function showTip(text) { el("tip").textContent = text; setTimeout(() => { if (el("tip").textContent === text) el("tip").textContent = ""; }, 2200); }
-    renderChecks("customerTypeChecks", customerTypes); renderChecks("materialGoalChecks", materialGoals); renderChecks("mainDirectionChecks", mainDirections); renderChecks("painChecks", painOptions); renderChecks("benefitChecks", benefitOptions); renderChecks("copyAngleChecks", copyAngles); renderChecks("toneStyleChecks", toneStyles); renderHistory();
+    renderChecks("customerTypeChecks", customerTypes); renderChecks("materialGoalChecks", materialGoals); renderChecks("mainDirectionChecks", mainDirections); renderChecks("painChecks", painOptions); renderChecks("benefitChecks", benefitOptions); renderChecks("copyAngleChecks", copyAngles); renderChecks("toneStyleChecks", toneStyles); renderHistory(); renderAiPromptHistory(); el("aiPromptOutput").value = localStorage.getItem(AI_PROMPT_DRAFT_KEY) || ""; el("aiPromptOutput").addEventListener("input", saveAiPromptDraft);
   </script>
 </body>
 </html>
