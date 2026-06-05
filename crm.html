@@ -311,6 +311,108 @@
       gap: 15px;
     }
 
+    .customer-form-sections {
+      display: grid;
+      gap: 16px;
+    }
+
+    .form-section-card {
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .form-section-card .form-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .form-section-title {
+      align-items: center;
+      color: #172554;
+      display: flex;
+      font-size: 16px;
+      font-weight: 900;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .form-section-title span {
+      align-items: center;
+      background: #eef5ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      display: inline-flex;
+      height: 32px;
+      justify-content: center;
+      width: 32px;
+    }
+
+    .compact-help {
+      background: #ffffff;
+      border: 1px dashed #bfdbfe;
+      border-radius: 12px;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 10px;
+      padding: 10px 12px;
+    }
+
+    .edit-mode-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      color: #1e3a8a;
+      display: none;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.6;
+      margin: 14px 0 0;
+      padding: 12px 14px;
+    }
+
+    .edit-mode-banner strong {
+      color: #111827;
+    }
+
+    .form-save-tip {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      min-height: 20px;
+      margin-top: 8px;
+    }
+
+    .classification-details {
+      margin-top: 10px;
+    }
+
+    .classification-details summary {
+      color: #1d4ed8;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .metric-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .metric-pill {
+      background: #eef5ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      color: #1e3a8a;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 8px;
+      white-space: nowrap;
+    }
+
     .wide {
       grid-column: span 2;
     }
@@ -1241,6 +1343,7 @@
       .dashboard,
       .project-panel,
       .form-grid,
+      .form-section-card .form-grid,
       .detail-grid,
       .filter-grid {
         grid-template-columns: 1fr;
@@ -1380,7 +1483,7 @@
 
   <main>
 
-    <section class="card module-card">
+    <section class="card module-card" id="funnel">
       <div class="section-head">
         <div>
           <h2>数据看板区</h2>
@@ -1490,6 +1593,12 @@
       </div>
       <h3>客户阶段漏斗</h3>
       <p class="section-note">按客户状态展示各阶段数量，并计算关键转化率。</p>
+      <h3 style="margin-top:18px;">客户漏斗看板</h3>
+      <p class="section-note">全店统计与正式销售客户池概况，辅助判断明天重点盯哪个销售、推进哪个阶段。</p>
+      <div class="mini-stat-grid" id="crmFunnelStats"></div>
+      <div class="source-stats" id="salesFunnelStats"></div>
+      <div class="compact-help" id="funnelJudgeTips"></div>
+      <h3 style="margin-top:18px;">阶段推进条</h3>
       <div class="funnel-panel" id="stageFunnel"></div>
       <div class="funnel-rates">
         <div class="source-stat">
@@ -1516,150 +1625,191 @@
           <h2 id="formTitle">新增客户</h2>
           <p class="section-note">客户姓名和手机号必填，其余字段可后续补充。</p>
           <p class="sales-preset-notice" id="salesPresetNotice" style="display:none;"></p>
+          <div class="edit-mode-banner" id="editModeBanner"></div>
+          <div class="form-save-tip" id="formSaveTip"></div>
         </div>
       </div>
 
-      <div class="form-grid">
-        <div>
-          <label for="name">客户姓名</label>
-          <input id="name" placeholder="例如：张先生" />
-        </div>
-
-        <div>
-          <label for="phone">手机号</label>
-          <input id="phone" placeholder="例如：13800000000" />
-        </div>
-
-        <div>
-          <label for="community">所在小区</label>
-          <input id="community" placeholder="例如：滨江花园" />
-        </div>
-
-        <div>
-          <label for="area">房屋面积</label>
-          <input id="area" placeholder="例如：120㎡" />
-        </div>
-
-        <div>
-          <label for="layout">户型</label>
-          <select id="layout" onchange="toggleLayoutOther()">
-            <option>一室一厅一厨一卫</option>
-            <option>两室一厅一厨一卫</option>
-            <option>两室两厅一厨一卫</option>
-            <option>两室两厅一厨两卫</option>
-            <option>三室两厅一厨一卫</option>
-            <option>三室两厅一厨两卫</option>
-            <option>四室两厅一厨两卫</option>
-            <option>四室两厅一厨三卫</option>
-            <option>复式/跃层</option>
-            <option>别墅/自建房</option>
-            <option>旧房翻新</option>
-            <option>局部改造</option>
-            <option>其他</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="layoutOther">其他户型补充</label>
-          <input id="layoutOther" placeholder="选择“其他”时填写，旧客户特殊户型也会显示在这里" />
-        </div>
-
-        <div>
-          <label for="source">客户来源</label>
-          <select id="source">
-            <option>抖音线索</option>
-            <option>电商线索</option>
-            <option>经纪人推荐</option>
-            <option>自然到店</option>
-            <option>老客户转介绍</option>
-            <option>地推获客</option>
-            <option>直播留资</option>
-            <option>其他</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="budget">预算区间</label>
-          <select id="budget">
-            <option>待确认</option>
-            <option>5万以下</option>
-            <option>5-10万</option>
-            <option>7-10万</option>
-            <option>10-20万</option>
-            <option>20-30万</option>
-            <option>30万以上</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="grade">客户等级</label>
-          <select id="grade">
-            <option>A类客户</option>
-            <option>B类客户</option>
-            <option>C类客户</option>
-            <option>死单</option>
-          </select>
-          <p class="section-note">A类：已量房、已报价、近期要装、有决策人、预算可谈、能约店或能逼单。B类：有装修需求，但时间、预算、决策人、方案方向还不明确，需要继续培育。C类：只问价格、意向弱、暂时观望、短期不急，不作为重点逼单对象。死单：电话无效、已装修、不装了、选择其他公司、区域不符、长期无效跟进。</p>
-        </div>
-
-        <div>
-          <label for="status">客户状态</label>
-          <select id="status">
-            <option>新线索</option>
-            <option>已联系</option>
-            <option>已进店</option>
-            <option>已量房</option>
-            <option>已出方案</option>
-            <option>已报价</option>
-            <option>已交定金</option>
-            <option>已签单</option>
-            <option>沉睡客户</option>
-            <option>死单</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="owner">所属销售</label>
-          <input id="owner" list="ownerSalesList" placeholder="例如：王玉玲" />
-          <datalist id="ownerSalesList"></datalist>
-        </div>
-
-        <div>
-          <label for="designer">配合设计师</label>
-          <input id="designer" placeholder="例如：王设计" />
-        </div>
-
-        <div>
-          <label for="nextFollowDate">下次跟进时间</label>
-          <input id="nextFollowDate" type="date" />
-        </div>
-
-        <div class="wide">
-          <label>当前卡点 / 死单原因</label>
-          <div class="quick-choice-field">
-            <div class="quick-choice-grid" id="blockReasonChoices"></div>
-            <textarea id="blockReasonText" placeholder="例如：客户说预算偏高，需明天二次沟通；电话无人接，下午再回访。" oninput="syncChoiceHiddenField('blockReason')"></textarea>
-            <textarea id="blockReason" class="compat-textarea" tabindex="-1" aria-hidden="true"></textarea>
+      <div class="customer-form-sections">
+        <section class="form-section-card">
+          <div class="form-section-title"><span>👤</span>客户基础信息</div>
+          <div class="form-grid">
+            <div>
+              <label for="name">客户姓名/称呼</label>
+              <input id="name" placeholder="例如：张先生" />
+            </div>
+            <div>
+              <label for="phone">电话</label>
+              <input id="phone" placeholder="例如：13800000000" />
+            </div>
+            <div>
+              <label for="community">小区</label>
+              <input id="community" placeholder="例如：滨江花园" />
+            </div>
+            <div>
+              <label for="area">面积</label>
+              <input id="area" placeholder="例如：120㎡" />
+            </div>
+            <div>
+              <label for="layout">户型</label>
+              <select id="layout" onchange="toggleLayoutOther()">
+                <option>一室一厅一厨一卫</option>
+                <option>两室一厅一厨一卫</option>
+                <option>两室两厅一厨一卫</option>
+                <option>两室两厅一厨两卫</option>
+                <option>三室两厅一厨一卫</option>
+                <option>三室两厅一厨两卫</option>
+                <option>四室两厅一厨两卫</option>
+                <option>四室两厅一厨三卫</option>
+                <option>复式/跃层</option>
+                <option>别墅/自建房</option>
+                <option>旧房翻新</option>
+                <option>局部改造</option>
+                <option>其他</option>
+              </select>
+            </div>
+            <div>
+              <label for="layoutOther">其他户型补充</label>
+              <input id="layoutOther" placeholder="选择“其他”时填写" />
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div class="wide">
-          <label>下一步动作</label>
-          <div class="quick-choice-field">
-            <div class="quick-choice-grid" id="nextActionChoices"></div>
-            <textarea id="nextActionText" placeholder="例如：明天上午电话回访确认预算，下午邀约到店看方案。" oninput="syncChoiceHiddenField('nextAction')"></textarea>
-            <textarea id="nextAction" class="compat-textarea" tabindex="-1" aria-hidden="true"></textarea>
+        <section class="form-section-card">
+          <div class="form-section-title"><span>👥</span>客户归属与来源</div>
+          <div class="form-grid">
+            <div>
+              <label for="owner">所属销售</label>
+              <input id="owner" list="ownerSalesList" placeholder="例如：王玉玲" />
+              <datalist id="ownerSalesList"></datalist>
+            </div>
+            <div>
+              <label for="designer">配合设计师</label>
+              <input id="designer" placeholder="例如：王设计" />
+            </div>
+            <div>
+              <label for="source">客户来源</label>
+              <select id="source">
+                <option>抖音线索</option>
+                <option>电商线索</option>
+                <option>经纪人推荐</option>
+                <option>自然到店</option>
+                <option>老客户转介绍</option>
+                <option>地推获客</option>
+                <option>直播留资</option>
+                <option>其他</option>
+              </select>
+            </div>
+            <div>
+              <label for="budget">预算区间</label>
+              <select id="budget">
+                <option>待确认</option>
+                <option>5万以下</option>
+                <option>5-10万</option>
+                <option>7-10万</option>
+                <option>10-20万</option>
+                <option>20-30万</option>
+                <option>30万以上</option>
+              </select>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div class="wide">
-          <label>备注 / 装修需求</label>
-          <div class="quick-choice-field">
-            <div class="quick-choice-grid" id="needChoices"></div>
-            <textarea id="needText" placeholder="例如：客户重点关注厨房和卫生间改造，预算控制在8万左右。" oninput="syncChoiceHiddenField('need')"></textarea>
-            <textarea id="need" class="compat-textarea" tabindex="-1" aria-hidden="true"></textarea>
+        <section class="form-section-card">
+          <div class="form-section-title"><span>📊</span>客户等级与阶段</div>
+          <div class="form-grid">
+            <div>
+              <label for="grade">客户等级</label>
+              <select id="grade">
+                <option>A类客户</option>
+                <option>B类客户</option>
+                <option>C类客户</option>
+                <option>死单</option>
+              </select>
+              <details class="classification-details">
+                <summary>查看A/B/C分类标准</summary>
+                <div class="compact-help">A类：近期可推进，已量房/已报价/预算可谈/可约店。B类：有需求但时间、预算、决策、方案不明确，需要培育。C类：意向弱、只问价格、暂时观望，持续触达。死单：电话无效、已装修、不装了、区域不符、长期无效。</div>
+              </details>
+            </div>
+            <div>
+              <label for="status">客户阶段</label>
+              <select id="status">
+                <option>新线索</option>
+                <option>已联系</option>
+                <option>已进店</option>
+                <option>已量房</option>
+                <option>已出方案</option>
+                <option>已报价</option>
+                <option>已交定金</option>
+                <option>已签单</option>
+                <option>沉睡客户</option>
+                <option>死单</option>
+              </select>
+            </div>
+            <div>
+              <label for="measuredStatus">是否已量房</label>
+              <select id="measuredStatus">
+                <option>否</option>
+                <option>是</option>
+              </select>
+            </div>
+            <div>
+              <label for="measureDate">量房时间</label>
+              <input id="measureDate" type="date" />
+            </div>
+            <div>
+              <label for="visitCount">进店次数</label>
+              <input id="visitCount" type="number" min="0" value="0" />
+            </div>
+            <div>
+              <label for="quoteCount">报价次数</label>
+              <input id="quoteCount" type="number" min="0" value="0" />
+            </div>
+            <div class="wide">
+              <div class="compact-help">客户阶段表示客户当前最高推进阶段；进店次数、报价次数用于记录重复动作，避免客户已经报价后看不到前期多次进店情况。</div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section class="form-section-card">
+          <div class="form-section-title"><span>🎯</span>卡点与下一步</div>
+          <div class="form-grid">
+            <div class="wide">
+              <label>当前卡点 / 死单原因</label>
+              <div class="quick-choice-field">
+                <div class="quick-choice-grid" id="blockReasonChoices"></div>
+                <textarea id="blockReasonText" placeholder="例如：客户说预算偏高，需明天二次沟通；电话无人接，下午再回访。" oninput="syncChoiceHiddenField('blockReason')"></textarea>
+                <textarea id="blockReason" class="compat-textarea" tabindex="-1" aria-hidden="true"></textarea>
+              </div>
+            </div>
+            <div class="wide">
+              <label>下一步动作</label>
+              <div class="quick-choice-field">
+                <div class="quick-choice-grid" id="nextActionChoices"></div>
+                <textarea id="nextActionText" placeholder="例如：明天上午电话回访确认预算，下午邀约到店看方案。" oninput="syncChoiceHiddenField('nextAction')"></textarea>
+                <textarea id="nextAction" class="compat-textarea" tabindex="-1" aria-hidden="true"></textarea>
+              </div>
+            </div>
+            <div>
+              <label for="nextFollowDate">下次跟进时间</label>
+              <input id="nextFollowDate" type="date" />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section-card">
+          <div class="form-section-title"><span>📝</span>需求与备注</div>
+          <div class="form-grid">
+            <div class="full">
+              <label>备注 / 装修需求</label>
+              <div class="quick-choice-field">
+                <div class="quick-choice-grid" id="needChoices"></div>
+                <textarea id="needText" placeholder="例如：客户重点关注厨房和卫生间改造，预算控制在8万左右。" oninput="syncChoiceHiddenField('need')"></textarea>
+                <textarea id="need" class="compat-textarea" tabindex="-1" aria-hidden="true"></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
       <div class="button-row">
@@ -1729,15 +1879,15 @@
             <tr>
               <th>客户</th>
               <th>小区/房屋</th>
-              <th>来源</th>
-              <th>预算</th>
+              <th>所属销售</th>
               <th>等级</th>
-              <th>状态</th>
-              <th>跟进人</th>
-              <th>装修需求</th>
-              <th>最近跟进记录</th>
+              <th>客户阶段</th>
+              <th>量房</th>
+              <th>进店</th>
+              <th>报价</th>
+              <th>下一步动作</th>
               <th>下次跟进</th>
-              <th>创建/更新</th>
+              <th>更新</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -2318,6 +2468,10 @@
         budget: customer.budget || "待确认",
         grade: GRADE_OPTIONS.includes(grade) ? grade : "C类客户",
         status: STATUS_OPTIONS.includes(status) ? status : "新线索",
+        measuredStatus: customer.measuredStatus === "是" || customer.isMeasured === true || customer.status === "已量房" ? "是" : "否",
+        measureDate: normalizeDateValue(customer.measureDate),
+        visitCount: Math.max(0, Number(customer.visitCount || 0) || 0),
+        quoteCount: Math.max(0, Number(customer.quoteCount || 0) || 0),
         owner: customer.owner || "",
         nextFollowDate: normalizeDateValue(customer.nextFollowDate),
         followRecords,
@@ -2494,6 +2648,7 @@
     function saveCustomer() {
       const now = getNowString();
       const existing = customers.find(customer => customer.id === editingId);
+      const wasEditing = !!existing;
       const customer = {
         id: existing ? existing.id : createId(),
         name: getValue("name"),
@@ -2509,6 +2664,10 @@
         budget: getValue("budget"),
         grade: getValue("grade"),
         status: getValue("status"),
+        measuredStatus: getValue("measuredStatus") || "否",
+        measureDate: normalizeDateValue(getValue("measureDate")),
+        visitCount: Math.max(0, Number(getValue("visitCount")) || 0),
+        quoteCount: Math.max(0, Number(getValue("quoteCount")) || 0),
         owner: getValue("owner"),
         nextFollowDate: normalizeDateValue(getValue("nextFollowDate")),
         followRecords: existing ? existing.followRecords : [],
@@ -2530,6 +2689,10 @@
       saveToLocalStorage();
       clearForm();
       renderCustomers();
+
+      if (wasEditing) {
+        setText("formSaveTip", "客户信息已更新。");
+      }
     }
 
     function renderCustomers() {
@@ -2552,7 +2715,11 @@
           customer.owner,
           customer.designer,
           customer.blockReason,
-          customer.nextAction
+          customer.nextAction,
+          customer.measuredStatus,
+          customer.measureDate,
+          customer.visitCount,
+          customer.quoteCount
         ].join(" ").toLowerCase();
 
         const matchesKeyword = !keyword || haystack.includes(keyword);
@@ -2590,21 +2757,23 @@
             <div class="nowrap">${escapeHtml(customer.community || "-")}</div>
             <div class="subtle nowrap">${escapeHtml([customer.area, customer.layout].filter(Boolean).join(" / ") || "-")}</div>
           </td>
-          <td class="compact-cell">${escapeHtml(customer.source)}</td>
-          <td class="compact-cell">${escapeHtml(customer.budget)}</td>
+          <td class="compact-cell">${escapeHtml(customer.owner || "-")}</td>
           <td class="compact-cell">${renderGradeTag(customer.grade)}</td>
           <td class="compact-cell">${renderStatusTags(customer, followState)}</td>
-          <td class="compact-cell">${escapeHtml(customer.owner || "-")}</td>
-          <td class="text-cell">
-            <div>${escapeHtml(customer.need || "-")}</div>
-            ${customer.blockReason ? `<div class="subtle">卡点/死单原因：${escapeHtml(customer.blockReason)}</div>` : ""}
-            ${customer.nextAction ? `<div class="subtle">下一步：${escapeHtml(customer.nextAction)}</div>` : ""}
+          <td class="compact-cell">
+            <div>${escapeHtml(customer.measuredStatus || "否")}</div>
+            <div class="subtle nowrap">${escapeHtml(customer.measureDate || "-")}</div>
           </td>
-          <td class="text-cell">${renderLatestRecord(latestRecord)}</td>
+          <td class="compact-cell">${escapeHtml(customer.visitCount || 0)}次</td>
+          <td class="compact-cell">${escapeHtml(customer.quoteCount || 0)}次</td>
+          <td class="text-cell">
+            ${customer.blockReason ? `<div class="subtle">卡点/死单原因：${escapeHtml(customer.blockReason)}</div>` : ""}
+            <div>${escapeHtml(customer.nextAction || "-")}</div>
+          </td>
           <td class="date-cell">${renderNextFollow(customer, followState)}</td>
           <td class="date-cell">
-            <div>${escapeHtml(formatDateTime(customer.createdAt))}</div>
-            <div class="subtle">${escapeHtml(formatDateTime(customer.updatedAt))}</div>
+            <div>${escapeHtml(formatDateTime(customer.updatedAt))}</div>
+            <div class="subtle">创建：${escapeHtml(formatDateTime(customer.createdAt))}</div>
           </td>
           <td class="action-cell">
             <div class="row-actions">
@@ -2710,6 +2879,10 @@
             ${renderDetailItem("预算区间", customer.budget)}
             ${renderDetailItem("客户等级", `${customer.grade} · ${getGradeLabel(customer.grade)}`)}
             ${renderDetailItem("客户状态", customer.status)}
+            ${renderDetailItem("是否已量房", customer.measuredStatus || "否")}
+            ${renderDetailItem("量房时间", customer.measureDate)}
+            ${renderDetailItem("进店次数", `${customer.visitCount || 0}次`)}
+            ${renderDetailItem("报价次数", `${customer.quoteCount || 0}次`)}
             ${renderDetailItem("所属销售", customer.owner)}
             ${renderDetailItem("配合设计师", customer.designer)}
             ${renderDetailItem("当前卡点 / 死单原因", customer.blockReason)}
@@ -2752,6 +2925,30 @@
               <div>
                 <label for="followNext-${customer.id}">下次跟进时间</label>
                 <input id="followNext-${customer.id}" type="date" value="${escapeHtml(customer.nextFollowDate || "")}" />
+              </div>
+              <div>
+                <label for="followStatus-${customer.id}">客户阶段</label>
+                <select id="followStatus-${customer.id}">
+                  ${STATUS_OPTIONS.map(status => `<option ${status === customer.status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}
+                </select>
+              </div>
+              <div>
+                <label for="followGrade-${customer.id}">客户等级</label>
+                <select id="followGrade-${customer.id}">
+                  ${GRADE_OPTIONS.map(grade => `<option ${grade === customer.grade ? "selected" : ""}>${escapeHtml(grade)}</option>`).join("")}
+                </select>
+              </div>
+              <div class="wide">
+                <label for="followBlockReason-${customer.id}">当前卡点 / 死单原因</label>
+                <textarea id="followBlockReason-${customer.id}" placeholder="记录当前卡点或死单原因">${escapeHtml(customer.blockReason || "")}</textarea>
+              </div>
+              <div class="wide">
+                <label for="followNextAction-${customer.id}">下一步动作</label>
+                <textarea id="followNextAction-${customer.id}" placeholder="记录下一步推进动作">${escapeHtml(customer.nextAction || "")}</textarea>
+              </div>
+              <div class="full">
+                <label for="followNeed-${customer.id}">备注 / 装修需求</label>
+                <textarea id="followNeed-${customer.id}" placeholder="补充客户需求、预算、关注点">${escapeHtml(customer.need || "")}</textarea>
               </div>
               <div class="full">
                 <label for="followContent-${customer.id}">跟进内容</label>
@@ -2876,6 +3073,11 @@
       });
 
       customer.owner = owner;
+      customer.status = getValue(`followStatus-${id}`) || customer.status;
+      customer.grade = getValue(`followGrade-${id}`) || customer.grade;
+      customer.blockReason = getValue(`followBlockReason-${id}`) || customer.blockReason;
+      customer.nextAction = getValue(`followNextAction-${id}`) || customer.nextAction;
+      customer.need = getValue(`followNeed-${id}`) || customer.need;
       customer.nextFollowDate = nextFollowDate;
       customer.updatedAt = now;
 
@@ -2900,6 +3102,10 @@
       setValue("budget", customer.budget);
       setValue("grade", customer.grade);
       setValue("status", customer.status);
+      setValue("measuredStatus", customer.measuredStatus || "否");
+      setValue("measureDate", normalizeDateValue(customer.measureDate));
+      setValue("visitCount", String(customer.visitCount || 0));
+      setValue("quoteCount", String(customer.quoteCount || 0));
       setValue("owner", customer.owner);
       setValue("designer", customer.designer || "");
       setChoiceFieldValue("blockReason", customer.blockReason || "");
@@ -2908,9 +3114,50 @@
       setChoiceFieldValue("need", customer.need);
 
       editingId = id;
-      document.getElementById("formTitle").innerText = "编辑客户";
-      document.getElementById("saveButton").innerText = "更新客户";
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.getElementById("formTitle").innerText = "编辑客户信息";
+      document.getElementById("saveButton").innerText = "保存客户修改";
+      setText("formSaveTip", "");
+      showEditModeBanner(customer);
+      scrollToCustomerForm();
+    }
+
+    function showEditModeBanner(customer) {
+      const banner = document.getElementById("editModeBanner");
+
+      if (!banner) {
+        return;
+      }
+
+      banner.style.display = "block";
+      banner.innerHTML = [
+        "当前正在编辑客户信息，修改完成后请点击“保存客户修改”。",
+        `<br />正在编辑客户：<strong>${escapeHtml(customer.name || "-")}</strong>｜${escapeHtml(customer.owner || "未填写销售")}｜${escapeHtml(customer.grade || "未填写等级")}｜${escapeHtml(customer.status || "未填写阶段")}`
+      ].join("");
+    }
+
+    function hideEditModeBanner() {
+      const banner = document.getElementById("editModeBanner");
+
+      if (banner) {
+        banner.style.display = "none";
+        banner.innerHTML = "";
+      }
+    }
+
+    function scrollToCustomerForm() {
+      const formSection = document.getElementById("customerFormSection");
+
+      if (formSection) {
+        formSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      setTimeout(() => {
+        const nameInput = document.getElementById("name");
+
+        if (nameInput) {
+          nameInput.focus();
+        }
+      }, 260);
     }
 
     function deleteCustomer(id) {
@@ -2936,19 +3183,24 @@
     }
 
     function clearForm() {
-      ["name", "phone", "community", "area", "layoutOther", "owner", "designer", "nextFollowDate"].forEach(id => setValue(id, ""));
+      ["name", "phone", "community", "area", "layoutOther", "owner", "designer", "nextFollowDate", "measureDate"].forEach(id => setValue(id, ""));
       ["blockReason", "nextAction", "need"].forEach(clearChoiceField);
       setLayoutValue("三室两厅一厨两卫");
       setValue("source", "自然到店");
       setValue("budget", "待确认");
       setValue("grade", "C类客户");
       setValue("status", "新线索");
+      setValue("measuredStatus", "否");
+      setValue("visitCount", "0");
+      setValue("quoteCount", "0");
       if (presetSalesName) {
         setValue("owner", presetSalesName);
       }
       editingId = "";
       document.getElementById("formTitle").innerText = "新增客户";
       document.getElementById("saveButton").innerText = "添加客户";
+      hideEditModeBanner();
+      setText("formSaveTip", "");
     }
 
     function cancelEdit() {
@@ -3007,6 +3259,10 @@
         "客户等级",
         "等级说明",
         "客户状态",
+        "是否已量房",
+        "量房时间",
+        "进店次数",
+        "报价次数",
         "所属销售",
         "配合设计师",
         "当前卡点/死单原因",
@@ -3032,6 +3288,10 @@
           customer.grade,
           getGradeLabel(customer.grade),
           customer.status,
+          customer.measuredStatus || "否",
+          customer.measureDate || "",
+          customer.visitCount || 0,
+          customer.quoteCount || 0,
           customer.owner,
           customer.designer,
           customer.blockReason,
@@ -4042,25 +4302,68 @@
       setText("statGradeB", customers.filter(customer => customer.grade === "B类客户").length);
       setText("statGradeC", customers.filter(customer => customer.grade === "C类客户").length);
       setText("statInvalidGrade", customers.filter(customer => customer.grade === "死单").length);
+      renderCrmFunnelDashboard();
       renderStageFunnel();
       renderFollowTodos();
       renderSourceStats();
     }
 
+    function renderCrmFunnelDashboard() {
+      const statsBox = document.getElementById("crmFunnelStats");
+      const salesBox = document.getElementById("salesFunnelStats");
+      const tipsBox = document.getElementById("funnelJudgeTips");
+      if (!statsBox || !salesBox || !tipsBox) return;
+
+      const statItems = [
+        ["客户总数", customers.length],
+        ["新线索", countByStatus("新线索")],
+        ["A类客户", customers.filter(c => c.grade === "A类客户").length],
+        ["B类客户", customers.filter(c => c.grade === "B类客户").length],
+        ["C类客户", customers.filter(c => c.grade === "C类客户").length],
+        ["已联系", countByStatus("已联系")],
+        ["已进店", countByStatus("已进店")],
+        ["已量房", customers.filter(c => c.measuredStatus === "是" || c.status === "已量房").length],
+        ["已报价", countByStatus("已报价")],
+        ["已签单", countByStatus("已签单")],
+        ["沉睡客户", countByStatus("沉睡客户")],
+        ["死单", countByStatus("死单")],
+        ["进店总次数", customers.reduce((sum, c) => sum + (Number(c.visitCount) || 0), 0)],
+        ["报价总次数", customers.reduce((sum, c) => sum + (Number(c.quoteCount) || 0), 0)]
+      ];
+
+      statsBox.innerHTML = statItems.map(([label, value]) => `
+        <div class="mini-stat"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>
+      `).join("");
+
+      salesBox.innerHTML = ZHONGWEI_SALES.map(name => {
+        const list = customers.filter(customer => customer.owner === name);
+        const count = (fn) => list.filter(fn).length;
+        return `
+          <div class="source-stat" style="display:block;">
+            <strong>${escapeHtml(name)}</strong>
+            <div class="subtle">总${list.length} · 新线索${count(c => c.status === "新线索")} · A/B/C ${count(c => c.grade === "A类客户")}/${count(c => c.grade === "B类客户")}/${count(c => c.grade === "C类客户")}</div>
+            <div class="subtle">量房${count(c => c.measuredStatus === "是" || c.status === "已量房")} · 报价${count(c => c.status === "已报价")} · 签单${count(c => c.status === "已签单")} · 沉睡${count(c => c.status === "沉睡客户")} · 死单${count(c => c.status === "死单")}</div>
+          </div>
+        `;
+      }).join("");
+
+      const gradeA = customers.filter(c => c.grade === "A类客户").length;
+      const gradeB = customers.filter(c => c.grade === "B类客户").length;
+      const newCount = countByStatus("新线索");
+      const quoted = countByStatus("已报价");
+      const signed = countByStatus("已签单");
+      const sleeping = countByStatus("沉睡客户");
+      const tips = [];
+      if (gradeA < Math.max(2, Math.ceil(customers.length * 0.08))) tips.push("A类客户少：高意向客户不足，需要从B类中筛选推进。");
+      if (quoted > signed && quoted >= 2) tips.push("已报价多但签单少：报价后成交转化弱，需要复盘报价卡点。");
+      if (newCount > gradeA * 2 && newCount >= 3) tips.push("新线索多但A类少：新线索质量或首次沟通分级不足。");
+      if (sleeping >= 3) tips.push("沉睡客户多：需要整理复洗名单并明确负责人。");
+      if (!tips.length) tips.push("当前漏斗暂无明显异常，继续保持客户跟进节奏并关注A类推进。");
+      tipsBox.innerHTML = `<strong>漏斗判断提示：</strong>${tips.map(item => `<div>${escapeHtml(item)}</div>`).join("")}`;
+    }
+
     function focusCustomerForm() {
-      const formSection = document.getElementById("customerFormSection");
-
-      if (formSection) {
-        formSection.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-
-      setTimeout(() => {
-        const nameInput = document.getElementById("name");
-
-        if (nameInput) {
-          nameInput.focus();
-        }
-      }, 320);
+      scrollToCustomerForm();
     }
 
     function renderStageFunnel() {
@@ -4135,7 +4438,7 @@
             </div>
             <div class="todo-actions">
               <button class="btn-blue btn-small" onclick="event.stopPropagation(); openCustomerDetail('${customer.id}')">查看详情</button>
-              <button class="btn-green btn-small" onclick="event.stopPropagation(); editCustomer('${customer.id}')">编辑</button>
+              <button class="btn-green btn-small" onclick="event.stopPropagation(); openFollowForm('${customer.id}')">编辑跟进</button>
             </div>
           </div>
         `;

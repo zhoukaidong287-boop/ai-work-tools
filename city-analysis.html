@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI城市点将研判</title>
+  <title>AI点将动态研判台</title>
 
   <style>
     :root {
@@ -1292,6 +1292,73 @@
     .city-analysis-card .report-output {
       min-height: 210px;
     }
+
+    .dynamic-flow {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      margin: 14px 0 18px;
+    }
+
+    .dynamic-step {
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.5;
+      padding: 12px;
+    }
+
+    .dynamic-step span {
+      color: var(--brand);
+      display: block;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .dynamic-analysis-card .report-output {
+      min-height: 260px;
+    }
+
+    .dynamic-history {
+      display: grid;
+      gap: 10px;
+    }
+
+    .dynamic-history-item {
+      align-items: center;
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      padding: 12px;
+    }
+
+    .dynamic-history-title {
+      font-weight: 900;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 980px) {
+      .dynamic-flow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .dynamic-flow {
+        grid-template-columns: 1fr;
+      }
+
+      .dynamic-history-item {
+        align-items: stretch;
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 
@@ -1300,8 +1367,8 @@
     <div class="hero-shell">
       <div class="hero-copy">
         <div class="hero-eyebrow">点将工具库 · 城市研判</div>
-        <h1>AI城市点将研判</h1>
-        <p>新城市调研、客户画像、老板沟通、前7天打法和投流初判。只生成可复制给 AI 的调研指令，不联网、不编造城市数据。</p>
+        <h1>AI点将动态研判台</h1>
+        <p>用于点将期间持续更新商场情况、客户池数据、CRM漏斗、销售反馈和执行动作，生成AI研判指令，辅助判断下一步打法。</p>
         <div class="city-hero-actions">
           <button class="btn-light return-home-btn" onclick="location.href='index.html'">返回工具库首页</button>
           <button class="btn-primary" onclick="generatePreJudgePrompt()">生成AI调研指令</button>
@@ -1414,6 +1481,101 @@
         <button class="btn-light return-home-btn" onclick="location.href='index.html'">返回工具库首页</button>
       </div>
     </section>
+
+    <section class="card module-card dynamic-analysis-card" id="dynamic">
+      <div class="section-head">
+        <div>
+          <h2>点将动态更新研判</h2>
+          <p class="section-note">每天把客户池复盘、CRM漏斗、销售反馈、活动方案和当前卡点粘贴进来，生成可复制给 AI 的下一步作战研判指令。</p>
+        </div>
+      </div>
+
+      <div class="dynamic-flow">
+        <div class="dynamic-step"><span>①</span>粘贴客户池复盘结果</div>
+        <div class="dynamic-step"><span>②</span>粘贴CRM客户漏斗或销售反馈</div>
+        <div class="dynamic-step"><span>③</span>粘贴当前方案/机制</div>
+        <div class="dynamic-step"><span>④</span>写明当前最大卡点</div>
+        <div class="dynamic-step"><span>⑤</span>生成点将动态研判指令</div>
+        <div class="dynamic-step"><span>⑥</span>复制到ChatGPT中卫项目研判</div>
+        <div class="dynamic-step"><span>⑦</span>保存本次研判记录</div>
+      </div>
+
+      <div class="report-options">
+        <section>
+          <h3>实时输入</h3>
+          <div class="form-grid">
+            <div>
+              <label for="dynamicStage">当前项目阶段</label>
+              <select id="dynamicStage">
+                <option>第一天调研</option>
+                <option>客户池复盘</option>
+                <option>正式启动</option>
+                <option>集中邀约</option>
+                <option>量房推进</option>
+                <option>报价逼单</option>
+                <option>直播/投流测试</option>
+                <option>阶段复盘</option>
+                <option>冲刺收口</option>
+              </select>
+            </div>
+            <div class="full">
+              <label for="dynamicReviewResult">今日客户池复盘结果</label>
+              <textarea id="dynamicReviewResult" placeholder="例如：王淑慧客户池10组，新线索3组，A类2组，已报价1组，主要卡点为报价后不到店。"></textarea>
+            </div>
+            <div class="full">
+              <label for="dynamicCrmFunnel">CRM客户漏斗数据</label>
+              <textarea id="dynamicCrmFunnel" placeholder="粘贴CRM全店/销售漏斗：新线索、A/B/C、已量房、已报价、已签单、沉睡、死单等。"></textarea>
+            </div>
+            <div class="full">
+              <label for="dynamicSalesFeedback">今日销售反馈</label>
+              <textarea id="dynamicSalesFeedback" placeholder="粘贴销售反馈：客户预算、到店意愿、设计师承接、报价卡点、需要老板支持的事项等。"></textarea>
+            </div>
+            <div class="full">
+              <label for="dynamicPolicy">当前活动方案/机制</label>
+              <textarea id="dynamicPolicy" placeholder="填写当前活动政策、套餐、优惠、直播/投流计划、经纪人机制等。"></textarea>
+            </div>
+            <div class="full">
+              <label for="dynamicActions">今日执行动作</label>
+              <textarea id="dynamicActions" placeholder="填写今天做了哪些：客户池复盘、逐个销售沟通、录CRM、邀约、报价推进、内容输出等。"></textarea>
+            </div>
+            <div class="full">
+              <label for="dynamicBottleneck">当前最大卡点</label>
+              <textarea id="dynamicBottleneck" placeholder="填写当前最影响推进的问题，例如A类不足、报价后不签单、销售跟进慢、线索质量差等。"></textarea>
+            </div>
+            <div class="full">
+              <label for="dynamicTomorrow">明日准备动作</label>
+              <textarea id="dynamicTomorrow" placeholder="填写明天准备重点推进的动作。"></textarea>
+            </div>
+            <div class="full">
+              <label for="dynamicQuestion">需要AI重点研判的问题</label>
+              <textarea id="dynamicQuestion" placeholder="例如：现在是否要启动信息流？明天应该先抓哪几个销售？报价后客户不签单怎么处理？"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <label for="dynamicPromptOutput">点将动态研判指令</label>
+          <textarea id="dynamicPromptOutput" class="report-output" readonly placeholder="点击“生成点将动态研判指令”后在这里显示内容"></textarea>
+          <div id="dynamicTip" class="copy-tip"></div>
+        </section>
+
+        <section>
+          <div class="section-head">
+            <div>
+              <h3>动态研判历史</h3>
+              <p class="section-note">动态研判历史使用独立 localStorage key 保存，不影响原城市研判历史。</p>
+            </div>
+          </div>
+          <div id="dynamicHistoryList" class="dynamic-history"></div>
+        </section>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="generateDynamicPrompt()">生成点将动态研判指令</button>
+        <button class="btn-blue" onclick="copyDynamicPrompt()">复制研判指令</button>
+        <button class="btn-green" onclick="saveDynamicRecord()">保存动态研判记录</button>
+      </div>
+    </section>
   </main>
 
   <script>
@@ -1421,6 +1583,7 @@
     const OLD_STORAGE_KEY = "customers";
     const PROJECT_STORAGE_KEY = "pointProjectInfo";
     const PREJUDGE_STORAGE_KEY = "pointPreJudgeRecords";
+    const DYNAMIC_ANALYSIS_STORAGE_KEY = "dynamicAnalysisHistory";
     const DEFAULT_PROJECT_NAME = "当前点将项目";
 
     const STATUS_OPTIONS = [
@@ -1589,6 +1752,7 @@
     let currentDisplayCustomers = [];
     let projectInfo = loadProjectInfo();
     let preJudgeRecords = loadPreJudgeRecords();
+    let dynamicAnalysisRecords = loadDynamicAnalysisRecords();
 
     function loadProjectInfo() {
       const fallback = {
@@ -3125,6 +3289,302 @@
       }
     }
 
+    function loadDynamicAnalysisRecords() {
+      const saved = localStorage.getItem(DYNAMIC_ANALYSIS_STORAGE_KEY);
+
+      if (!saved) {
+        return [];
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed.map(normalizeDynamicAnalysisRecord) : [];
+      } catch (error) {
+        console.error("点将动态研判历史读取失败", error);
+        return [];
+      }
+    }
+
+    function normalizeDynamicAnalysisRecord(record) {
+      return {
+        id: record.id || createId(),
+        createdAt: normalizeDateTimeValue(record.createdAt) || getNowString(),
+        data: record.data && typeof record.data === "object" ? record.data : {},
+        prompt: String(record.prompt || "")
+      };
+    }
+
+    function saveDynamicAnalysisRecordsToStorage() {
+      localStorage.setItem(DYNAMIC_ANALYSIS_STORAGE_KEY, JSON.stringify(dynamicAnalysisRecords.map(normalizeDynamicAnalysisRecord)));
+    }
+
+    function collectDynamicData() {
+      return {
+        stage: getValue("dynamicStage") || "客户池复盘",
+        reviewResult: getValue("dynamicReviewResult"),
+        crmFunnel: getValue("dynamicCrmFunnel"),
+        salesFeedback: getValue("dynamicSalesFeedback"),
+        policy: getValue("dynamicPolicy"),
+        actions: getValue("dynamicActions"),
+        bottleneck: getValue("dynamicBottleneck"),
+        tomorrow: getValue("dynamicTomorrow"),
+        question: getValue("dynamicQuestion")
+      };
+    }
+
+    function setDynamicData(data) {
+      setValue("dynamicStage", data.stage || "客户池复盘");
+      setValue("dynamicReviewResult", data.reviewResult || "");
+      setValue("dynamicCrmFunnel", data.crmFunnel || "");
+      setValue("dynamicSalesFeedback", data.salesFeedback || "");
+      setValue("dynamicPolicy", data.policy || "");
+      setValue("dynamicActions", data.actions || "");
+      setValue("dynamicBottleneck", data.bottleneck || "");
+      setValue("dynamicTomorrow", data.tomorrow || "");
+      setValue("dynamicQuestion", data.question || "");
+    }
+
+    function hasDynamicData(data) {
+      return Object.keys(data).some(key => key !== "stage" && String(data[key] || "").trim());
+    }
+
+    function generateDynamicPrompt() {
+      const data = collectDynamicData();
+
+      if (!hasDynamicData(data)) {
+        alert("请至少填写一项客户池、CRM漏斗、销售反馈、当前卡点或明日动作");
+        return;
+      }
+
+      const prompt = buildDynamicAnalysisPrompt(data);
+      setValue("dynamicPromptOutput", prompt);
+      setText("dynamicTip", "");
+    }
+
+    function buildDynamicAnalysisPrompt(data) {
+      const field = (title, value) => `${title}：\n${value ? value : "未填写，请基于已有信息判断，不要编造。"}\n`;
+
+      return [
+        "【点将动态研判指令】",
+        "",
+        "你是我的主动营销点将作战助手。请基于以下项目实时信息，帮助我进行中卫欧派整装大家居点将动态研判。",
+        "",
+        field("当前项目阶段", data.stage),
+        field("今日客户池复盘结果", data.reviewResult),
+        field("CRM客户漏斗数据", data.crmFunnel),
+        field("今日销售反馈", data.salesFeedback),
+        field("当前活动方案/机制", data.policy),
+        field("今日执行动作", data.actions),
+        field("当前最大卡点", data.bottleneck),
+        field("明日准备动作", data.tomorrow),
+        field("需要AI重点研判的问题", data.question),
+        "请重点判断：",
+        "1. 当前项目处于什么阶段。",
+        "2. 当前客户池是否支撑21天签单目标。",
+        "3. A/B/C客户结构是否健康。",
+        "4. 新线索是否足够。",
+        "5. 已量房、已报价、待跟进、沉睡客户该如何推进。",
+        "6. 哪些销售需要重点盯。",
+        "7. 当前最大卡点是什么。",
+        "8. 明天最该做的3-5个动作。",
+        "9. 老板/负责人需要配合什么。",
+        "10. 销售/设计师分别该做什么。",
+        "11. 是否需要马上启动信息流、老客户复洗、朋友圈/私域触达。",
+        "12. 今日内容如何写进日报。",
+        "13. 哪些地方存在风险，不能盲目推进。",
+        "",
+        "输出结构要求：",
+        "【点将动态研判报告】",
+        "",
+        "一、当前阶段判断",
+        "二、客户池质量判断",
+        "三、销售客户池与承接问题",
+        "四、当前最大卡点",
+        "五、明日核心动作",
+        "六、销售/设计师分工建议",
+        "七、老板/负责人配合事项",
+        "八、信息流/新媒体是否需要启动",
+        "九、风险提醒",
+        "十、可复制到日报的内容",
+        "十一、下一轮需要补充的数据",
+        "",
+        "要求：",
+        "- 只基于我提供的信息进行研判，不要编造签单、线索、量房、报价等数据。",
+        "- 如果信息不足，请明确指出需要补充哪些数据。",
+        "- 口径使用主动营销点将，不要写成销售培训老师。",
+        "- 建议要务实，能落到明天具体动作。"
+      ].join("\n");
+    }
+
+    function copyDynamicPrompt() {
+      const prompt = getValue("dynamicPromptOutput");
+
+      if (!prompt) {
+        alert("请先生成点将动态研判指令");
+        return;
+      }
+
+      copyDynamicText(prompt, "研判指令已复制", "dynamicPromptOutput");
+    }
+
+    function copyDynamicText(text, successText, fallbackElementId) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          setText("dynamicTip", successText);
+        }).catch(() => {
+          fallbackCopyDynamicText(text, fallbackElementId, successText);
+        });
+        return;
+      }
+
+      fallbackCopyDynamicText(text, fallbackElementId, successText);
+    }
+
+    function fallbackCopyDynamicText(text, elementId, successText) {
+      const output = document.getElementById(elementId);
+
+      if (output) {
+        output.value = text;
+        output.focus();
+        output.select();
+      } else {
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.focus();
+        temp.select();
+      }
+
+      try {
+        document.execCommand("copy");
+        setText("dynamicTip", successText);
+      } catch (error) {
+        alert("复制失败，请手动选中文本复制");
+      } finally {
+        const temp = document.querySelector("textarea[style*='opacity: 0']");
+        if (temp && temp.parentNode) {
+          temp.parentNode.removeChild(temp);
+        }
+      }
+    }
+
+    function saveDynamicRecord() {
+      const data = collectDynamicData();
+
+      if (!hasDynamicData(data)) {
+        alert("请先填写并生成动态研判指令");
+        return;
+      }
+
+      const prompt = getValue("dynamicPromptOutput") || buildDynamicAnalysisPrompt(data);
+      const record = {
+        id: createId(),
+        createdAt: getNowString(),
+        data,
+        prompt
+      };
+
+      dynamicAnalysisRecords.unshift(record);
+      saveDynamicAnalysisRecordsToStorage();
+      setValue("dynamicPromptOutput", prompt);
+      setText("dynamicTip", "动态研判记录已保存");
+      renderDynamicHistory();
+    }
+
+    function renderDynamicHistory() {
+      const list = document.getElementById("dynamicHistoryList");
+
+      if (!list) {
+        return;
+      }
+
+      if (!dynamicAnalysisRecords.length) {
+        list.innerHTML = '<div class="empty-tip">暂无动态研判记录</div>';
+        return;
+      }
+
+      list.innerHTML = dynamicAnalysisRecords.map(record => {
+        const data = record.data || {};
+        const title = `${data.stage || "动态研判"} · ${formatDateTime(record.createdAt)}`;
+
+        return `
+          <div class="dynamic-history-item">
+            <div>
+              <div class="dynamic-history-title">${escapeHtml(title)}</div>
+              <div class="subtle">${escapeHtml(summarizeDynamicData(data))}</div>
+            </div>
+            <div class="row-actions">
+              <button class="btn-blue btn-small" onclick="loadDynamicRecord('${record.id}')">查看</button>
+              <button class="btn-green btn-small" onclick="copyDynamicRecord('${record.id}')">复制</button>
+              <button class="btn-red btn-small" onclick="deleteDynamicRecord('${record.id}')">删除</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function summarizeDynamicData(data) {
+      const parts = [];
+
+      if (data.reviewResult) {
+        parts.push("客户池");
+      }
+
+      if (data.crmFunnel) {
+        parts.push("CRM漏斗");
+      }
+
+      if (data.salesFeedback) {
+        parts.push("销售反馈");
+      }
+
+      if (data.bottleneck) {
+        parts.push("卡点");
+      }
+
+      return parts.length ? `包含：${parts.join("、")}` : "未填写核心内容";
+    }
+
+    function loadDynamicRecord(id) {
+      const record = dynamicAnalysisRecords.find(item => item.id === id);
+
+      if (!record) {
+        return;
+      }
+
+      setDynamicData(record.data || {});
+      setValue("dynamicPromptOutput", record.prompt || buildDynamicAnalysisPrompt(record.data || {}));
+      setText("dynamicTip", "已载入动态研判记录");
+      document.getElementById("dynamic")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function copyDynamicRecord(id) {
+      const record = dynamicAnalysisRecords.find(item => item.id === id);
+
+      if (!record || !record.prompt) {
+        alert("该记录没有可复制的研判指令");
+        return;
+      }
+
+      copyDynamicText(record.prompt, "历史研判指令已复制", "dynamicPromptOutput");
+    }
+
+    function deleteDynamicRecord(id) {
+      const record = dynamicAnalysisRecords.find(item => item.id === id);
+      const confirmed = confirm(`确定要删除动态研判记录「${record ? (record.data.stage || "动态研判") : ""}」吗？`);
+
+      if (!confirmed) {
+        return;
+      }
+
+      dynamicAnalysisRecords = dynamicAnalysisRecords.filter(item => item.id !== id);
+      saveDynamicAnalysisRecordsToStorage();
+      renderDynamicHistory();
+      setText("dynamicTip", "动态研判记录已删除");
+    }
+
     function buildPreJudgeResearchPrompt(data) {
       const mallText = data.mallName ? `，商场名称为【${data.mallName}】` : "，商场名称暂未填写";
       const brandText = data.brandCategory ? `，品牌/品类为【${data.brandCategory}】` : "，品牌/品类暂未填写";
@@ -3660,6 +4120,7 @@
     }
     renderPreJudgeChoiceGroups();
     renderPreJudgeHistory();
+    renderDynamicHistory();
     applyPresetFromUrl();
   </script>
 </body>

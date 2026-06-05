@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>获客文案生成工具</title>
+  <style>
+    :root {
+      --bg:#eef3fb; --text:#172033; --muted:#64748b; --line:#dbe4f0; --blue:#2563eb; --green:#12945a; --red:#d04444;
+      --shadow:0 18px 50px rgba(21,34,66,.09);
+      --gradient-primary:linear-gradient(135deg,#3861ff 0%,#6757f5 52%,#08b6d8 100%);
+      --gradient-dark:radial-gradient(circle at 18% 16%,rgba(77,208,255,.28),transparent 34%),radial-gradient(circle at 86% 8%,rgba(132,92,255,.34),transparent 30%),linear-gradient(135deg,#111827 0%,#172554 50%,#0f172a 100%);
+    }
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 8% 0%,rgba(70,87,240,.14),transparent 28%),var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+    header{background:var(--gradient-dark);color:#fff;padding:36px 40px 82px;position:relative;overflow:hidden}
+    header:before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);background-size:42px 42px;opacity:.32}
+    .hero{display:grid;grid-template-columns:1fr auto;gap:22px;max-width:1280px;margin:0 auto;position:relative;z-index:1;align-items:center}
+    .eyebrow{display:inline-flex;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.09);border-radius:999px;color:#c7f1ff;font-size:12px;font-weight:800;padding:7px 12px;margin-bottom:14px}
+    h1,h2,h3,p{margin:0} h1{font-size:clamp(32px,4vw,48px);line-height:1.12}.subtitle{color:#dbeafe;line-height:1.75;margin-top:12px;max-width:760px}
+    main{max-width:1280px;margin:-46px auto 0;padding:0 32px 44px;position:relative;z-index:2}
+    .card{background:rgba(255,255,255,.94);border:1px solid rgba(219,228,240,.92);border-radius:20px;box-shadow:var(--shadow);margin-bottom:22px;padding:22px;backdrop-filter:blur(10px)}
+    .section-head{display:flex;justify-content:space-between;gap:16px;margin-bottom:18px;align-items:flex-start}.section-note{color:var(--muted);line-height:1.65;margin-top:7px}
+    .form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.wide{grid-column:span 2}.full{grid-column:1/-1}
+    label{display:block;font-size:13px;font-weight:800;color:#344054;margin-bottom:6px} input,select,textarea{width:100%;border:1px solid #d7e0ec;border-radius:10px;background:#fbfdff;color:var(--text);font:inherit;font-size:14px;padding:10px 11px;outline:none} textarea{min-height:92px;line-height:1.65;resize:vertical}
+    button,a.button-link{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;color:#fff;cursor:pointer;font:inherit;font-size:14px;font-weight:800;min-height:38px;padding:9px 14px;text-decoration:none;white-space:nowrap}
+    .btn-primary{background:var(--gradient-primary)}.btn-blue{background:var(--blue)}.btn-green{background:var(--green)}.btn-red{background:#fff1f2;border:1px solid #fecdd3;color:#be123c}.btn-light{background:#fff;border:1px solid #bfdbfe;color:#172554!important;box-shadow:0 12px 28px rgba(15,23,42,.15)}
+    .button-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.check-card{display:flex;align-items:center;gap:8px;background:#f8fbff;border:1px solid #dbe4f0;border-radius:12px;padding:9px 12px;font-weight:700}.check-card input{width:auto}
+    .output{min-height:360px;white-space:pre-wrap}.history-list{display:grid;gap:12px}.history-item{display:grid;grid-template-columns:1fr auto;gap:12px;border:1px solid #dbe4f0;border-radius:16px;background:#f8fbff;padding:14px}.copy-tip{color:var(--green);font-weight:800;min-height:22px;margin-top:8px}
+    @media(max-width:800px){header{padding:28px 20px 74px}.hero{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.wide,.full{grid-column:auto}main{padding:0 16px 36px}.history-item{grid-template-columns:1fr}button,a.button-link{width:100%}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <div>
+        <span class="eyebrow">主动营销点将 · 获客素材</span>
+        <h1>获客文案生成工具</h1>
+        <p class="subtitle">用于生成装修行业信息流文案、短视频脚本、私信承接、电话承接、朋友圈文案和投流风险提示。</p>
+      </div>
+      <a class="button-link btn-light" href="index.html">返回工具库首页</a>
+    </div>
+  </header>
+  <main>
+    <section class="card">
+      <div class="section-head"><div><h2>素材基础信息</h2><p class="section-note">本工具为本地模板生成，不调用 API，不承诺成交，不写违规表达。</p></div></div>
+      <div class="form-grid">
+        <div><label for="city">城市</label><input id="city" placeholder="例如：中卫" /></div>
+        <div><label for="store">商场/门店</label><input id="store" placeholder="例如：中卫欧派整装大家居" /></div>
+        <div><label for="platform">平台/账号</label><input id="platform" placeholder="例如：抖音" /></div>
+        <div><label for="policy">活动政策/权益</label><input id="policy" placeholder="例如：免费量房、户型预算咨询" /></div>
+        <div class="wide"><label for="pain">本地小区/客户痛点</label><input id="pain" placeholder="例如：预算不透明、旧房翻新怕增项、小户型收纳不足" /></div>
+        <div class="wide"><label for="note">备注</label><input id="note" placeholder="补充素材限制、门店卖点或客户画像" /></div>
+      </div>
+      <div class="button-row"><button class="btn-green" type="button" onclick="applyZhongweiPreset()">中卫预设</button></div>
+    </section>
+    <section class="card">
+      <div class="section-head"><div><h2>生成方向</h2><p class="section-note">可多选，生成结果会自动按你选择的客户类型、素材目标和主推方向组织。</p></div></div>
+      <h3>客户类型</h3><div class="check-grid" id="customerTypeChecks"></div>
+      <h3 style="margin-top:16px;">素材目标</h3><div class="check-grid" id="materialGoalChecks"></div>
+      <h3 style="margin-top:16px;">主推方向</h3><div class="check-grid" id="mainDirectionChecks"></div>
+    </section>
+    <section class="card">
+      <div class="section-head"><div><h2>生成结果</h2><p class="section-note">包含信息流短文案、短视频脚本、前3秒钩子、承接话术、朋友圈文案和投流风险提示。</p></div></div>
+      <textarea id="output" class="output" readonly placeholder="点击生成后显示文案"></textarea>
+      <div class="button-row">
+        <button class="btn-primary" type="button" onclick="generateMaterial()">生成获客文案</button>
+        <button class="btn-blue" type="button" onclick="copyOutput()">复制结果</button>
+        <button class="btn-green" type="button" onclick="saveRecord()">保存历史</button>
+      </div>
+      <div class="copy-tip" id="tip"></div>
+    </section>
+    <section class="card">
+      <div class="section-head"><div><h2>历史记录</h2><p class="section-note">历史仅保存在当前浏览器，不影响其它工具数据。</p></div></div>
+      <div class="history-list" id="historyList"></div>
+    </section>
+  </main>
+  <script>
+    const STORAGE_KEY = "materialLabHistory";
+    const customerTypes = ["新房装修", "旧房翻新", "局部改造", "精装改造", "整装咨询"];
+    const materialGoals = ["信息流留资", "短视频获客", "私信咨询", "到店/量房"];
+    const mainDirections = ["预算咨询", "装修避坑", "发户型图看方案", "旧改翻新", "整装省心", "报价咨询"];
+    const el = id => document.getElementById(id);
+    const value = id => (el(id).value || "").trim();
+    const escapeHtml = text => String(text || "").replace(/[&<>"']/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s]));
+    function renderChecks(id, options) {
+      el(id).innerHTML = options.map(item => `<label class="check-card"><input type="checkbox" value="${escapeHtml(item)}"><span>${escapeHtml(item)}</span></label>`).join("");
+    }
+    function checked(id) { return Array.from(el(id).querySelectorAll("input:checked")).map(item => item.value); }
+    function applyZhongweiPreset() {
+      el("city").value = "中卫"; el("store").value = "中卫欧派整装大家居"; el("platform").value = "抖音";
+      setChecked("customerTypeChecks", ["整装咨询", "旧房翻新", "局部改造"]);
+      setChecked("materialGoalChecks", ["信息流留资", "短视频获客", "私信咨询", "到店/量房"]);
+      setChecked("mainDirectionChecks", ["预算咨询", "装修避坑", "发户型图看方案", "旧改翻新", "报价咨询"]);
+      showTip("已填入中卫获客预设。");
+    }
+    function setChecked(id, values) {
+      const set = new Set(values);
+      el(id).querySelectorAll("input").forEach(item => item.checked = set.has(item.value));
+    }
+    function contextText() {
+      return {
+        city: value("city") || "本地",
+        store: value("store") || "门店",
+        platform: value("platform") || "本地平台",
+        policy: value("policy") || "到店咨询权益",
+        pain: value("pain") || "预算不透明、怕增项、怕施工没人管",
+        note: value("note"),
+        types: checked("customerTypeChecks"),
+        goals: checked("materialGoalChecks"),
+        dirs: checked("mainDirectionChecks")
+      };
+    }
+    function generateMaterial() {
+      const c = contextText();
+      const typeText = c.types.join("、") || "整装咨询";
+      const dirText = c.dirs.join("、") || "预算咨询、装修避坑";
+      const lines = [
+        "【获客文案生成结果】",
+        `城市/门店：${c.city} · ${c.store}`,
+        `平台/账号：${c.platform}`,
+        `客户类型：${typeText}`,
+        `主推方向：${dirText}`,
+        "",
+        "一、信息流短文案 3 条",
+        `1. ${c.city}准备装修的业主，先别急着问总价，发户型图先把预算范围和容易增项的地方看清楚。${c.policy}。`,
+        `2. 旧房翻新、局部改造、整装咨询都可以先做一次预算梳理，重点看${c.pain}，少走弯路。`,
+        `3. 想知道你家装修大概花多少？把面积、户型和需求发来，先做基础预算参考，再决定是否到店细聊。`,
+        "",
+        "二、短视频口播脚本 3 条",
+        `1. 开头：${c.city}装修最怕什么？不是贵，而是不知道钱花在哪。正文：先看户型、需求和预算，再匹配方案。结尾：想先算预算，可以发户型图咨询。`,
+        `2. 开头：旧房翻新别一上来就拆。正文：先看厨房、卫生间、水电和收纳问题，再决定改造范围。结尾：需要旧改预算，可以私信面积。`,
+        `3. 开头：整装不是越便宜越好。正文：要看材料、施工、设计和售后是否讲清楚。结尾：想少踩坑，先到店或线上做一次需求梳理。`,
+        "",
+        "三、前3秒钩子 5 条",
+        `1. ${c.city}装修，先别急着交钱。`,
+        "2. 你家装修预算，可能不是差在材料上。",
+        "3. 旧房翻新最容易超预算的地方在这里。",
+        "4. 发户型图之前，先想清楚这3个问题。",
+        "5. 整装咨询别只问总价，要问清楚包含什么。",
+        "",
+        "四、私信承接话术 3 条",
+        "1. 您方便发一下小区、面积和大概装修需求吗？我先帮您判断预算范围和适合的方案方向。",
+        "2. 您是新房装修还是旧房翻新？如果有户型图，可以先发来，我帮您做基础梳理。",
+        "3. 您更关注价格、环保、施工还是交付周期？我先按重点给您匹配沟通方向。",
+        "",
+        "五、销售电话承接话术 3 条",
+        "1. 您好，我这边先不急着让您到店，先确认一下小区、面积、装修时间和预算范围，方便后面给您更准确的建议。",
+        "2. 您现在主要是想了解整体预算，还是已经准备看方案/报价？我先按您的阶段安排下一步。",
+        "3. 如果您方便，我们可以先约一次量房或到店看方案，把预算和需求讲清楚后再决定。",
+        "",
+        "六、朋友圈文案 3 条",
+        `1. ${c.city}近期准备装修的朋友，可以先做一次预算梳理，别等方案做完才发现超预算。`,
+        "2. 旧房翻新不是简单换新，水电、厨房、卫生间和收纳都要提前算清楚。",
+        "3. 整装咨询建议先看清配置、材料、施工和售后，再比较价格。",
+        "",
+        "七、投流审核风险提示",
+        "避免使用最低价、保证成交、包赔、绝对、全网最低、限时不买就亏等承诺型表达；预算结果只能写参考、预估、到店核算。",
+        "",
+        "八、替代表达建议",
+        "将“最低价”改为“预算更透明”；将“保证不增项”改为“提前梳理容易增项的项目”；将“马上签单”改为“明确下一步沟通动作”。"
+      ];
+      el("output").value = lines.join("\\n");
+      showTip("获客文案已生成。");
+    }
+    async function copyOutput() {
+      if (!el("output").value.trim()) return alert("请先生成获客文案。");
+      await navigator.clipboard.writeText(el("output").value).catch(() => {});
+      showTip("文案已复制。");
+    }
+    function records() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch { return []; } }
+    function saveRecord() {
+      const content = el("output").value.trim();
+      if (!content) return alert("请先生成获客文案。");
+      const list = records();
+      list.unshift({ id: Date.now().toString(), createdAt: new Date().toISOString(), city: value("city"), store: value("store"), content });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      renderHistory(); showTip("历史已保存。");
+    }
+    function renderHistory() {
+      const list = records();
+      el("historyList").innerHTML = list.length ? list.map(item => `<article class="history-item"><div><strong>${escapeHtml(item.store || item.city || "未命名素材")}</strong><p class="section-note">${escapeHtml((item.createdAt || "").replace("T"," ").slice(0,16))}</p></div><div class="button-row"><button class="btn-blue" onclick="viewRecord('${item.id}')">查看</button><button class="btn-green" onclick="copyRecord('${item.id}')">复制</button><button class="btn-red" onclick="deleteRecord('${item.id}')">删除</button></div></article>`).join("") : '<div class="section-note">暂无历史记录。</div>';
+    }
+    function viewRecord(id) { const item = records().find(r => r.id === id); if (item) el("output").value = item.content; }
+    async function copyRecord(id) { const item = records().find(r => r.id === id); if (item) { await navigator.clipboard.writeText(item.content).catch(() => {}); showTip("历史内容已复制。"); } }
+    function deleteRecord(id) { if (!confirm("确认删除这条历史记录吗？")) return; localStorage.setItem(STORAGE_KEY, JSON.stringify(records().filter(r => r.id !== id))); renderHistory(); }
+    function showTip(text) { el("tip").textContent = text; setTimeout(() => { if (el("tip").textContent === text) el("tip").textContent = ""; }, 2200); }
+    renderChecks("customerTypeChecks", customerTypes);
+    renderChecks("materialGoalChecks", materialGoals);
+    renderChecks("mainDirectionChecks", mainDirections);
+    renderHistory();
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>点将工具库</title>
+  <title>主动营销点将作战系统</title>
   <style>
     :root {
       --bg: #eef3fb;
@@ -199,6 +199,54 @@
       display: flex;
     }
 
+    .battle-flow {
+      margin-bottom: 22px;
+    }
+
+    .battle-flow-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .flow-card {
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 18px;
+      display: grid;
+      gap: 12px;
+      min-height: 210px;
+      padding: 18px;
+    }
+
+    .flow-step {
+      align-items: center;
+      background: var(--gradient-primary);
+      border-radius: 14px;
+      color: #fff;
+      display: inline-flex;
+      font-weight: 900;
+      height: 38px;
+      justify-content: center;
+      width: 38px;
+    }
+
+    .flow-card h3 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .flow-card p {
+      color: var(--muted);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .flow-card a {
+      align-self: end;
+      width: fit-content;
+    }
+
     .tool-card {
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.96)),
@@ -352,6 +400,10 @@
         grid-template-columns: 1fr;
       }
 
+      .battle-flow-grid {
+        grid-template-columns: 1fr;
+      }
+
       .quick-entry {
         grid-template-columns: 1fr;
         padding: 18px;
@@ -373,8 +425,8 @@
   <header>
     <div class="hero">
       <div class="eyebrow">主动营销点将作战台</div>
-      <h1>点将工具库</h1>
-      <p class="subtitle">用于主动营销点将期间的客户跟进、城市研判、投流测试、日报周报与阶段交付。</p>
+      <h1>主动营销点将作战系统</h1>
+      <p class="subtitle">围绕客户池复盘、CRM客户台账、动态研判、获客文案、投流测试和日报输出，形成每天能判断下一步动作的点将作战闭环。</p>
     </div>
   </header>
 
@@ -382,8 +434,56 @@
     <section class="library-panel">
       <div class="panel-head">
         <div>
+          <h2>今日作战流程</h2>
+          <p>按当天执行顺序推进：先复盘客户池，再录入 CRM，随后看漏斗、做研判、补获客素材，晚上输出日报。</p>
+        </div>
+      </div>
+
+      <section class="battle-flow">
+        <div class="battle-flow-grid">
+          <article class="flow-card">
+            <span class="flow-step">①</span>
+            <h3>客户池复盘</h3>
+            <p>先逐个销售复盘客户池，明确新线索、A/B/C客户、已量房、已报价、待跟进和沉睡客户。</p>
+            <a class="btn-primary" href="customer-review.html">开始客户池复盘</a>
+          </article>
+          <article class="flow-card">
+            <span class="flow-step">②</span>
+            <h3>CRM录入客户</h3>
+            <p>将客户录入 CRM，形成完整客户台账，后续可持续跟进和复盘转化。</p>
+            <a class="btn-primary" href="crm.html">录入客户明细</a>
+          </article>
+          <article class="flow-card">
+            <span class="flow-step">③</span>
+            <h3>客户漏斗查看</h3>
+            <p>查看全店和各销售的新线索、A/B/C、量房、报价、签单情况。</p>
+            <a class="btn-primary" href="crm.html#funnel">查看客户漏斗</a>
+          </article>
+          <article class="flow-card">
+            <span class="flow-step">④</span>
+            <h3>AI动态研判</h3>
+            <p>每天把客户池、CRM数据、销售反馈、活动方案粘贴进去，生成下一步作战研判。</p>
+            <a class="btn-primary" href="city-analysis.html#dynamic">进入动态研判</a>
+          </article>
+          <article class="flow-card">
+            <span class="flow-step">⑤</span>
+            <h3>获客文案生成</h3>
+            <p>客户池不足时，快速生成信息流文案、短视频脚本、私信承接、电话承接和朋友圈文案。</p>
+            <a class="btn-primary" href="material-lab.html">生成获客文案</a>
+          </article>
+          <article class="flow-card">
+            <span class="flow-step">⑥</span>
+            <h3>日报输出</h3>
+            <p>晚上整理今日动作和明日计划，生成日报/周报，用于飞书、微信和工作汇报。</p>
+            <a class="btn-primary" href="report.html">生成工作日报</a>
+          </article>
+        </div>
+      </section>
+
+      <div class="panel-head">
+        <div>
           <h2>工具入口</h2>
-          <p>选择当前要处理的点将任务。已上线工具会在当前浏览器继续读取原有本地数据。</p>
+          <p>已上线工具会在当前浏览器继续读取原有本地数据。</p>
         </div>
       </div>
 
@@ -456,6 +556,18 @@
           <p>用于点将到店调研时快速复盘客户池，判断客户阶段、来源质量、转化卡点，并生成客户推进建议、老板沟通反馈和日报素材。</p>
           <div class="tool-actions">
             <a class="btn-primary" href="customer-review.html">进入工具</a>
+          </div>
+        </article>
+
+        <article class="tool-card">
+          <div class="tool-top">
+            <div class="tool-icon">文</div>
+            <span class="tool-status status-ready">已上线</span>
+          </div>
+          <h2>获客文案生成工具</h2>
+          <p>生成信息流文案、短视频脚本、私信承接、电话承接、朋友圈文案和投流风险提示。</p>
+          <div class="tool-actions">
+            <a class="btn-primary" href="material-lab.html">进入工具</a>
           </div>
         </article>
 

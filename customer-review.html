@@ -126,6 +126,65 @@
       backdrop-filter: blur(10px);
     }
 
+    .process-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .process-step {
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      display: grid;
+      gap: 9px;
+      min-height: 168px;
+      padding: 14px;
+    }
+
+    .process-step strong {
+      color: #172554;
+      font-size: 15px;
+    }
+
+    .process-step p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .process-action {
+      align-self: end;
+      background: #eef5ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      color: #1d4ed8;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 6px 10px;
+      width: fit-content;
+    }
+
+    .next-step-box {
+      background: linear-gradient(135deg, #eef5ff, #ecfeff);
+      border: 1px solid #bfdbfe;
+      border-radius: 16px;
+      color: #172554;
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.6;
+      margin-top: 16px;
+      padding: 14px 16px;
+    }
+
+    .button-help {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      margin-top: 8px;
+    }
+
     .section-head {
       align-items: flex-start;
       display: flex;
@@ -485,6 +544,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .process-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .history-item {
         grid-template-columns: 1fr;
       }
@@ -500,7 +563,8 @@
 
     @media (max-width: 560px) {
       .form-grid,
-      .check-grid {
+      .check-grid,
+      .process-grid {
         grid-template-columns: 1fr;
       }
 
@@ -555,6 +619,43 @@
         <p>客户池复盘工具用于逐个销售复盘客户池，先梳理每个销售手中的 A类、B类、C类、死单客户，再自动汇总全店客户池数据。复盘后建议将 A/B/C/死单客户逐步录入 CRM，形成完整客户台账，便于后续查看客户漏斗、跟进责任、客户阶段和死单原因。</p>
       </div>
       <a class="button-link btn-cyan" href="crm.html">录入客户明细</a>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>客户池复盘操作流程</h2>
+          <p class="section-note">按现场节奏一步步操作，录完销售客户池后再汇总、生成报告、录入 CRM 和保存历史。</p>
+        </div>
+      </div>
+      <div class="process-grid">
+        <div class="process-step">
+          <strong>① 逐个录销售客户池</strong>
+          <p>先找每个销售复盘客户池，填写新线索、A/B/C类客户、已量房、已报价、待跟进和沉睡客户。</p>
+          <span class="process-action">添加销售复盘</span>
+        </div>
+        <div class="process-step">
+          <strong>② 自动汇总全店数据</strong>
+          <p>所有销售录完后，系统会合计全店客户总数、新线索、A/B/C、量房、报价、待跟进和沉睡客户。</p>
+          <span class="process-action">根据销售复盘自动汇总全店数据</span>
+        </div>
+        <div class="process-step">
+          <strong>③ 生成客户池复盘报告</strong>
+          <p>汇总完成后输出客户池总体判断、销售客户池情况、卡点和明日推进动作。</p>
+          <span class="process-action">生成客户池复盘报告</span>
+        </div>
+        <div class="process-step">
+          <strong>④ 去 CRM 录入客户明细</strong>
+          <p>每个销售卡片里点击“录入该销售客户”，系统会跳转 CRM 并自动带入该销售姓名。</p>
+          <span class="process-action">录入该销售客户</span>
+        </div>
+        <div class="process-step">
+          <strong>⑤ 保存客户池复盘历史</strong>
+          <p>当天复盘完成后保存历史，方便后续查看和复制日报素材。</p>
+          <span class="process-action">保存客户池复盘记录</span>
+        </div>
+      </div>
+      <div class="next-step-box" id="nextStepTip">当前建议：请先逐个添加销售复盘记录。</div>
     </section>
 
     <section class="card">
@@ -633,6 +734,7 @@
         <button class="btn-light" type="button" id="clearSalesReviewBtn">清空当前填写内容</button>
         <button class="btn-light" type="button" id="cancelSalesEditBtn" style="display:none;">取消编辑</button>
       </div>
+      <p class="button-help">每问完一个销售，点击“添加销售复盘”；所有销售录完后，点击“根据销售复盘自动汇总全店数据”。</p>
       <div class="sales-review-list" id="salesReviewList"></div>
       <div id="salesSummaryResult"></div>
     </section>
@@ -740,6 +842,7 @@
         <button class="btn-green" type="button" id="saveReviewBtn">保存客户池复盘记录</button>
         <a class="button-link btn-cyan" href="crm.html">去CRM录入客户</a>
       </div>
+      <p class="button-help">自动汇总后点击“生成客户池复盘报告”；当天复盘完成后点击“保存客户池复盘记录”；需要录入明细时进入 CRM。</p>
       <p class="section-note">复盘后将各销售手中的 A/B/C/死单客户录入 CRM，形成完整客户台账，便于后续统计客户漏斗、跟进责任、转化阶段和死单原因。</p>
       <div class="copy-tip" id="reviewTip"></div>
     </section>
@@ -799,6 +902,7 @@
     let salesReviewItems = [];
     let salesReviewSummary = null;
     let editingSalesReviewId = "";
+    let reviewSavedInSession = false;
 
     const stageLabels = {
       new: "新线索客户",
@@ -871,6 +975,25 @@
           if (el("reviewTip").textContent === message) el("reviewTip").textContent = "";
         }, 2200);
       }
+    }
+
+    function updateNextStepTip() {
+      const tip = el("nextStepTip");
+      if (!tip) return;
+
+      let message = "当前建议：请先逐个添加销售复盘记录。";
+
+      if (reviewSavedInSession) {
+        message = "当前建议：今日客户池复盘已保存，可继续去 CRM 录入客户明细或开始下一位销售客户整理。";
+      } else if ((el("reviewReportOutput").value || "").trim()) {
+        message = "当前建议：复盘报告已生成，建议点击“保存客户池复盘记录”。";
+      } else if (salesReviewSummary) {
+        message = "当前建议：全店数据已汇总，建议点击“生成客户池复盘报告”。";
+      } else if (salesReviewItems.length) {
+        message = "当前建议：销售复盘已添加，建议点击“根据销售复盘自动汇总全店数据”。";
+      }
+
+      tip.textContent = message;
     }
 
     function loadRecords() {
@@ -959,6 +1082,8 @@
       el("reviewReportOutput").value = draft.report || "";
       renderSalesReviewList();
       renderSalesSummaryResult();
+      reviewSavedInSession = false;
+      updateNextStepTip();
       showTip("已恢复上次未保存的客户池复盘草稿。");
       return true;
     }
@@ -1013,6 +1138,8 @@
       renderSalesReviewList();
       renderSalesSummaryResult();
       el("reviewReportOutput").value = "";
+      reviewSavedInSession = false;
+      updateNextStepTip();
       showTip("当前客户池复盘草稿已清空。");
     }
 
@@ -1203,7 +1330,7 @@
           </div>
           <div class="button-row" style="margin-top: 0;">
             <button class="btn-blue" type="button" data-sales-action="edit" data-id="${escapeHtml(item.id)}">编辑</button>
-            <button class="btn-cyan" type="button" data-sales-action="crm" data-id="${escapeHtml(item.id)}">录入该销售客户</button>
+            <button class="btn-cyan" type="button" data-sales-action="crm" data-id="${escapeHtml(item.id)}" title="进入 CRM 录入该销售负责的具体客户明细">录入该销售客户</button>
             <button class="btn-red" type="button" data-sales-action="delete" data-id="${escapeHtml(item.id)}">删除</button>
           </div>
         </article>
@@ -1326,6 +1453,8 @@
       setValue("stageLost", String(salesReviewSummary.dead || 0));
       renderSalesSummaryResult();
       saveDraft();
+      reviewSavedInSession = false;
+      updateNextStepTip();
       showTip("已根据销售复盘自动汇总全店客户池数据。");
     }
 
@@ -1343,11 +1472,13 @@
         salesReviewItems.push(item);
       }
       salesReviewSummary = null;
+      reviewSavedInSession = false;
       renderSalesReviewList();
       renderSalesSummaryResult();
       clearSalesReviewForm();
       setSalesReviewEditMode("");
       saveDraft();
+      updateNextStepTip();
       showTip(isEditing ? "销售个人客户池复盘已更新。" : "销售个人客户池复盘已添加。");
     }
 
@@ -1383,9 +1514,11 @@
           setSalesReviewEditMode("");
         }
         salesReviewSummary = null;
+        reviewSavedInSession = false;
         renderSalesReviewList();
         renderSalesSummaryResult();
         saveDraft();
+        updateNextStepTip();
         showTip("销售复盘记录已删除。");
       }
     }
@@ -1758,7 +1891,9 @@
       ];
 
       el("reviewReportOutput").value = lines.join("\n");
+      reviewSavedInSession = false;
       saveDraft();
+      updateNextStepTip();
       showTip("客户池复盘报告已生成。");
     }
 
@@ -1808,6 +1943,8 @@
       saveRecords(records);
       renderHistory();
       saveDraft();
+      reviewSavedInSession = true;
+      updateNextStepTip();
       showTip("客户池复盘记录已保存。已保存到历史记录，当前草稿仍保留，如需清空请点击“清空当前草稿”。");
     }
 
@@ -1873,6 +2010,7 @@
       if (!restoreDraft()) {
         renderSalesReviewList();
         renderSalesSummaryResult();
+        updateNextStepTip();
       }
       bindDraftAutosave();
       el("addSalesReviewBtn").addEventListener("click", addSalesReview);
