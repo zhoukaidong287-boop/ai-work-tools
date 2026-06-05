@@ -472,6 +472,7 @@
     const CUSTOMER_REVIEW_RECORDS_KEY = "customerReviewRecords";
     const CRM_CUSTOMERS_KEY = "decorationStoreCrmCustomers";
     const CRM_OLD_CUSTOMERS_KEY = "customers";
+    const DOUYIN_LEADS_KEY = "douyinLeads";
     const DAILY_ACTIONS = [
       "客户跟进", "客户信息复盘", "量房推进", "方案沟通", "报价沟通", "签单转化",
       "经纪人渠道沟通", "新媒体文案输出", "短视频脚本输出", "视频拍摄", "视频剪辑",
@@ -743,7 +744,7 @@
 
     function getCrmFollowState(customer) {
       const date = normalizeDate(customer.nextFollowDate);
-      if (!date || ["已签单", "死单"].includes(customer.status)) return "none";
+      if (!date || ["已签单", "死单"].includes(customer.status) || customer.grade === "死单") return "none";
       const current = today();
       if (date < current) return "overdue";
       if (date === current) return "today";
@@ -753,6 +754,7 @@
     function getCrmDataStats(customers) {
       const stats = {
         total: customers.length,
+        effective: 0,
         gradeA: 0,
         gradeB: 0,
         gradeC: 0,
@@ -763,29 +765,77 @@
         signed: 0,
         sleeping: 0,
         dead: 0,
+        deadReasons: {},
         todayFollow: 0,
         overdue: 0,
         topCustomers: []
       };
       customers.forEach(customer => {
-        if (customer.grade === "A类客户") stats.gradeA += 1;
-        if (customer.grade === "B类客户") stats.gradeB += 1;
-        if (customer.grade === "C类客户") stats.gradeC += 1;
-        if (customer.grade === "死单" || customer.grade === "无效客户") stats.deadGrade += 1;
-        if (customer.status === "新线索") stats.newCustomers += 1;
-        if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是") stats.measured += 1;
-        if (["已报价", "已交定金", "已签单"].includes(customer.status)) stats.quoted += 1;
+        const dead = customer.status === "死单" || customer.grade === "死单";
+        if (dead) {
+          stats.dead += 1;
+          stats.deadGrade += 1;
+          const reason = String(customer.blockReason || "未填写原因").split(/[；、,，]/)[0] || "未填写原因";
+          stats.deadReasons[reason] = (stats.deadReasons[reason] || 0) + 1;
+        } else {
+          stats.effective += 1;
+        }
+        if (!dead && customer.grade === "A类客户") stats.gradeA += 1;
+        if (!dead && customer.grade === "B类客户") stats.gradeB += 1;
+        if (!dead && customer.grade === "C类客户") stats.gradeC += 1;
+        if (!dead && customer.status === "新线索") stats.newCustomers += 1;
+        if (!dead && (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是")) stats.measured += 1;
+        if (!dead && ["已报价", "已交定金", "已签单"].includes(customer.status)) stats.quoted += 1;
         if (customer.status === "已签单") stats.signed += 1;
-        if (customer.status === "沉睡客户") stats.sleeping += 1;
-        if (customer.status === "死单") stats.dead += 1;
+        if (!dead && customer.status === "沉睡客户") stats.sleeping += 1;
         const followState = getCrmFollowState(customer);
         if (followState === "today") stats.todayFollow += 1;
         if (followState === "overdue") stats.overdue += 1;
       });
       stats.topCustomers = customers
+        .filter(customer => customer.grade !== "死单" && customer.status !== "死单")
         .filter(customer => customer.grade === "A类客户" || getCrmFollowState(customer) === "today" || getCrmFollowState(customer) === "overdue")
         .slice(0, 6)
         .map(customer => `${customer.name || "未填写客户"}（${customer.owner || "未填写销售"}｜${customer.grade || "-"}｜${customer.status || "-"}）`);
+      return stats;
+    }
+
+    function getTopMapSummary(map, fallback = "暂无") {
+      const rows = Object.entries(map || {}).sort((a, b) => b[1] - a[1]).slice(0, 4);
+      return rows.length ? rows.map(([name, count]) => `${name}${count}条`).join("、") : fallback;
+    }
+
+    function loadDouyinLeadsForReport() {
+      return safeParseStorage(DOUYIN_LEADS_KEY, []);
+    }
+
+    function getDouyinLeadStats(leads) {
+      const todayText = today();
+      const stats = {
+        total: leads.length,
+        todayNew: 0,
+        pending: 0,
+        contacted: 0,
+        valid: 0,
+        invalid: 0,
+        assigned: 0,
+        transferred: 0,
+        invalidReasons: {},
+        sources: {}
+      };
+      leads.forEach(lead => {
+        const createdDate = normalizeDate(lead.createdAt);
+        if (createdDate === todayText) stats.todayNew += 1;
+        if (lead.status === "待清洗") stats.pending += 1;
+        if (lead.status === "已联系") stats.contacted += 1;
+        if (lead.validity === "有效" || lead.status === "有效线索") stats.valid += 1;
+        if (lead.validity === "无效" || lead.status === "无效线索") stats.invalid += 1;
+        if (lead.assignedSales) stats.assigned += 1;
+        if (lead.status === "已转入CRM" || lead.crmCustomerId) stats.transferred += 1;
+        if (lead.invalidReason) stats.invalidReasons[lead.invalidReason] = (stats.invalidReasons[lead.invalidReason] || 0) + 1;
+        const source = lead.source || "未填写来源";
+        stats.sources[source] = (stats.sources[source] || 0) + 1;
+      });
       return stats;
     }
 
@@ -793,9 +843,11 @@
       const reviewSource = getCustomerReviewSource();
       const customers = loadCrmCustomersForReport();
       const crmStats = getCrmDataStats(customers);
+      const douyinLeads = loadDouyinLeadsForReport();
+      const douyinStats = getDouyinLeadStats(Array.isArray(douyinLeads) ? douyinLeads : []);
 
-      if (!reviewSource && !customers.length) {
-        setValue("dailyDataSummary", "暂未读取到客户池复盘或CRM数据，请先完成客户池复盘或录入CRM客户。");
+      if (!reviewSource && !customers.length && !douyinStats.total) {
+        setValue("dailyDataSummary", "暂未读取到客户池复盘、CRM或抖音线索数据，请先完成客户池复盘、录入CRM客户或整理抖音线索池。");
         setText("dailyDataTip", "暂无可读取数据");
         return;
       }
@@ -810,7 +862,7 @@
           ? `客户池复盘：销售${reviewSummary.salesCount || 0}人，客户总数${reviewSummary.totalCustomers || 0}组，新线索${reviewSummary.newCustomers || 0}组，A/B/C类客户${reviewSummary.gradeA || 0}/${reviewSummary.gradeB || 0}/${reviewSummary.gradeC || 0}组，已量房${reviewSummary.measured || 0}组，已报价${reviewSummary.quoted || 0}组，已签单${reviewSummary.signed || 0}组，待跟进${reviewSummary.needFollow || 0}组，沉睡${reviewSummary.sleeping || 0}组。`
           : "客户池复盘：暂无客户池复盘草稿或历史记录。",
         customers.length
-          ? `CRM台账：当前已登记客户${crmStats.total}组，新线索${crmStats.newCustomers}组，A/B/C类客户${crmStats.gradeA}/${crmStats.gradeB}/${crmStats.gradeC}组，已量房${crmStats.measured}组，已报价${crmStats.quoted}组，已签单${crmStats.signed}组，沉睡${crmStats.sleeping}组，死单${crmStats.dead}组。`
+          ? `CRM台账：当前已登记客户${crmStats.total}组，有效客户${crmStats.effective}组，死单客户${crmStats.dead}组，新线索${crmStats.newCustomers}组，A/B/C类客户${crmStats.gradeA}/${crmStats.gradeB}/${crmStats.gradeC}组，已量房${crmStats.measured}组，已报价${crmStats.quoted}组，已签单${crmStats.signed}组，沉睡${crmStats.sleeping}组。死单原因摘要：${getTopMapSummary(crmStats.deadReasons, "暂无死单原因")}。`
           : "CRM台账：暂无已登记客户数据。",
         customers.length
           ? `跟进提醒：今日待跟进${crmStats.todayFollow}组，逾期未跟进${crmStats.overdue}组。`
@@ -821,8 +873,17 @@
         crmStats.topCustomers.length
           ? `重点客户提醒：${crmStats.topCustomers.join("；")}。`
           : "重点客户提醒：暂无A类、今日待跟进或逾期客户记录。",
+        douyinStats.total
+          ? `抖音线索池：总线索${douyinStats.total}条，今日新增${douyinStats.todayNew}条，待清洗${douyinStats.pending}条，已联系${douyinStats.contacted}条，有效线索${douyinStats.valid}条，无效线索${douyinStats.invalid}条，已分配销售${douyinStats.assigned}条，已转入CRM${douyinStats.transferred}条。主要来源渠道：${getTopMapSummary(douyinStats.sources)}。主要无效原因：${getTopMapSummary(douyinStats.invalidReasons)}。`
+          : "抖音线索池：暂无抖音线索数据。",
+        douyinStats.total
+          ? `今日抖音线索池新增/整理${douyinStats.todayNew || douyinStats.total}条，已清洗${douyinStats.valid + douyinStats.invalid}条，有效线索${douyinStats.valid}条，已转入 CRM ${douyinStats.transferred}条。后续重点跟进已分配销售的有效线索，并根据无效原因优化投流文案和承接话术。`
+          : "",
+        crmStats.dead > 0
+          ? "今日已对无效客户进行清洗，死单客户不再纳入重点推进池，后续重点聚焦有效客户、A/B类客户及已量房/已报价客户推进。"
+          : "",
         "明日重点动作建议：优先按销售复盘新线索、A/B/C类客户和待跟进客户，推动今日待跟进与逾期客户及时触达；已量房、已报价客户进入复盘节奏，明确方案、报价、成交阻力和下一步负责人。"
-      ];
+      ].filter(Boolean);
 
       setValue("dailyDataSummary", lines.join("\n"));
       setText("dailyDataTip", "已读取客户池与CRM数据");
@@ -830,7 +891,7 @@
 
     function buildDailyDataWorkText(summary) {
       const text = String(summary || "").trim();
-      if (!text || text === "暂未读取到客户池复盘或CRM数据，请先完成客户池复盘或录入CRM客户。") return "";
+      if (!text || text.startsWith("暂未读取到客户池复盘")) return "";
       return `今日同步读取客户池复盘和CRM客户台账数据，结合销售个人客户池、A/B/C类客户结构、已量房/已报价客户、今日待跟进与逾期客户情况，为当日客户推进和明日重点动作提供数据依据。\n${text}`;
     }
 

@@ -1987,6 +1987,89 @@
     </div>
   </div>
 
+  <div id="deadCustomerModal" class="modal-backdrop hidden" onclick="handleDeadCustomerBackdropClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="deadCustomerTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="deadCustomerTitle">标记死单</h2>
+          <p class="section-note">确认将该客户标记为死单吗？标记后，该客户记录仍会保留在 CRM 中，方便后续复盘，但不会再进入今日待跟进和逾期未跟进列表。</p>
+        </div>
+        <button class="btn-light btn-small" onclick="closeDeadCustomerModal()">关闭</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="wide">
+            <label for="deadReasonSelect">死单原因</label>
+            <select id="deadReasonSelect">
+              <option value="">请选择死单原因</option>
+              <option>电话无效</option>
+              <option>已装修</option>
+              <option>选择其他公司</option>
+              <option>暂时不装</option>
+              <option>区域不符</option>
+              <option>预算明显不匹配</option>
+              <option>长期不回复</option>
+              <option>客户明确拒绝</option>
+              <option>重复客户</option>
+              <option>其他原因</option>
+            </select>
+          </div>
+          <div class="wide">
+            <label for="deadReasonNote">死单补充说明</label>
+            <textarea id="deadReasonNote" placeholder="例如：电话为空号；客户明确说已选择其他公司。"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-red" onclick="confirmMarkDeadCustomer()">确认标记死单</button>
+        <button class="btn-light" onclick="closeDeadCustomerModal()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="restoreCustomerModal" class="modal-backdrop hidden" onclick="handleRestoreCustomerBackdropClick(event)">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="restoreCustomerTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="restoreCustomerTitle">恢复为有效客户</h2>
+          <p class="section-note">恢复后客户会重新进入有效客户池，并按新的下次跟进时间进入待跟进节奏。</p>
+        </div>
+        <button class="btn-light btn-small" onclick="closeRestoreCustomerModal()">关闭</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div>
+            <label for="restoreGrade">客户等级</label>
+            <select id="restoreGrade">
+              <option>C类客户</option>
+              <option>B类客户</option>
+              <option>A类客户</option>
+            </select>
+          </div>
+          <div>
+            <label for="restoreStatus">客户阶段</label>
+            <select id="restoreStatus">
+              <option>新线索</option>
+              <option>已联系</option>
+              <option>已进店</option>
+              <option>已量房</option>
+              <option>已出方案</option>
+              <option>已报价</option>
+            </select>
+          </div>
+          <div>
+            <label for="restoreNextDate">下次跟进时间</label>
+            <input id="restoreNextDate" type="date" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="confirmRestoreCustomer()">确认恢复</button>
+        <button class="btn-light" onclick="closeRestoreCustomerModal()">取消</button>
+      </div>
+    </div>
+  </div>
+
   <div id="dailyReportModal" class="modal-backdrop hidden" onclick="handleDailyReportBackdropClick(event)">
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="dailyReportTitle">
       <div class="modal-head">
@@ -2179,6 +2262,11 @@
 
     const SOURCE_OPTIONS = [
       "抖音线索",
+      "抖音信息流",
+      "抖音私信",
+      "抖音评论",
+      "直播线索",
+      "主页留资",
       "电商线索",
       "经纪人推荐",
       "自然到店",
@@ -2408,6 +2496,8 @@
     let editingId = "";
     let expandedId = "";
     let detailModalCustomerId = "";
+    let deadCustomerTargetId = "";
+    let restoreCustomerTargetId = "";
     let currentDisplayCustomers = [];
     let projectInfo = loadProjectInfo();
     let preJudgeRecords = loadPreJudgeRecords();
@@ -2852,6 +2942,9 @@
               <button class="btn-blue btn-small" onclick="openCustomerDetail('${customer.id}')">查看详情</button>
               <button class="btn-green btn-small" onclick="editCustomer('${customer.id}')">编辑</button>
               <button class="btn-teal btn-small" onclick="openFollowForm('${customer.id}')">跟进</button>
+              ${isDeadCustomer(customer)
+                ? `<button class="btn-primary btn-small" onclick="openRestoreCustomerModal('${customer.id}')">恢复有效</button>`
+                : `<button class="btn-red btn-small" onclick="openDeadCustomerModal('${customer.id}')">标记死单</button>`}
               <button class="btn-red btn-small" onclick="deleteCustomer('${customer.id}')">删除</button>
             </div>
           </td>
@@ -2868,6 +2961,10 @@
 
       if (customer.status === "已签单") {
         html += '<span class="tag tag-ok">已成交</span>';
+      }
+
+      if (isDeadCustomer(customer)) {
+        html += '<span class="tag tag-grade-invalid">死单客户</span>';
       }
 
       if (followState === "today") {
@@ -3028,7 +3125,7 @@
               </div>
             </div>
             <div class="button-row">
-              <button class="btn-primary" onclick="addFollowRecord('${customer.id}')">保存跟进记录</button>
+              <button class="btn-primary" onclick="addFollowRecord('${customer.id}')">保存跟进并更新下次时间</button>
               <button class="btn-light" onclick="hideFollowForm('${customer.id}')">取消</button>
             </div>
           </div>
@@ -3082,6 +3179,9 @@
       document.getElementById("detailModalActions").innerHTML = `
         <button class="btn-green" onclick="editCustomerFromDetail('${customer.id}')">编辑客户</button>
         <button class="btn-teal" onclick="openFollowForm('${customer.id}')">添加跟进记录</button>
+        ${isDeadCustomer(customer)
+          ? `<button class="btn-primary" onclick="openRestoreCustomerModal('${customer.id}')">恢复为有效客户</button>`
+          : `<button class="btn-red" onclick="openDeadCustomerModal('${customer.id}')">标记死单</button>`}
         <button class="btn-light" onclick="closeCustomerDetail()">关闭</button>
       `;
     }
@@ -3115,6 +3215,122 @@
       }
     }
 
+    function isDeadCustomer(customer) {
+      return customer && (customer.status === "死单" || customer.grade === "死单");
+    }
+
+    function isEffectiveCustomer(customer) {
+      return customer && !isDeadCustomer(customer);
+    }
+
+    function isFollowableCustomer(customer) {
+      return customer && customer.status !== "已签单" && !isDeadCustomer(customer);
+    }
+
+    function refreshCrmViews() {
+      saveToLocalStorage();
+      renderCustomers();
+      renderCustomerDetailModal();
+    }
+
+    function addSystemFollowRecord(customer, content, nextFollowDate = "") {
+      const now = getNowString();
+      customer.followRecords = Array.isArray(customer.followRecords) ? customer.followRecords : [];
+      customer.followRecords.push({
+        id: createId(),
+        followTime: now,
+        method: "系统记录",
+        content,
+        nextFollowDate,
+        owner: customer.owner || "",
+        createdAt: now
+      });
+      customer.updatedAt = now;
+    }
+
+    function openDeadCustomerModal(id) {
+      deadCustomerTargetId = id;
+      setValue("deadReasonSelect", "");
+      setValue("deadReasonNote", "");
+      document.getElementById("deadCustomerModal").classList.remove("hidden");
+    }
+
+    function closeDeadCustomerModal() {
+      deadCustomerTargetId = "";
+      document.getElementById("deadCustomerModal").classList.add("hidden");
+    }
+
+    function handleDeadCustomerBackdropClick(event) {
+      if (event.target.id === "deadCustomerModal") {
+        closeDeadCustomerModal();
+      }
+    }
+
+    function confirmMarkDeadCustomer() {
+      const customer = customers.find(item => item.id === deadCustomerTargetId);
+      const reason = getValue("deadReasonSelect");
+      const note = getValue("deadReasonNote");
+
+      if (!customer) return;
+      if (!reason) {
+        alert("请选择死单原因。");
+        return;
+      }
+
+      const reasonText = [reason, note].filter(Boolean).join("；");
+      customer.grade = "死单";
+      customer.status = "死单";
+      customer.blockReason = reasonText;
+      customer.nextAction = "暂不重点推进";
+      customer.nextFollowDate = "";
+      addSystemFollowRecord(customer, `已标记死单，原因：${reasonText}`);
+      closeDeadCustomerModal();
+      refreshCrmViews();
+      alert("客户已标记为死单，并已从今日/逾期待跟进列表中移出。");
+    }
+
+    function openRestoreCustomerModal(id) {
+      restoreCustomerTargetId = id;
+      setValue("restoreGrade", "C类客户");
+      setValue("restoreStatus", "新线索");
+      setValue("restoreNextDate", getTodayString());
+      document.getElementById("restoreCustomerModal").classList.remove("hidden");
+    }
+
+    function closeRestoreCustomerModal() {
+      restoreCustomerTargetId = "";
+      document.getElementById("restoreCustomerModal").classList.add("hidden");
+    }
+
+    function handleRestoreCustomerBackdropClick(event) {
+      if (event.target.id === "restoreCustomerModal") {
+        closeRestoreCustomerModal();
+      }
+    }
+
+    function confirmRestoreCustomer() {
+      const customer = customers.find(item => item.id === restoreCustomerTargetId);
+      const grade = getValue("restoreGrade");
+      const status = getValue("restoreStatus");
+      const nextFollowDate = normalizeDateValue(getValue("restoreNextDate"));
+
+      if (!customer) return;
+      if (!nextFollowDate) {
+        alert("请填写下次跟进时间。");
+        return;
+      }
+
+      const oldReason = customer.blockReason || "";
+      customer.grade = grade;
+      customer.status = status;
+      customer.nextFollowDate = nextFollowDate;
+      customer.nextAction = customer.nextAction === "暂不重点推进" ? "电话回访；微信跟进" : customer.nextAction;
+      addSystemFollowRecord(customer, `已恢复为有效客户，等级：${grade}，阶段：${status}${oldReason ? `。原死单原因：${oldReason}` : ""}`, nextFollowDate);
+      closeRestoreCustomerModal();
+      refreshCrmViews();
+      alert("客户已恢复为有效客户。");
+    }
+
     function addFollowRecord(id) {
       const customer = customers.find(item => item.id === id);
 
@@ -3130,9 +3346,15 @@
       }
 
       const nextFollowDate = normalizeDateValue(getValue(`followNext-${id}`));
+      if (!nextFollowDate && !["已签单", "死单"].includes(getValue(`followStatus-${id}`))) {
+        alert("请设置下次跟进时间。完成今日跟进后，系统会根据新的下次跟进时间自动调整客户所在列表。");
+        return;
+      }
+
       const owner = getValue(`followOwner-${id}`) || customer.owner;
       const now = getNowString();
       const followTime = normalizeDateTimeValue(getValue(`followTime-${id}`)) || now;
+      const oldFollowState = getFollowState(customer);
 
       customer.followRecords.push({
         id: createId(),
@@ -3150,12 +3372,22 @@
       customer.blockReason = getValue(`followBlockReason-${id}`) || customer.blockReason;
       customer.nextAction = getValue(`followNextAction-${id}`) || customer.nextAction;
       customer.need = getValue(`followNeed-${id}`) || customer.need;
-      customer.nextFollowDate = nextFollowDate;
+      customer.nextFollowDate = isFollowableCustomer(customer) ? nextFollowDate : "";
       customer.updatedAt = now;
 
       saveToLocalStorage();
       renderCustomers();
       renderCustomerDetailModal();
+      const newFollowState = getFollowState(customer);
+      if (!isFollowableCustomer(customer)) {
+        alert("跟进记录已保存，该客户已从今日待跟进和逾期未跟进中移出。");
+      } else if (oldFollowState === "today" && newFollowState !== "today") {
+        alert("跟进记录已保存，下次跟进时间已更新，该客户已从今日待跟进客户中移出。");
+      } else if (newFollowState === "today") {
+        alert("跟进记录已保存。由于下次跟进时间仍为今天，该客户仍保留在今日待跟进客户中。");
+      } else {
+        alert("跟进记录已保存，下次跟进时间已更新。");
+      }
     }
 
     function editCustomer(id) {
@@ -4356,7 +4588,7 @@
     function updateStats() {
       const total = customers.length;
       const signed = customers.filter(customer => customer.status === "已签单").length;
-      const activeTotal = customers.filter(customer => !TERMINAL_STATUSES.includes(customer.status) || customer.status === "已签单").length;
+      const activeTotal = customers.filter(isEffectiveCustomer).length;
       const reportStats = getDailyReportStats();
 
       setText("statTotal", total);
@@ -4365,15 +4597,15 @@
       setText("statTodayNeedFollow", reportStats.todayTodo);
       setText("statOverdueFollow", reportStats.overdueTodo);
       setText("statNeedFollow", customers.filter(customer => ["today", "overdue"].includes(getFollowState(customer))).length);
-      setText("statMeasured", customers.filter(customer => customer.status === "已量房").length);
-      setText("statQuoted", customers.filter(customer => customer.status === "已报价").length);
+      setText("statMeasured", customers.filter(customer => isEffectiveCustomer(customer) && customer.status === "已量房").length);
+      setText("statQuoted", customers.filter(customer => isEffectiveCustomer(customer) && customer.status === "已报价").length);
       setText("statSigned", signed);
-      setText("statLost", customers.filter(customer => customer.status === "死单").length);
+      setText("statLost", customers.filter(isDeadCustomer).length);
       setText("statConversion", activeTotal ? `${Math.round((signed / activeTotal) * 100)}%` : "0%");
-      setText("statGradeA", customers.filter(customer => customer.grade === "A类客户").length);
-      setText("statGradeB", customers.filter(customer => customer.grade === "B类客户").length);
-      setText("statGradeC", customers.filter(customer => customer.grade === "C类客户").length);
-      setText("statInvalidGrade", customers.filter(customer => customer.grade === "死单").length);
+      setText("statGradeA", customers.filter(customer => isEffectiveCustomer(customer) && customer.grade === "A类客户").length);
+      setText("statGradeB", customers.filter(customer => isEffectiveCustomer(customer) && customer.grade === "B类客户").length);
+      setText("statGradeC", customers.filter(customer => isEffectiveCustomer(customer) && customer.grade === "C类客户").length);
+      setText("statInvalidGrade", customers.filter(isDeadCustomer).length);
       renderCrmFunnelDashboard();
       renderStageFunnel();
       renderFollowTodos();
@@ -4392,6 +4624,7 @@
           title: "客户结构",
           items: [
             ["客户总数", stats.total],
+            ["有效客户", stats.effective],
             ["新线索", stats.newCount],
             ["A类", stats.gradeA],
             ["B类", stats.gradeB],
@@ -4443,6 +4676,7 @@
               <tr>
                 <th>销售</th>
                 <th>客户总数</th>
+                <th>有效客户</th>
                 <th>新线索</th>
                 <th>A类</th>
                 <th>B类</th>
@@ -4466,6 +4700,7 @@
                   <tr>
                     <td>${escapeHtml(name)}</td>
                     <td>${salesStats.total}</td>
+                    <td>${salesStats.effective}</td>
                     <td>${salesStats.newCount}</td>
                     <td>${salesStats.gradeA}</td>
                     <td>${salesStats.gradeB}</td>
@@ -4508,19 +4743,21 @@
     }
 
     function getCrmFunnelStats(list) {
+      const effectiveList = list.filter(isEffectiveCustomer);
       return {
         total: list.length,
-        newCount: list.filter(customer => customer.status === "新线索").length,
-        gradeA: list.filter(customer => customer.grade === "A类客户").length,
-        gradeB: list.filter(customer => customer.grade === "B类客户").length,
-        gradeC: list.filter(customer => customer.grade === "C类客户").length,
-        contacted: list.filter(customer => customer.status === "已联系").length,
-        visited: list.filter(customer => customer.status === "已进店").length,
-        measured: list.filter(isMeasuredCustomer).length,
-        quoted: list.filter(customer => customer.status === "已报价").length,
+        effective: effectiveList.length,
+        newCount: effectiveList.filter(customer => customer.status === "新线索").length,
+        gradeA: effectiveList.filter(customer => customer.grade === "A类客户").length,
+        gradeB: effectiveList.filter(customer => customer.grade === "B类客户").length,
+        gradeC: effectiveList.filter(customer => customer.grade === "C类客户").length,
+        contacted: effectiveList.filter(customer => customer.status === "已联系").length,
+        visited: effectiveList.filter(customer => customer.status === "已进店").length,
+        measured: effectiveList.filter(isMeasuredCustomer).length,
+        quoted: effectiveList.filter(customer => customer.status === "已报价").length,
         signed: list.filter(customer => customer.status === "已签单").length,
-        sleeping: list.filter(customer => customer.status === "沉睡客户").length,
-        dead: list.filter(customer => customer.status === "死单").length,
+        sleeping: effectiveList.filter(customer => customer.status === "沉睡客户").length,
+        dead: list.filter(isDeadCustomer).length,
         visitCount: list.reduce((sum, customer) => sum + (Number(customer.visitCount) || 0), 0),
         quoteCount: list.reduce((sum, customer) => sum + (Number(customer.quoteCount) || 0), 0),
         todayFollow: list.filter(customer => getFollowState(customer) === "today").length,
@@ -4541,7 +4778,7 @@
       const today = getTodayString();
       return customers.filter(customer => {
         const date = normalizeDateValue(customer.nextFollowDate);
-        return date && date < today && !["已签单", "死单"].includes(customer.status);
+        return date && date < today && isFollowableCustomer(customer);
       });
     }
 
@@ -4781,7 +5018,7 @@
     function getFollowState(customer) {
       const nextFollowDate = normalizeDateValue(customer.nextFollowDate);
 
-      if (!nextFollowDate || TERMINAL_STATUSES.includes(customer.status)) {
+      if (!nextFollowDate || !isFollowableCustomer(customer)) {
         return "none";
       }
 
