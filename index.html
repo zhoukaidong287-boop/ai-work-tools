@@ -334,6 +334,51 @@
       margin-top: 22px;
     }
 
+    .data-safety-center {
+      background:
+        radial-gradient(circle at 92% 10%, rgba(18, 148, 90, 0.16), transparent 32%),
+        linear-gradient(135deg, #f8fbff 0%, #eefdf5 50%, #ffffff 100%);
+      border: 1px solid rgba(18, 148, 90, 0.22);
+      border-radius: 20px;
+      box-shadow: 0 14px 34px rgba(18, 148, 90, 0.1);
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      margin: 0 0 22px;
+      padding: 22px;
+    }
+
+    .data-safety-center h2 {
+      font-size: 22px;
+      margin: 0;
+    }
+
+    .data-safety-center p {
+      color: var(--muted);
+      line-height: 1.75;
+      margin-top: 9px;
+    }
+
+    .data-safety-actions {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .backup-tip {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
     a,
     button {
       align-items: center;
@@ -367,6 +412,11 @@
     .btn-soon {
       background: #f1f5f9;
       color: #64748b;
+    }
+
+    .btn-green {
+      background: #12945a;
+      color: #fff;
     }
 
     footer {
@@ -407,6 +457,15 @@
       .quick-entry {
         grid-template-columns: 1fr;
         padding: 18px;
+      }
+
+      .data-safety-center {
+        grid-template-columns: 1fr;
+        padding: 18px;
+      }
+
+      .data-safety-actions {
+        justify-content: flex-start;
       }
 
       .quick-entry-action {
@@ -477,6 +536,19 @@
             <p>晚上整理今日动作和明日计划，生成日报/周报，用于飞书、微信和工作汇报。</p>
             <a class="btn-primary" href="report.html">生成工作日报</a>
           </article>
+        </div>
+      </section>
+
+      <section class="data-safety-center">
+        <div>
+          <h2>数据安全中心</h2>
+          <p>当前系统数据保存在本机浏览器中，建议每天收工前导出一次全部数据备份，避免换电脑、清缓存或浏览器异常导致数据找不到。</p>
+          <div id="backupTip" class="backup-tip"></div>
+        </div>
+        <div class="data-safety-actions">
+          <button class="btn-green" type="button" onclick="exportAllDataBackup()">导出全部数据备份</button>
+          <button class="btn-primary" type="button" onclick="triggerImportAllDataBackup()">导入全部数据备份</button>
+          <input id="backupFileInput" class="hidden" type="file" accept="application/json,.json" onchange="importAllDataBackup(event)" />
         </div>
       </section>
 
@@ -589,5 +661,111 @@
   <footer>
     当前工具库为个人点将工作辅助入口，已上线工具的数据仍保存在当前设备浏览器中。后续模块上线后可继续补充投流、周报和阶段交付能力。
   </footer>
+
+  <script>
+    function setBackupTip(message, isError = false) {
+      const tip = document.getElementById("backupTip");
+
+      if (!tip) {
+        return;
+      }
+
+      tip.style.color = isError ? "#d04444" : "#12945a";
+      tip.innerText = message || "";
+    }
+
+    function formatBackupTimestamp() {
+      const now = new Date();
+      const pad = value => String(value).padStart(2, "0");
+
+      return [
+        now.getFullYear(),
+        pad(now.getMonth() + 1),
+        pad(now.getDate())
+      ].join("-") + "-" + [pad(now.getHours()), pad(now.getMinutes())].join("-");
+    }
+
+    function exportAllDataBackup() {
+      const storage = {};
+
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+
+        if (key) {
+          storage[key] = localStorage.getItem(key);
+        }
+      }
+
+      const backup = {
+        app: "ai-work-tools",
+        version: "backup-v1",
+        backupTime: new Date().toISOString(),
+        note: "该文件为 ai-work-tools 本机浏览器 localStorage 数据备份。",
+        localStorage: storage
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = `ai-work-tools-backup-${formatBackupTimestamp()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setBackupTip("全部数据备份已导出，请妥善保存该 JSON 文件。");
+    }
+
+    function triggerImportAllDataBackup() {
+      const input = document.getElementById("backupFileInput");
+
+      if (input) {
+        input.value = "";
+        input.click();
+      }
+    }
+
+    function importAllDataBackup(event) {
+      const file = event.target.files && event.target.files[0];
+
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || ""));
+          const storage = parsed && parsed.localStorage;
+
+          if (!storage || typeof storage !== "object" || Array.isArray(storage)) {
+            throw new Error("invalid backup");
+          }
+
+          const confirmed = confirm("确认导入备份数据吗？导入后将覆盖当前浏览器中的同名数据。建议先导出当前数据备份后再导入。");
+
+          if (!confirmed) {
+            setBackupTip("已取消导入，当前数据未被覆盖。");
+            return;
+          }
+
+          Object.entries(storage).forEach(([key, value]) => {
+            localStorage.setItem(key, String(value));
+          });
+          setBackupTip("数据备份已恢复，请刷新页面查看。");
+        } catch (error) {
+          console.error("备份导入失败", error);
+          setBackupTip("导入失败，请检查备份文件格式。", true);
+        }
+      };
+
+      reader.onerror = () => {
+        setBackupTip("导入失败，请检查备份文件格式。", true);
+      };
+
+      reader.readAsText(file);
+    }
+  </script>
 </body>
 </html>

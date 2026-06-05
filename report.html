@@ -283,6 +283,23 @@
       margin-top: 8px;
     }
 
+    .data-read-panel {
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      margin-top: 16px;
+      padding: 16px;
+    }
+
+    .data-read-panel h3 {
+      margin-bottom: 8px;
+    }
+
+    .data-summary-output {
+      background: #ffffff;
+      min-height: 180px;
+    }
+
     .hidden { display: none; }
 
     @media (max-width: 980px) {
@@ -350,6 +367,21 @@
       </div>
       <h3 style="margin:18px 0 10px;">今日工作动作</h3>
       <div id="dailyActions" class="check-grid"></div>
+      <div class="data-read-panel">
+        <h3>客户池与 CRM 数据摘要</h3>
+        <p class="section-note">可从客户池复盘草稿/历史和 CRM 客户台账读取今日数据，生成日报素材，不会修改客户数据。</p>
+        <div class="form-grid" style="margin-top:14px;">
+          <div class="full">
+            <label for="dailyDataSummary">读取结果</label>
+            <textarea id="dailyDataSummary" class="data-summary-output" readonly placeholder="点击“读取今日客户池与CRM数据”后，会在这里生成日报可用摘要。"></textarea>
+            <div id="dailyDataTip" class="copy-tip"></div>
+          </div>
+        </div>
+        <div class="button-row">
+          <button class="btn-blue" onclick="readTodayCustomerPoolAndCrmData()">读取今日客户池与CRM数据</button>
+          <button class="btn-green" onclick="copyOutput('dailyDataSummary', 'dailyDataTip', '数据摘要已复制')">复制摘要</button>
+        </div>
+      </div>
       <div class="form-grid" style="margin-top:16px;">
         <div class="wide"><label for="dailyWorkSummary">今日重点工作简述</label><textarea id="dailyWorkSummary" placeholder="今天重点做了什么，优先按你的原话润色"></textarea></div>
         <div class="wide"><label for="dailyTomorrow">明日工作计划</label><textarea id="dailyTomorrow" placeholder="明天准备推进什么"></textarea></div>
@@ -436,6 +468,10 @@
     const REPORT_STORAGE_KEY = "pointReportRecords";
     const REPORT_BASE_KEY = "pointReportBaseInfo";
     const PROJECT_STORAGE_KEY = "pointProjectInfo";
+    const CUSTOMER_REVIEW_DRAFT_KEY = "customerReviewDraft";
+    const CUSTOMER_REVIEW_RECORDS_KEY = "customerReviewRecords";
+    const CRM_CUSTOMERS_KEY = "decorationStoreCrmCustomers";
+    const CRM_OLD_CUSTOMERS_KEY = "customers";
     const DAILY_ACTIONS = [
       "客户跟进", "客户信息复盘", "量房推进", "方案沟通", "报价沟通", "签单转化",
       "经纪人渠道沟通", "新媒体文案输出", "短视频脚本输出", "视频拍摄", "视频剪辑",
@@ -591,6 +627,213 @@
       return lines.join("\n");
     }
 
+    function safeParseStorage(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (error) {
+        console.error(`${key} 读取失败`, error);
+        return fallback;
+      }
+    }
+
+    function normalizeDate(value) {
+      if (!value) return "";
+      const text = String(value).trim();
+      const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+      const date = new Date(text);
+      if (Number.isNaN(date.getTime())) return "";
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function getCustomerReviewSource() {
+      const draft = safeParseStorage(CUSTOMER_REVIEW_DRAFT_KEY, null);
+      if (draft) {
+        return {
+          type: "客户池复盘草稿",
+          data: draft
+        };
+      }
+
+      const records = safeParseStorage(CUSTOMER_REVIEW_RECORDS_KEY, []);
+      const latest = Array.isArray(records)
+        ? records.slice().sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))[0]
+        : null;
+      return latest ? { type: "最近客户池复盘历史", data: latest } : null;
+    }
+
+    function normalizeReviewSummary(summary = {}) {
+      return {
+        salesCount: Number(summary.salesCount || 0),
+        totalCustomers: Number(summary.totalCustomers || 0),
+        newCustomers: Number(summary.newCustomers || 0),
+        gradeA: Number(summary.gradeA || 0),
+        gradeB: Number(summary.gradeB || 0),
+        gradeC: Number(summary.gradeC || 0),
+        dead: Number(summary.dead || 0),
+        measured: Number(summary.measured || 0),
+        quoted: Number(summary.quoted || 0),
+        signed: Number(summary.signed || 0),
+        needFollow: Number(summary.needFollow || 0),
+        sleeping: Number(summary.sleeping || 0)
+      };
+    }
+
+    function buildSummaryFromSalesReviews(reviews = []) {
+      return reviews.reduce((summary, item) => {
+        summary.salesCount += 1;
+        summary.totalCustomers += Number(item.totalCustomers || 0);
+        summary.newCustomers += Number(item.newCustomers || 0);
+        summary.gradeA += Number(item.gradeA || 0);
+        summary.gradeB += Number(item.gradeB || 0);
+        summary.gradeC += Number(item.gradeC || 0);
+        summary.dead += Number(item.dead || 0);
+        summary.measured += Number(item.measured || 0);
+        summary.quoted += Number(item.quoted || 0);
+        summary.signed += Number(item.signed || 0);
+        summary.needFollow += Number(item.needFollow || 0);
+        summary.sleeping += Number(item.sleeping || 0);
+        return summary;
+      }, normalizeReviewSummary());
+    }
+
+    function getReviewSummary(data = {}) {
+      if (data.salesReviewSummary) {
+        return normalizeReviewSummary(data.salesReviewSummary);
+      }
+      if (Array.isArray(data.salesReviews) && data.salesReviews.length) {
+        return buildSummaryFromSalesReviews(data.salesReviews);
+      }
+      const base = data.baseInfo || {};
+      const stage = data.stageStats || {};
+      return {
+        ...normalizeReviewSummary(),
+        salesCount: Number(base.salesCount || 0),
+        totalCustomers: Number(base.totalCustomers || 0),
+        newCustomers: Number(stage.new || 0),
+        measured: Number(stage.measured || 0),
+        quoted: Number(stage.quoted || 0),
+        signed: Number(stage.signed || 0),
+        sleeping: Number(stage.sleeping || 0)
+      };
+    }
+
+    function getSalesReviewHighlights(reviews = []) {
+      if (!Array.isArray(reviews) || !reviews.length) return [];
+      const sortedByNeed = reviews
+        .slice()
+        .sort((a, b) => Number(b.needFollow || 0) - Number(a.needFollow || 0))
+        .slice(0, 3)
+        .map(item => `${item.salesName || "未填写销售"}待跟进${Number(item.needFollow || 0)}组、新线索${Number(item.newCustomers || 0)}组`);
+      return sortedByNeed;
+    }
+
+    function loadCrmCustomersForReport() {
+      const saved = localStorage.getItem(CRM_CUSTOMERS_KEY) || localStorage.getItem(CRM_OLD_CUSTOMERS_KEY);
+      if (!saved) return [];
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.error("CRM客户数据读取失败", error);
+        return [];
+      }
+    }
+
+    function getCrmFollowState(customer) {
+      const date = normalizeDate(customer.nextFollowDate);
+      if (!date || ["已签单", "死单"].includes(customer.status)) return "none";
+      const current = today();
+      if (date < current) return "overdue";
+      if (date === current) return "today";
+      return "future";
+    }
+
+    function getCrmDataStats(customers) {
+      const stats = {
+        total: customers.length,
+        gradeA: 0,
+        gradeB: 0,
+        gradeC: 0,
+        deadGrade: 0,
+        newCustomers: 0,
+        measured: 0,
+        quoted: 0,
+        signed: 0,
+        sleeping: 0,
+        dead: 0,
+        todayFollow: 0,
+        overdue: 0,
+        topCustomers: []
+      };
+      customers.forEach(customer => {
+        if (customer.grade === "A类客户") stats.gradeA += 1;
+        if (customer.grade === "B类客户") stats.gradeB += 1;
+        if (customer.grade === "C类客户") stats.gradeC += 1;
+        if (customer.grade === "死单" || customer.grade === "无效客户") stats.deadGrade += 1;
+        if (customer.status === "新线索") stats.newCustomers += 1;
+        if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是") stats.measured += 1;
+        if (["已报价", "已交定金", "已签单"].includes(customer.status)) stats.quoted += 1;
+        if (customer.status === "已签单") stats.signed += 1;
+        if (customer.status === "沉睡客户") stats.sleeping += 1;
+        if (customer.status === "死单") stats.dead += 1;
+        const followState = getCrmFollowState(customer);
+        if (followState === "today") stats.todayFollow += 1;
+        if (followState === "overdue") stats.overdue += 1;
+      });
+      stats.topCustomers = customers
+        .filter(customer => customer.grade === "A类客户" || getCrmFollowState(customer) === "today" || getCrmFollowState(customer) === "overdue")
+        .slice(0, 6)
+        .map(customer => `${customer.name || "未填写客户"}（${customer.owner || "未填写销售"}｜${customer.grade || "-"}｜${customer.status || "-"}）`);
+      return stats;
+    }
+
+    function readTodayCustomerPoolAndCrmData() {
+      const reviewSource = getCustomerReviewSource();
+      const customers = loadCrmCustomersForReport();
+      const crmStats = getCrmDataStats(customers);
+
+      if (!reviewSource && !customers.length) {
+        setValue("dailyDataSummary", "暂未读取到客户池复盘或CRM数据，请先完成客户池复盘或录入CRM客户。");
+        setText("dailyDataTip", "暂无可读取数据");
+        return;
+      }
+
+      const reviewSummary = reviewSource ? getReviewSummary(reviewSource.data) : normalizeReviewSummary();
+      const reviewBase = reviewSource ? (reviewSource.data.baseInfo || {}) : {};
+      const salesHighlights = reviewSource ? getSalesReviewHighlights(reviewSource.data.salesReviews || []) : [];
+      const lines = [
+        "【今日客户池与CRM数据摘要】",
+        reviewSource ? `客户池数据来源：${reviewSource.type}${reviewBase.mall ? `（${reviewBase.mall}）` : ""}` : "客户池数据来源：暂未读取到客户池复盘数据",
+        reviewSource
+          ? `客户池复盘：销售${reviewSummary.salesCount || 0}人，客户总数${reviewSummary.totalCustomers || 0}组，新线索${reviewSummary.newCustomers || 0}组，A/B/C类客户${reviewSummary.gradeA || 0}/${reviewSummary.gradeB || 0}/${reviewSummary.gradeC || 0}组，已量房${reviewSummary.measured || 0}组，已报价${reviewSummary.quoted || 0}组，已签单${reviewSummary.signed || 0}组，待跟进${reviewSummary.needFollow || 0}组，沉睡${reviewSummary.sleeping || 0}组。`
+          : "客户池复盘：暂无客户池复盘草稿或历史记录。",
+        customers.length
+          ? `CRM台账：当前已登记客户${crmStats.total}组，新线索${crmStats.newCustomers}组，A/B/C类客户${crmStats.gradeA}/${crmStats.gradeB}/${crmStats.gradeC}组，已量房${crmStats.measured}组，已报价${crmStats.quoted}组，已签单${crmStats.signed}组，沉睡${crmStats.sleeping}组，死单${crmStats.dead}组。`
+          : "CRM台账：暂无已登记客户数据。",
+        customers.length
+          ? `跟进提醒：今日待跟进${crmStats.todayFollow}组，逾期未跟进${crmStats.overdue}组。`
+          : "跟进提醒：暂无CRM客户，无法统计今日待跟进和逾期未跟进。",
+        salesHighlights.length
+          ? `重点销售提醒：${salesHighlights.join("；")}。`
+          : "重点销售提醒：暂无销售个人复盘明细可归纳。",
+        crmStats.topCustomers.length
+          ? `重点客户提醒：${crmStats.topCustomers.join("；")}。`
+          : "重点客户提醒：暂无A类、今日待跟进或逾期客户记录。",
+        "明日重点动作建议：优先按销售复盘新线索、A/B/C类客户和待跟进客户，推动今日待跟进与逾期客户及时触达；已量房、已报价客户进入复盘节奏，明确方案、报价、成交阻力和下一步负责人。"
+      ];
+
+      setValue("dailyDataSummary", lines.join("\n"));
+      setText("dailyDataTip", "已读取客户池与CRM数据");
+    }
+
+    function buildDailyDataWorkText(summary) {
+      const text = String(summary || "").trim();
+      if (!text || text === "暂未读取到客户池复盘或CRM数据，请先完成客户池复盘或录入CRM客户。") return "";
+      return `今日同步读取客户池复盘和CRM客户台账数据，结合销售个人客户池、A/B/C类客户结构、已量房/已报价客户、今日待跟进与逾期客户情况，为当日客户推进和明日重点动作提供数据依据。\n${text}`;
+    }
+
     function buildTomorrowPlan(actions, manualPlan) {
       const manual = polish(manualPlan);
       if (manual) return manual;
@@ -613,6 +856,8 @@
       const workSummary = getValue("dailyWorkSummary");
       const tomorrow = buildTomorrowPlan(actions, getValue("dailyTomorrow"));
       const workText = buildDailyWork(actions, workSummary);
+      const dailyDataWork = buildDailyDataWorkText(getValue("dailyDataSummary"));
+      const finalWorkText = dailyDataWork ? `${workText}\n\n${dailyDataWork}` : workText;
       const report = [
         "【主动营销工作日报】",
         "",
@@ -638,7 +883,7 @@
         getValue("dailyTotalSign") || "0",
         "",
         "8. 今日重点工作",
-        workText,
+        finalWorkText,
         "",
         "9. 明日工作计划",
         tomorrow
@@ -665,7 +910,11 @@
         totalSign: num("dailyTotalSign"),
         actions,
         workSummary: getValue("dailyWorkSummary"),
-        workText: buildDailyWork(actions, getValue("dailyWorkSummary")),
+        dataSummary: getValue("dailyDataSummary"),
+        workText: [
+          buildDailyWork(actions, getValue("dailyWorkSummary")),
+          buildDailyDataWorkText(getValue("dailyDataSummary"))
+        ].filter(Boolean).join("\n\n"),
         tomorrowPlan,
         content,
         project: base.mall,

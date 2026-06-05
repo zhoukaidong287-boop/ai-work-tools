@@ -831,6 +831,68 @@
       margin-top: 16px;
     }
 
+    .funnel-dashboard {
+      display: grid;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .funnel-group {
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .funnel-group h4 {
+      color: #172554;
+      font-size: 15px;
+      margin: 0 0 12px;
+    }
+
+    .funnel-group-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .funnel-alerts {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .funnel-alert {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 14px;
+      color: #9a3412;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.6;
+      padding: 11px 12px;
+    }
+
+    .sales-funnel-table {
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+
+    .sales-funnel-table table {
+      min-width: 1080px;
+      width: 100%;
+    }
+
+    .funnel-follow-section {
+      margin-top: 20px;
+    }
+
+    .funnel-follow-section h3 {
+      margin-top: 0;
+    }
+
     .todo-list {
       display: grid;
       gap: 10px;
@@ -1483,7 +1545,7 @@
 
   <main>
 
-    <section class="card module-card" id="funnel">
+    <section class="card module-card" id="dashboard">
       <div class="section-head">
         <div>
           <h2>数据看板区</h2>
@@ -1584,20 +1646,30 @@
       <div class="todo-list" id="followTodoList"></div>
     </section>
 
-    <section class="card module-card">
+    <section class="card module-card" id="funnel">
       <div class="section-head">
         <div>
-          <h2>客户来源 / 阶段漏斗区</h2>
-          <p class="section-note">查看线索来源分布和客户阶段推进情况。</p>
+          <h2>客户漏斗看板</h2>
+          <p class="section-note">点击首页“查看客户漏斗”会直接定位到这里。重点查看全店客户漏斗、今日需要跟进客户和逾期未跟进客户。</p>
         </div>
       </div>
-      <h3>客户阶段漏斗</h3>
-      <p class="section-note">按客户状态展示各阶段数量，并计算关键转化率。</p>
-      <h3 style="margin-top:18px;">客户漏斗看板</h3>
-      <p class="section-note">全店统计与正式销售客户池概况，辅助判断明天重点盯哪个销售、推进哪个阶段。</p>
-      <div class="mini-stat-grid" id="crmFunnelStats"></div>
-      <div class="source-stats" id="salesFunnelStats"></div>
+      <h3>全店客户漏斗</h3>
+      <p class="section-note">客户阶段表示客户当前最高推进阶段；进店次数、报价次数是动作累计，旧客户缺少字段时默认按 0 或阶段兼容统计。</p>
+      <div class="funnel-dashboard" id="crmFunnelStats"></div>
+      <h3 style="margin-top:20px;">按销售统计客户漏斗</h3>
+      <p class="section-note">未填写所属销售的客户会归入“未分配销售”。</p>
+      <div id="salesFunnelStats"></div>
       <div class="compact-help" id="funnelJudgeTips"></div>
+      <div class="funnel-follow-section">
+        <h3>今日需要跟进客户</h3>
+        <p class="section-note">下次跟进时间等于今天的客户会显示在这里。</p>
+        <div class="todo-list" id="funnelTodayList"></div>
+      </div>
+      <div class="funnel-follow-section">
+        <h3>逾期未跟进客户</h3>
+        <p class="section-note">如果逾期未跟进客户较多，说明销售跟进节奏存在风险，需要优先复盘责任人和下一步动作。</p>
+        <div class="todo-list" id="funnelOverdueList"></div>
+      </div>
       <h3 style="margin-top:18px;">阶段推进条</h3>
       <div class="funnel-panel" id="stageFunnel"></div>
       <div class="funnel-rates">
@@ -4314,56 +4386,257 @@
       const tipsBox = document.getElementById("funnelJudgeTips");
       if (!statsBox || !salesBox || !tipsBox) return;
 
-      const statItems = [
-        ["客户总数", customers.length],
-        ["新线索", countByStatus("新线索")],
-        ["A类客户", customers.filter(c => c.grade === "A类客户").length],
-        ["B类客户", customers.filter(c => c.grade === "B类客户").length],
-        ["C类客户", customers.filter(c => c.grade === "C类客户").length],
-        ["已联系", countByStatus("已联系")],
-        ["已进店", countByStatus("已进店")],
-        ["已量房", customers.filter(c => c.measuredStatus === "是" || c.status === "已量房").length],
-        ["已报价", countByStatus("已报价")],
-        ["已签单", countByStatus("已签单")],
-        ["沉睡客户", countByStatus("沉睡客户")],
-        ["死单", countByStatus("死单")],
-        ["进店总次数", customers.reduce((sum, c) => sum + (Number(c.visitCount) || 0), 0)],
-        ["报价总次数", customers.reduce((sum, c) => sum + (Number(c.quoteCount) || 0), 0)]
+      const stats = getCrmFunnelStats(customers);
+      const groups = [
+        {
+          title: "客户结构",
+          items: [
+            ["客户总数", stats.total],
+            ["新线索", stats.newCount],
+            ["A类", stats.gradeA],
+            ["B类", stats.gradeB],
+            ["C类", stats.gradeC]
+          ]
+        },
+        {
+          title: "推进阶段",
+          items: [
+            ["已联系", stats.contacted],
+            ["已进店", stats.visited],
+            ["已量房", stats.measured],
+            ["已报价", stats.quoted],
+            ["已签单", stats.signed]
+          ]
+        },
+        {
+          title: "风险状态",
+          items: [
+            ["沉睡客户", stats.sleeping],
+            ["死单", stats.dead]
+          ]
+        },
+        {
+          title: "动作量",
+          items: [
+            ["进店总次数", stats.visitCount],
+            ["报价总次数", stats.quoteCount]
+          ]
+        }
       ];
 
-      statsBox.innerHTML = statItems.map(([label, value]) => `
-        <div class="mini-stat"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>
+      statsBox.innerHTML = groups.map(group => `
+        <section class="funnel-group">
+          <h4>${escapeHtml(group.title)}</h4>
+          <div class="funnel-group-grid">
+            ${group.items.map(([label, value]) => `
+              <div class="mini-stat"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>
+            `).join("")}
+          </div>
+        </section>
       `).join("");
 
-      salesBox.innerHTML = ZHONGWEI_SALES.map(name => {
-        const list = customers.filter(customer => customer.owner === name);
-        const count = (fn) => list.filter(fn).length;
-        return `
-          <div class="source-stat" style="display:block;">
-            <strong>${escapeHtml(name)}</strong>
-            <div class="subtle">总${list.length} · 新线索${count(c => c.status === "新线索")} · A/B/C ${count(c => c.grade === "A类客户")}/${count(c => c.grade === "B类客户")}/${count(c => c.grade === "C类客户")}</div>
-            <div class="subtle">量房${count(c => c.measuredStatus === "是" || c.status === "已量房")} · 报价${count(c => c.status === "已报价")} · 签单${count(c => c.status === "已签单")} · 沉睡${count(c => c.status === "沉睡客户")} · 死单${count(c => c.status === "死单")}</div>
-          </div>
-        `;
-      }).join("");
+      const salesNames = [...ZHONGWEI_SALES, "未分配销售"];
+      salesBox.innerHTML = `
+        <div class="sales-funnel-table">
+          <table>
+            <thead>
+              <tr>
+                <th>销售</th>
+                <th>客户总数</th>
+                <th>新线索</th>
+                <th>A类</th>
+                <th>B类</th>
+                <th>C类</th>
+                <th>已量房</th>
+                <th>已报价</th>
+                <th>已签单</th>
+                <th>今日待跟进</th>
+                <th>逾期未跟进</th>
+                <th>沉睡</th>
+                <th>死单</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${salesNames.map(name => {
+                const list = name === "未分配销售"
+                  ? customers.filter(customer => !String(customer.owner || "").trim())
+                  : customers.filter(customer => customer.owner === name);
+                const salesStats = getCrmFunnelStats(list);
+                return `
+                  <tr>
+                    <td>${escapeHtml(name)}</td>
+                    <td>${salesStats.total}</td>
+                    <td>${salesStats.newCount}</td>
+                    <td>${salesStats.gradeA}</td>
+                    <td>${salesStats.gradeB}</td>
+                    <td>${salesStats.gradeC}</td>
+                    <td>${salesStats.measured}</td>
+                    <td>${salesStats.quoted}</td>
+                    <td>${salesStats.signed}</td>
+                    <td>${salesStats.todayFollow}</td>
+                    <td>${salesStats.overdueFollow}</td>
+                    <td>${salesStats.sleeping}</td>
+                    <td>${salesStats.dead}</td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
 
       const gradeA = customers.filter(c => c.grade === "A类客户").length;
-      const gradeB = customers.filter(c => c.grade === "B类客户").length;
       const newCount = countByStatus("新线索");
       const quoted = countByStatus("已报价");
       const signed = countByStatus("已签单");
       const sleeping = countByStatus("沉睡客户");
+      const overdue = getOverdueFollowCustomers().length;
       const tips = [];
-      if (gradeA < Math.max(2, Math.ceil(customers.length * 0.08))) tips.push("A类客户少：高意向客户不足，需要从B类中筛选推进。");
-      if (quoted > signed && quoted >= 2) tips.push("已报价多但签单少：报价后成交转化弱，需要复盘报价卡点。");
-      if (newCount > gradeA * 2 && newCount >= 3) tips.push("新线索多但A类少：新线索质量或首次沟通分级不足。");
-      if (sleeping >= 3) tips.push("沉睡客户多：需要整理复洗名单并明确负责人。");
+      if (gradeA < 5) tips.push("A类客户不足，短期签单支撑不够，需要从B类客户中筛选可推进对象。");
+      if (quoted > 0 && signed === 0) tips.push("报价后成交转化偏弱，需要复盘报价卡点、预算差距、方案认可度和决策人情况。");
+      if (newCount > gradeA * 2 && newCount >= 3) tips.push("新线索分级和首次沟通质量需要提升。");
+      if (overdue > 0) tips.push("存在跟进断档风险，需要当天完成复盘和补跟进。");
+      if (sleeping >= 3) tips.push("沉睡客户需要复洗，可通过朋友圈案例、活动政策、电话回访重新触达。");
       if (!tips.length) tips.push("当前漏斗暂无明显异常，继续保持客户跟进节奏并关注A类推进。");
-      tipsBox.innerHTML = `<strong>漏斗判断提示：</strong>${tips.map(item => `<div>${escapeHtml(item)}</div>`).join("")}`;
+      tipsBox.innerHTML = `
+        <strong>漏斗判断提示：</strong>
+        <div class="funnel-alerts">
+          ${tips.map(item => `<div class="funnel-alert">${escapeHtml(item)}</div>`).join("")}
+        </div>
+      `;
+      renderFunnelFollowLists();
+    }
+
+    function getCrmFunnelStats(list) {
+      return {
+        total: list.length,
+        newCount: list.filter(customer => customer.status === "新线索").length,
+        gradeA: list.filter(customer => customer.grade === "A类客户").length,
+        gradeB: list.filter(customer => customer.grade === "B类客户").length,
+        gradeC: list.filter(customer => customer.grade === "C类客户").length,
+        contacted: list.filter(customer => customer.status === "已联系").length,
+        visited: list.filter(customer => customer.status === "已进店").length,
+        measured: list.filter(isMeasuredCustomer).length,
+        quoted: list.filter(customer => customer.status === "已报价").length,
+        signed: list.filter(customer => customer.status === "已签单").length,
+        sleeping: list.filter(customer => customer.status === "沉睡客户").length,
+        dead: list.filter(customer => customer.status === "死单").length,
+        visitCount: list.reduce((sum, customer) => sum + (Number(customer.visitCount) || 0), 0),
+        quoteCount: list.reduce((sum, customer) => sum + (Number(customer.quoteCount) || 0), 0),
+        todayFollow: list.filter(customer => getFollowState(customer) === "today").length,
+        overdueFollow: list.filter(customer => getFollowState(customer) === "overdue").length
+      };
+    }
+
+    function isMeasuredCustomer(customer) {
+      const measuredStages = ["已量房", "已出方案", "已报价", "已交定金", "已签单"];
+      return customer.measuredStatus === "是" || measuredStages.includes(customer.status);
+    }
+
+    function getTodayFollowCustomers() {
+      return customers.filter(customer => getFollowState(customer) === "today");
+    }
+
+    function getOverdueFollowCustomers() {
+      const today = getTodayString();
+      return customers.filter(customer => {
+        const date = normalizeDateValue(customer.nextFollowDate);
+        return date && date < today && !["已签单", "死单"].includes(customer.status);
+      });
+    }
+
+    function getOverdueDays(customer) {
+      const date = normalizeDateValue(customer.nextFollowDate);
+
+      if (!date) {
+        return 0;
+      }
+
+      const todayTime = new Date(getTodayString()).getTime();
+      const followTime = new Date(date).getTime();
+
+      if (Number.isNaN(todayTime) || Number.isNaN(followTime)) {
+        return 0;
+      }
+
+      return Math.max(0, Math.round((todayTime - followTime) / 86400000));
+    }
+
+    function renderFunnelFollowLists() {
+      renderFunnelCustomerCards("funnelTodayList", getTodayFollowCustomers(), "today");
+      renderFunnelCustomerCards("funnelOverdueList", getOverdueFollowCustomers(), "overdue");
+    }
+
+    function renderFunnelCustomerCards(containerId, list, type) {
+      const box = document.getElementById(containerId);
+
+      if (!box) {
+        return;
+      }
+
+      if (!list.length) {
+        box.innerHTML = `<div class="empty-tip">${type === "today" ? "今日暂无需要跟进客户。" : "暂无逾期未跟进客户。"}</div>`;
+        return;
+      }
+
+      const sorted = list.slice().sort((a, b) => {
+        if (type === "overdue") {
+          return getOverdueDays(b) - getOverdueDays(a);
+        }
+
+        const gradeWeight = { "A类客户": 0, "B类客户": 1, "C类客户": 2, "死单": 3 };
+        return (gradeWeight[a.grade] ?? 9) - (gradeWeight[b.grade] ?? 9);
+      });
+
+      box.innerHTML = sorted.map(customer => {
+        const extra = type === "overdue"
+          ? `<div class="todo-meta">逾期天数：${escapeHtml(getOverdueDays(customer))}天</div>`
+          : `<div class="todo-meta">下次跟进：${escapeHtml(customer.nextFollowDate || "-")}</div>`;
+
+        return `
+          <div class="todo-card" onclick="openCustomerDetail('${customer.id}')">
+            <div>
+              <div class="todo-title">${escapeHtml(customer.name || "-")}</div>
+              <div class="todo-meta">${escapeHtml(customer.phone || "-")}</div>
+              <div class="todo-meta">${escapeHtml(customer.community || "-")}</div>
+            </div>
+            <div>
+              <div>${renderGradeTag(customer.grade)}</div>
+              <div style="margin-top:6px;">${renderStatusTags(customer, getFollowState(customer))}</div>
+              <div class="todo-meta">所属销售：${escapeHtml(customer.owner || "未分配")}</div>
+              ${extra}
+            </div>
+            <div>
+              <div class="todo-meta">当前卡点</div>
+              <div>${escapeHtml(customer.blockReason || "-")}</div>
+              <div class="todo-meta" style="margin-top:6px;">下一步动作</div>
+              <div>${escapeHtml(customer.nextAction || "-")}</div>
+            </div>
+            <div class="todo-actions">
+              <button class="btn-blue btn-small" onclick="event.stopPropagation(); openCustomerDetail('${customer.id}')">查看详情</button>
+              <button class="btn-green btn-small" onclick="event.stopPropagation(); openFollowForm('${customer.id}')">编辑跟进</button>
+            </div>
+          </div>
+        `;
+      }).join("");
     }
 
     function focusCustomerForm() {
       scrollToCustomerForm();
+    }
+
+    function handleInitialHashNavigation() {
+      if (window.location.hash !== "#funnel") {
+        return;
+      }
+
+      setTimeout(() => {
+        const funnel = document.getElementById("funnel");
+
+        if (funnel) {
+          funnel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 280);
     }
 
     function renderStageFunnel() {
@@ -4697,6 +4970,7 @@
     toggleLayoutOther();
     initPresetSales();
     renderCustomers();
+    handleInitialHashNavigation();
   </script>
 </body>
 </html>
