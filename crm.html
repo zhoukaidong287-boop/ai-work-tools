@@ -1258,10 +1258,29 @@
       word-break: break-word;
     }
 
+    .timeline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
     .follow-form {
       border-top: 1px solid #e5e9ef;
       margin-top: 16px;
       padding-top: 16px;
+    }
+
+    .follow-edit-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      color: #1e3a8a;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.6;
+      margin-top: 10px;
+      padding: 10px 12px;
     }
 
     .hidden {
@@ -2498,6 +2517,7 @@
     let detailModalCustomerId = "";
     let deadCustomerTargetId = "";
     let restoreCustomerTargetId = "";
+    let editingFollowRecord = null;
     let currentDisplayCustomers = [];
     let projectInfo = loadProjectInfo();
     let preJudgeRecords = loadPreJudgeRecords();
@@ -2652,6 +2672,11 @@
         content: record.content || "",
         nextFollowDate: normalizeDateValue(record.nextFollowDate),
         owner: record.owner || "",
+        status: STATUS_MAP[record.status] || record.status || "",
+        grade: GRADE_MAP[record.grade] || record.grade || "",
+        blockReason: record.blockReason || record.lossReason || "",
+        nextAction: record.nextAction || "",
+        need: record.need || record.note || "",
         createdAt: normalizeDateTimeValue(record.createdAt) || normalizeDateTimeValue(record.followTime) || now
       };
     }
@@ -3018,22 +3043,58 @@
       return `${dateText}${tag}`;
     }
 
+    function renderFollowRecordItem(customer, record) {
+      const detailParts = [
+        record.status ? `阶段：${record.status}` : "",
+        record.grade ? `等级：${record.grade}` : "",
+        record.blockReason ? `卡点：${record.blockReason}` : "",
+        record.nextAction ? `下一步：${record.nextAction}` : "",
+        record.need ? `备注：${record.need}` : ""
+      ].filter(Boolean);
+
+      return `
+        <div class="timeline-item">
+          <div class="timeline-meta">
+            <span>${escapeHtml(formatDateTime(record.followTime))}</span>
+            <span>${escapeHtml(record.method || "-")}</span>
+            <span>跟进人：${escapeHtml(record.owner || "-")}</span>
+            <span>下次：${escapeHtml(record.nextFollowDate || "-")}</span>
+          </div>
+          <div class="timeline-content">${escapeHtml(record.content || "-")}</div>
+          ${detailParts.length ? `<div class="timeline-content subtle">${escapeHtml(detailParts.join("｜"))}</div>` : ""}
+          <div class="timeline-actions">
+            <button class="btn-blue btn-small" onclick="editFollowRecord('${customer.id}', '${record.id}')">编辑</button>
+            <button class="btn-red btn-small" onclick="deleteFollowRecord('${customer.id}', '${record.id}')">删除</button>
+          </div>
+        </div>
+      `;
+    }
+
     function renderDetailPanel(customer) {
+      const isEditingFollow = editingFollowRecord && editingFollowRecord.customerId === customer.id;
+      const editingRecord = isEditingFollow
+        ? customer.followRecords.find(record => record.id === editingFollowRecord.recordId)
+        : null;
+      const formTitle = editingRecord ? "编辑跟进记录" : "添加跟进记录";
+      const formButtonText = editingRecord ? "保存跟进修改" : "保存跟进并更新下次时间";
+      const formAction = editingRecord ? `saveFollowRecordEdit('${customer.id}')` : `addFollowRecord('${customer.id}')`;
+      const formFollowTime = editingRecord
+        ? toDatetimeLocalString(editingRecord.followTime)
+        : toDatetimeLocalValue(new Date());
+      const formMethod = editingRecord ? (editingRecord.method || "电话") : "电话";
+      const formOwner = editingRecord ? (editingRecord.owner || "") : (customer.owner || "");
+      const formNext = editingRecord ? normalizeDateValue(editingRecord.nextFollowDate) : (customer.nextFollowDate || "");
+      const formStatus = editingRecord ? (editingRecord.status || "") : customer.status;
+      const formGrade = editingRecord ? (editingRecord.grade || "") : customer.grade;
+      const formBlockReason = editingRecord ? (editingRecord.blockReason || "") : (customer.blockReason || "");
+      const formNextAction = editingRecord ? (editingRecord.nextAction || "") : (customer.nextAction || "");
+      const formNeed = editingRecord ? (editingRecord.need || "") : (customer.need || "");
+      const formContent = editingRecord ? (editingRecord.content || "") : "";
       const records = customer.followRecords.length
         ? customer.followRecords
           .slice()
           .sort((a, b) => new Date(b.followTime) - new Date(a.followTime))
-          .map(record => `
-            <div class="timeline-item">
-              <div class="timeline-meta">
-                <span>${escapeHtml(formatDateTime(record.followTime))}</span>
-                <span>${escapeHtml(record.method)}</span>
-                <span>跟进人：${escapeHtml(record.owner || "-")}</span>
-                <span>下次：${escapeHtml(record.nextFollowDate || "-")}</span>
-              </div>
-              <div class="timeline-content">${escapeHtml(record.content || "-")}</div>
-            </div>
-          `).join("")
+          .map(record => renderFollowRecordItem(customer, record)).join("")
         : '<div class="empty-tip">暂无跟进历史</div>';
 
       return `
@@ -3068,65 +3129,66 @@
           <h3>跟进历史</h3>
           <div class="timeline">${records}</div>
 
-          <div id="followForm-${customer.id}" class="follow-form hidden">
-            <h3>添加跟进记录</h3>
+          <div id="followForm-${customer.id}" class="follow-form ${editingRecord ? "" : "hidden"}">
+            <h3>${formTitle}</h3>
+            ${editingRecord ? `
+              <div class="follow-edit-banner">
+                当前正在编辑跟进记录：${escapeHtml(formatDateTime(editingRecord.followTime))}｜${escapeHtml(editingRecord.method || "-")}。修改完成后请点击“保存跟进修改”。
+              </div>
+            ` : ""}
             <div class="form-grid" style="margin-top:12px;">
               <div>
                 <label for="followTime-${customer.id}">跟进时间</label>
-                <input id="followTime-${customer.id}" type="datetime-local" value="${escapeHtml(toDatetimeLocalValue(new Date()))}" />
+                <input id="followTime-${customer.id}" type="datetime-local" value="${escapeHtml(formFollowTime)}" />
               </div>
               <div>
                 <label for="followMethod-${customer.id}">跟进方式</label>
                 <select id="followMethod-${customer.id}">
-                  <option>电话</option>
-                  <option>微信</option>
-                  <option>到店</option>
-                  <option>量房</option>
-                  <option>方案沟通</option>
-                  <option>报价沟通</option>
-                  <option>其他</option>
+                  ${["电话", "微信", "到店", "量房", "方案沟通", "报价沟通", "其他"].map(method => `<option ${method === formMethod ? "selected" : ""}>${escapeHtml(method)}</option>`).join("")}
                 </select>
               </div>
               <div>
                 <label for="followOwner-${customer.id}">跟进人</label>
-                <input id="followOwner-${customer.id}" value="${escapeHtml(customer.owner || "")}" />
+                <input id="followOwner-${customer.id}" value="${escapeHtml(formOwner)}" />
               </div>
               <div>
                 <label for="followNext-${customer.id}">下次跟进时间</label>
-                <input id="followNext-${customer.id}" type="date" value="${escapeHtml(customer.nextFollowDate || "")}" />
+                <input id="followNext-${customer.id}" type="date" value="${escapeHtml(formNext)}" />
               </div>
               <div>
                 <label for="followStatus-${customer.id}">客户阶段</label>
                 <select id="followStatus-${customer.id}">
-                  ${STATUS_OPTIONS.map(status => `<option ${status === customer.status ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}
+                  ${editingRecord && !formStatus ? '<option value="">不修改客户阶段</option>' : ""}
+                  ${STATUS_OPTIONS.map(status => `<option ${status === formStatus ? "selected" : ""}>${escapeHtml(status)}</option>`).join("")}
                 </select>
               </div>
               <div>
                 <label for="followGrade-${customer.id}">客户等级</label>
                 <select id="followGrade-${customer.id}">
-                  ${GRADE_OPTIONS.map(grade => `<option ${grade === customer.grade ? "selected" : ""}>${escapeHtml(grade)}</option>`).join("")}
+                  ${editingRecord && !formGrade ? '<option value="">不修改客户等级</option>' : ""}
+                  ${GRADE_OPTIONS.map(grade => `<option ${grade === formGrade ? "selected" : ""}>${escapeHtml(grade)}</option>`).join("")}
                 </select>
               </div>
               <div class="wide">
                 <label for="followBlockReason-${customer.id}">当前卡点 / 死单原因</label>
-                <textarea id="followBlockReason-${customer.id}" placeholder="记录当前卡点或死单原因">${escapeHtml(customer.blockReason || "")}</textarea>
+                <textarea id="followBlockReason-${customer.id}" placeholder="记录当前卡点或死单原因">${escapeHtml(formBlockReason)}</textarea>
               </div>
               <div class="wide">
                 <label for="followNextAction-${customer.id}">下一步动作</label>
-                <textarea id="followNextAction-${customer.id}" placeholder="记录下一步推进动作">${escapeHtml(customer.nextAction || "")}</textarea>
+                <textarea id="followNextAction-${customer.id}" placeholder="记录下一步推进动作">${escapeHtml(formNextAction)}</textarea>
               </div>
               <div class="full">
                 <label for="followNeed-${customer.id}">备注 / 装修需求</label>
-                <textarea id="followNeed-${customer.id}" placeholder="补充客户需求、预算、关注点">${escapeHtml(customer.need || "")}</textarea>
+                <textarea id="followNeed-${customer.id}" placeholder="补充客户需求、预算、关注点">${escapeHtml(formNeed)}</textarea>
               </div>
               <div class="full">
                 <label for="followContent-${customer.id}">跟进内容</label>
-                <textarea id="followContent-${customer.id}" placeholder="记录客户关注点、沟通结果、下一步动作"></textarea>
+                <textarea id="followContent-${customer.id}" placeholder="记录客户关注点、沟通结果、下一步动作">${escapeHtml(formContent)}</textarea>
               </div>
             </div>
             <div class="button-row">
-              <button class="btn-primary" onclick="addFollowRecord('${customer.id}')">保存跟进并更新下次时间</button>
-              <button class="btn-light" onclick="hideFollowForm('${customer.id}')">取消</button>
+              <button class="btn-primary" onclick="${formAction}">${formButtonText}</button>
+              <button class="btn-light" onclick="${editingRecord ? `cancelFollowRecordEdit('${customer.id}')` : `hideFollowForm('${customer.id}')`}">${editingRecord ? "取消编辑" : "取消"}</button>
             </div>
           </div>
         </div>
@@ -3198,6 +3260,7 @@
     }
 
     function openFollowForm(id) {
+      editingFollowRecord = null;
       openCustomerDetail(id);
       const form = document.getElementById(`followForm-${id}`);
 
@@ -3212,6 +3275,11 @@
 
       if (form) {
         form.classList.add("hidden");
+      }
+
+      if (editingFollowRecord && editingFollowRecord.customerId === id) {
+        editingFollowRecord = null;
+        renderCustomerDetailModal();
       }
     }
 
@@ -3233,6 +3301,70 @@
       renderCustomerDetailModal();
     }
 
+    function editFollowRecord(customerId, recordId) {
+      const customer = customers.find(item => item.id === customerId);
+
+      if (!customer || !Array.isArray(customer.followRecords) || !customer.followRecords.some(record => record.id === recordId)) {
+        alert("未找到要编辑的跟进记录。");
+        return;
+      }
+
+      editingFollowRecord = { customerId, recordId };
+      openCustomerDetail(customerId);
+      setTimeout(() => {
+        const form = document.getElementById(`followForm-${customerId}`);
+
+        if (form) {
+          form.classList.remove("hidden");
+          form.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 80);
+    }
+
+    function cancelFollowRecordEdit(customerId) {
+      editingFollowRecord = null;
+      renderCustomerDetailModal();
+      setTimeout(() => {
+        const form = document.getElementById(`followForm-${customerId}`);
+
+        if (form) {
+          form.classList.remove("hidden");
+          form.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 80);
+    }
+
+    function deleteFollowRecord(customerId, recordId) {
+      const customer = customers.find(item => item.id === customerId);
+
+      if (!customer || !Array.isArray(customer.followRecords)) {
+        alert("未找到客户跟进记录。");
+        return;
+      }
+
+      const confirmed = confirm("确认删除这条跟进记录吗？删除后不可恢复，但不会删除客户本身。");
+
+      if (!confirmed) {
+        return;
+      }
+
+      const beforeCount = customer.followRecords.length;
+      customer.followRecords = customer.followRecords.filter(record => record.id !== recordId);
+
+      if (customer.followRecords.length === beforeCount) {
+        alert("未找到要删除的跟进记录。");
+        return;
+      }
+
+      if (editingFollowRecord && editingFollowRecord.customerId === customerId && editingFollowRecord.recordId === recordId) {
+        editingFollowRecord = null;
+      }
+
+      customer.updatedAt = getNowString();
+      refreshCrmViews();
+      alert("跟进记录已删除。");
+    }
+
     function addSystemFollowRecord(customer, content, nextFollowDate = "") {
       const now = getNowString();
       customer.followRecords = Array.isArray(customer.followRecords) ? customer.followRecords : [];
@@ -3246,6 +3378,34 @@
         createdAt: now
       });
       customer.updatedAt = now;
+    }
+
+    function collectFollowFormData(id) {
+      const nextFollowDate = normalizeDateValue(getValue(`followNext-${id}`));
+
+      return {
+        followTime: normalizeDateTimeValue(getValue(`followTime-${id}`)) || getNowString(),
+        method: getValue(`followMethod-${id}`) || "电话",
+        content: getValue(`followContent-${id}`),
+        nextFollowDate,
+        owner: getValue(`followOwner-${id}`),
+        status: getValue(`followStatus-${id}`),
+        grade: getValue(`followGrade-${id}`),
+        blockReason: getValue(`followBlockReason-${id}`),
+        nextAction: getValue(`followNextAction-${id}`),
+        need: getValue(`followNeed-${id}`)
+      };
+    }
+
+    function applyFollowDataToCustomer(customer, data) {
+      if (data.owner) customer.owner = data.owner;
+      if (data.status) customer.status = data.status;
+      if (data.grade) customer.grade = data.grade;
+      customer.blockReason = data.blockReason || customer.blockReason;
+      customer.nextAction = data.nextAction || customer.nextAction;
+      customer.need = data.need || customer.need;
+      customer.nextFollowDate = isFollowableCustomer(customer) ? data.nextFollowDate : "";
+      customer.updatedAt = getNowString();
     }
 
     function openDeadCustomerModal(id) {
@@ -3338,42 +3498,39 @@
         return;
       }
 
-      const content = getValue(`followContent-${id}`);
+      const data = collectFollowFormData(id);
+      const content = data.content;
 
       if (!content) {
         alert("请填写跟进内容");
         return;
       }
 
-      const nextFollowDate = normalizeDateValue(getValue(`followNext-${id}`));
-      if (!nextFollowDate && !["已签单", "死单"].includes(getValue(`followStatus-${id}`))) {
+      if (!data.nextFollowDate && !["已签单", "死单"].includes(data.status)) {
         alert("请设置下次跟进时间。完成今日跟进后，系统会根据新的下次跟进时间自动调整客户所在列表。");
         return;
       }
 
-      const owner = getValue(`followOwner-${id}`) || customer.owner;
       const now = getNowString();
-      const followTime = normalizeDateTimeValue(getValue(`followTime-${id}`)) || now;
       const oldFollowState = getFollowState(customer);
+      customer.followRecords = Array.isArray(customer.followRecords) ? customer.followRecords : [];
 
       customer.followRecords.push({
         id: createId(),
-        followTime,
-        method: getValue(`followMethod-${id}`),
-        content,
-        nextFollowDate,
-        owner,
+        followTime: data.followTime,
+        method: data.method,
+        content: data.content,
+        nextFollowDate: data.nextFollowDate,
+        owner: data.owner || customer.owner,
+        status: data.status,
+        grade: data.grade,
+        blockReason: data.blockReason,
+        nextAction: data.nextAction,
+        need: data.need,
         createdAt: now
       });
 
-      customer.owner = owner;
-      customer.status = getValue(`followStatus-${id}`) || customer.status;
-      customer.grade = getValue(`followGrade-${id}`) || customer.grade;
-      customer.blockReason = getValue(`followBlockReason-${id}`) || customer.blockReason;
-      customer.nextAction = getValue(`followNextAction-${id}`) || customer.nextAction;
-      customer.need = getValue(`followNeed-${id}`) || customer.need;
-      customer.nextFollowDate = isFollowableCustomer(customer) ? nextFollowDate : "";
-      customer.updatedAt = now;
+      applyFollowDataToCustomer(customer, data);
 
       saveToLocalStorage();
       renderCustomers();
@@ -3388,6 +3545,54 @@
       } else {
         alert("跟进记录已保存，下次跟进时间已更新。");
       }
+    }
+
+    function saveFollowRecordEdit(id) {
+      const customer = customers.find(item => item.id === id);
+
+      if (!customer || !editingFollowRecord || editingFollowRecord.customerId !== id) {
+        alert("当前没有正在编辑的跟进记录。");
+        return;
+      }
+
+      customer.followRecords = Array.isArray(customer.followRecords) ? customer.followRecords : [];
+      const record = customer.followRecords.find(item => item.id === editingFollowRecord.recordId);
+
+      if (!record) {
+        alert("未找到要修改的跟进记录。");
+        editingFollowRecord = null;
+        renderCustomerDetailModal();
+        return;
+      }
+
+      const data = collectFollowFormData(id);
+
+      if (!data.content) {
+        alert("请填写跟进内容");
+        return;
+      }
+
+      if (!data.nextFollowDate && !["已签单", "死单"].includes(data.status || customer.status)) {
+        alert("请设置下次跟进时间。完成今日跟进后，系统会根据新的下次跟进时间自动调整客户所在列表。");
+        return;
+      }
+
+      record.followTime = data.followTime;
+      record.method = data.method;
+      record.content = data.content;
+      record.nextFollowDate = data.nextFollowDate;
+      record.owner = data.owner || customer.owner;
+      record.status = data.status;
+      record.grade = data.grade;
+      record.blockReason = data.blockReason;
+      record.nextAction = data.nextAction;
+      record.need = data.need;
+      record.updatedAt = getNowString();
+
+      applyFollowDataToCustomer(customer, data);
+      editingFollowRecord = null;
+      refreshCrmViews();
+      alert("跟进记录已更新。");
     }
 
     function editCustomer(id) {
@@ -5186,6 +5391,11 @@
       const minute = String(date.getMinutes()).padStart(2, "0");
 
       return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+
+    function toDatetimeLocalString(value) {
+      const normalized = normalizeDateTimeValue(value);
+      return normalized || toDatetimeLocalValue(new Date());
     }
 
     function escapeHtml(value) {
