@@ -3,675 +3,1138 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>主动营销点将作战系统</title>
+  <title>Growth Command</title>
   <style>
     :root {
-      --bg: #eef3fb;
-      --panel: #ffffff;
-      --line: #dbe4f0;
-      --text: #172033;
-      --muted: #64748b;
-      --brand: #4657f0;
-      --blue: #2563eb;
-      --green: #12945a;
-      --amber: #d97706;
-      --shadow: 0 18px 50px rgba(21, 34, 66, 0.09);
-      --gradient-primary: linear-gradient(135deg, #3861ff 0%, #6757f5 52%, #08b6d8 100%);
-      --gradient-dark: radial-gradient(circle at 18% 16%, rgba(77, 208, 255, 0.28), transparent 34%),
-        radial-gradient(circle at 86% 8%, rgba(132, 92, 255, 0.34), transparent 30%),
-        linear-gradient(135deg, #111827 0%, #172554 50%, #0f172a 100%);
+      --bg: #050607;
+      --bg-soft: #0a0d10;
+      --panel: rgba(255, 255, 255, 0.045);
+      --panel-strong: rgba(255, 255, 255, 0.075);
+      --line: rgba(255, 255, 255, 0.1);
+      --line-strong: rgba(255, 255, 255, 0.18);
+      --text: #f4f2ed;
+      --muted: rgba(236, 239, 243, 0.62);
+      --faint: rgba(236, 239, 243, 0.42);
+      --button: rgba(255, 255, 255, 0.92);
+      --button-text: #090a0c;
+      --accent: rgba(205, 218, 226, 0.7);
+      --danger: #d2a197;
+      --shadow: 0 32px 90px rgba(0, 0, 0, 0.45);
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
-      margin: 0;
       background:
-        radial-gradient(circle at 8% 0%, rgba(70, 87, 240, 0.14), transparent 28%),
-        radial-gradient(circle at 96% 12%, rgba(8, 182, 216, 0.13), transparent 30%),
-        var(--bg);
+        radial-gradient(circle at 72% 10%, rgba(154, 169, 179, 0.13), transparent 30%),
+        linear-gradient(180deg, #050607 0%, #0a0d10 52%, #050607 100%);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    header {
-      background: var(--gradient-dark);
-      color: #fff;
-      overflow: hidden;
-      padding: 42px 40px 96px;
-      position: relative;
-    }
-
-    header::before {
-      background:
-        linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
-      background-size: 42px 42px;
+    body::before {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.09) 0.7px, transparent 0.7px);
+      background-size: 5px 5px;
       content: "";
       inset: 0;
-      opacity: 0.35;
-      position: absolute;
-    }
-
-    header::after {
-      background: linear-gradient(90deg, rgba(14, 165, 233, 0.42), rgba(99, 102, 241, 0.18), transparent);
-      bottom: 0;
-      content: "";
-      height: 1px;
-      left: 0;
-      position: absolute;
-      right: 0;
-    }
-
-    .hero {
-      margin: 0 auto;
-      max-width: 1180px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .eyebrow {
-      align-items: center;
-      background: rgba(255, 255, 255, 0.09);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 999px;
-      color: #c7f1ff;
-      display: inline-flex;
-      font-size: 12px;
-      font-weight: 800;
-      margin-bottom: 16px;
-      padding: 7px 12px;
-    }
-
-    h1,
-    h2,
-    p {
-      margin: 0;
-    }
-
-    h1 {
-      font-size: clamp(34px, 5vw, 58px);
-      letter-spacing: 0;
-      line-height: 1.08;
-    }
-
-    .subtitle {
-      color: #dbeafe;
-      font-size: 17px;
-      line-height: 1.75;
-      margin-top: 16px;
-      max-width: 820px;
-    }
-
-    main {
-      margin: -58px auto 0;
-      max-width: 1180px;
-      padding: 0 24px 44px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .library-panel {
-      background: rgba(255, 255, 255, 0.94);
-      border: 1px solid rgba(219, 228, 240, 0.92);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      padding: 24px;
-      backdrop-filter: blur(10px);
-    }
-
-    .panel-head {
-      align-items: flex-start;
-      display: flex;
-      gap: 16px;
-      justify-content: space-between;
-      margin-bottom: 22px;
-    }
-
-    .panel-head h2 {
-      font-size: 24px;
-    }
-
-    .panel-head p {
-      color: var(--muted);
-      line-height: 1.65;
-      margin-top: 7px;
-    }
-
-    .tool-grid {
-      display: grid;
-      gap: 18px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .quick-entry {
-      background:
-        radial-gradient(circle at 90% 12%, rgba(14, 165, 233, 0.18), transparent 34%),
-        linear-gradient(135deg, #f8fbff 0%, #eef6ff 52%, #ffffff 100%);
-      border: 1px solid rgba(59, 130, 246, 0.28);
-      border-radius: 20px;
-      box-shadow: 0 16px 38px rgba(37, 99, 235, 0.12);
-      display: grid;
-      gap: 18px;
-      grid-template-columns: 1fr auto;
-      margin-bottom: 20px;
-      overflow: hidden;
-      padding: 22px;
-      position: relative;
-    }
-
-    .quick-entry::before {
-      background: var(--gradient-primary);
-      content: "";
-      inset: 0 auto 0 0;
-      position: absolute;
-      width: 5px;
-    }
-
-    .quick-entry-badge {
-      background: #ecfeff;
-      border: 1px solid #bae6fd;
-      border-radius: 999px;
-      color: #0369a1;
-      display: inline-flex;
-      font-size: 12px;
-      font-weight: 900;
-      margin-bottom: 12px;
-      padding: 6px 10px;
-    }
-
-    .quick-entry h2 {
-      font-size: 23px;
-      margin: 0;
-    }
-
-    .quick-entry p {
-      color: var(--muted);
-      line-height: 1.75;
-      margin-top: 10px;
-      max-width: 780px;
-    }
-
-    .quick-entry-action {
-      align-items: center;
-      display: flex;
-    }
-
-    .battle-flow {
-      margin-bottom: 22px;
-    }
-
-    .battle-flow-grid {
-      display: grid;
-      gap: 14px;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .flow-card {
-      background: #f8fbff;
-      border: 1px solid #dbeafe;
-      border-radius: 18px;
-      display: grid;
-      gap: 12px;
-      min-height: 210px;
-      padding: 18px;
-    }
-
-    .flow-step {
-      align-items: center;
-      background: var(--gradient-primary);
-      border-radius: 14px;
-      color: #fff;
-      display: inline-flex;
-      font-weight: 900;
-      height: 38px;
-      justify-content: center;
-      width: 38px;
-    }
-
-    .flow-card h3 {
-      font-size: 18px;
-      margin: 0;
-    }
-
-    .flow-card p {
-      color: var(--muted);
-      line-height: 1.65;
-      margin: 0;
-    }
-
-    .flow-card a {
-      align-self: end;
-      width: fit-content;
-    }
-
-    .tool-card {
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.96)),
-        #fff;
-      border: 1px solid #dbe4f0;
-      border-radius: 18px;
-      box-shadow: 0 10px 28px rgba(21, 34, 66, 0.08);
-      display: flex;
-      flex-direction: column;
-      min-height: 230px;
-      overflow: hidden;
-      padding: 22px;
-      position: relative;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-    }
-
-    .tool-card::before {
-      background: var(--gradient-primary);
-      content: "";
-      height: 4px;
-      left: 0;
-      position: absolute;
-      right: 0;
-      top: 0;
-    }
-
-    .tool-card:hover {
-      border-color: rgba(70, 87, 240, 0.28);
-      box-shadow: 0 18px 42px rgba(21, 34, 66, 0.13);
-      transform: translateY(-3px);
-    }
-
-    .tool-top {
-      align-items: flex-start;
-      display: flex;
-      gap: 14px;
-      justify-content: space-between;
-    }
-
-    .tool-icon {
-      align-items: center;
-      background: #eef4ff;
-      border: 1px solid #dbeafe;
-      border-radius: 14px;
-      color: var(--brand);
-      display: inline-flex;
-      font-size: 21px;
-      font-weight: 900;
-      height: 44px;
-      justify-content: center;
-      width: 44px;
-    }
-
-    .tool-status {
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 800;
-      padding: 6px 10px;
-      white-space: nowrap;
-    }
-
-    .status-ready {
-      background: #ecfdf3;
-      color: var(--green);
-    }
-
-    .status-soon {
-      background: #fff7ed;
-      color: var(--amber);
-    }
-
-    .tool-card h2 {
-      font-size: 21px;
-      margin-top: 20px;
-    }
-
-    .tool-card p {
-      color: var(--muted);
-      flex: 1;
-      line-height: 1.7;
-      margin-top: 10px;
-    }
-
-    .tool-actions {
-      margin-top: 22px;
-    }
-
-    .data-safety-center {
-      background:
-        radial-gradient(circle at 92% 10%, rgba(18, 148, 90, 0.16), transparent 32%),
-        linear-gradient(135deg, #f8fbff 0%, #eefdf5 50%, #ffffff 100%);
-      border: 1px solid rgba(18, 148, 90, 0.22);
-      border-radius: 20px;
-      box-shadow: 0 14px 34px rgba(18, 148, 90, 0.1);
-      display: grid;
-      gap: 18px;
-      grid-template-columns: minmax(0, 1fr) auto;
-      margin: 0 0 22px;
-      padding: 22px;
-    }
-
-    .data-safety-center h2 {
-      font-size: 22px;
-      margin: 0;
-    }
-
-    .data-safety-center p {
-      color: var(--muted);
-      line-height: 1.75;
-      margin-top: 9px;
-    }
-
-    .data-safety-actions {
-      align-items: center;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-
-    .backup-tip {
-      color: var(--green);
-      font-size: 13px;
-      font-weight: 800;
-      margin-top: 10px;
-      min-height: 20px;
-    }
-
-    .hidden {
-      display: none;
+      opacity: 0.05;
+      pointer-events: none;
+      position: fixed;
+      z-index: 0;
     }
 
     a,
     button {
       align-items: center;
       border: 0;
-      border-radius: 11px;
+      border-radius: 999px;
       cursor: pointer;
       display: inline-flex;
       font: inherit;
       font-size: 14px;
-      font-weight: 800;
+      font-weight: 700;
       justify-content: center;
-      min-height: 40px;
-      padding: 10px 16px;
+      min-height: 44px;
+      padding: 10px 18px;
       text-decoration: none;
-      transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease, opacity 0.18s ease;
       white-space: nowrap;
     }
 
     a:hover,
     button:hover {
-      filter: brightness(0.97);
       transform: translateY(-1px);
     }
 
-    .btn-primary {
-      background: var(--gradient-primary);
-      box-shadow: 0 12px 26px rgba(70, 87, 240, 0.22);
-      color: #fff;
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
     }
 
-    .btn-soon {
-      background: #f1f5f9;
-      color: #64748b;
-    }
-
-    .btn-green {
-      background: #12945a;
-      color: #fff;
-    }
-
-    footer {
-      color: #64748b;
-      line-height: 1.7;
-      margin: 20px auto 0;
+    .shell {
+      margin: 0 auto;
       max-width: 1180px;
-      padding: 0 24px 32px;
-      text-align: center;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
     }
 
-    @media (max-width: 820px) {
-      header {
-        padding: 32px 20px 86px;
+    .top-nav {
+      backdrop-filter: blur(18px);
+      background: rgba(5, 6, 7, 0.58);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      left: 0;
+      position: fixed;
+      right: 0;
+      top: 0;
+      z-index: 20;
+    }
+
+    .nav-inner {
+      align-items: center;
+      display: grid;
+      gap: 18px;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      margin: 0 auto;
+      max-width: 1180px;
+      padding: 13px 24px;
+    }
+
+    .brand {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 680;
+      letter-spacing: 0.02em;
+      min-height: auto;
+      padding: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-links::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-links a {
+      background: transparent;
+      color: var(--muted);
+      min-height: 34px;
+      padding: 7px 10px;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .btn-primary {
+      background: var(--button);
+      color: var(--button-text);
+      box-shadow: 0 18px 42px rgba(206, 217, 224, 0.13);
+    }
+
+    .btn-primary:hover {
+      background: #ffffff;
+      box-shadow: 0 20px 52px rgba(206, 217, 224, 0.18);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.055);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .hero {
+      background:
+        linear-gradient(90deg, rgba(5, 6, 7, 0.62) 0%, rgba(5, 6, 7, 0.36) 36%, rgba(5, 6, 7, 0.08) 72%, rgba(5, 6, 7, 0.16) 100%),
+        linear-gradient(180deg, rgba(5, 6, 7, 0), rgba(5, 6, 7, 0.36)),
+        url("assets/hero-command-center.png"),
+        radial-gradient(circle at 72% 20%, rgba(184, 198, 207, 0.08), transparent 32%),
+        linear-gradient(135deg, #050607, #101318);
+      background-position: center, center, center right, center, center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      min-height: 100vh;
+      padding: 118px max(24px, calc((100vw - 1180px) / 2)) 74px;
+      position: relative;
+    }
+
+    .hero::before {
+      background: linear-gradient(115deg, rgba(236, 239, 243, 0.025), transparent 38%, rgba(236, 239, 243, 0.018));
+      content: "";
+      inset: 0;
+      opacity: 0.55;
+      pointer-events: none;
+      position: absolute;
+      z-index: 0;
+    }
+
+    .hero::after {
+      background: linear-gradient(180deg, transparent 0%, rgba(5, 6, 7, 0.42) 100%);
+      bottom: 0;
+      content: "";
+      height: 104px;
+      left: 0;
+      pointer-events: none;
+      position: absolute;
+      right: 0;
+    }
+
+    .hero-grid {
+      align-items: end;
+      display: grid;
+      gap: 96px;
+      grid-template-columns: minmax(0, 0.98fr) minmax(260px, 0.42fr);
+      min-height: calc(100vh - 192px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-copy {
+      padding-bottom: 48px;
+    }
+
+    .eyebrow {
+      color: rgba(236, 239, 243, 0.66);
+      display: inline-flex;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow,
+    h1,
+    .hero-subtitle,
+    .hero-note,
+    .hero-actions,
+    .hero-stats,
+    .hero-panel {
+      animation: heroFadeUp 1.08s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .eyebrow {
+      animation-duration: 1s;
+    }
+
+    h1 {
+      animation-delay: 0.08s;
+      animation-duration: 1.24s;
+    }
+
+    .hero-subtitle {
+      animation-delay: 0.24s;
+      animation-duration: 1.02s;
+    }
+
+    .hero-note {
+      animation-delay: 0.34s;
+      animation-duration: 1s;
+    }
+
+    .hero-actions {
+      animation-delay: 0.42s;
+      animation-duration: 0.92s;
+    }
+
+    .hero-stats {
+      animation-delay: 0.5s;
+      animation-duration: 0.98s;
+    }
+
+    .hero-panel {
+      animation-delay: 0.58s;
+      animation-duration: 1.12s;
+    }
+
+    h1 {
+      color: var(--text);
+      font-size: clamp(48px, 7vw, 88px);
+      font-weight: 540;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .hero-keyword {
+      display: inline-block;
+      transition: color 280ms cubic-bezier(0.22, 1, 0.36, 1), transform 280ms cubic-bezier(0.22, 1, 0.36, 1), text-shadow 280ms ease;
+    }
+
+    .hero-keyword:hover {
+      color: #ffffff;
+      text-shadow: 0 10px 32px rgba(236, 239, 243, 0.12);
+      transform: translateY(-1.5px);
+    }
+
+    .hero-subtitle {
+      color: rgba(244, 242, 237, 0.86);
+      font-size: clamp(18px, 2.1vw, 25px);
+      font-weight: 390;
+      line-height: 1.7;
+      margin-top: 30px;
+      max-width: 620px;
+    }
+
+    .hero-note {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+      margin-top: 12px;
+      max-width: 560px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 38px;
+    }
+
+    .hero-stats {
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 22px;
+      display: grid;
+      gap: 1px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 48px;
+      max-width: 600px;
+      overflow: hidden;
+    }
+
+    .hero-stat {
+      background: rgba(255, 255, 255, 0.012);
+      min-height: 82px;
+      padding: 16px 18px;
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+
+    .hero-stat:hover {
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(-2px);
+    }
+
+    .hero-stat span {
+      color: var(--faint);
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hero-stat strong {
+      color: var(--text);
+      display: block;
+      font-size: 30px;
+      font-weight: 520;
+      line-height: 1;
+      margin-top: 15px;
+    }
+
+    .hero-stat.danger strong {
+      color: var(--danger);
+    }
+
+    .hero-panel {
+      align-self: center;
+      backdrop-filter: blur(7px);
+      background: linear-gradient(145deg, rgba(15, 19, 23, 0.22), rgba(8, 10, 12, 0.12));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 22px;
+      box-shadow: 0 18px 58px rgba(0, 0, 0, 0.18);
+      justify-self: end;
+      max-width: 292px;
+      padding: 16px;
+    }
+
+    .hero-panel h2 {
+      font-size: 18px;
+      font-weight: 560;
+      line-height: 1.4;
+    }
+
+    .hero-panel p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 8px;
+    }
+
+    .panel-lines {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .panel-line {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.012);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      min-height: 44px;
+      padding: 9px 11px;
+    }
+
+    .panel-line span {
+      color: rgba(236, 239, 243, 0.68);
+      font-size: 13px;
+    }
+
+    .panel-line strong {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 560;
+    }
+
+    .section {
+      padding: 82px 0;
+    }
+
+    .section-head {
+      display: grid;
+      gap: 13px;
+      margin-bottom: 38px;
+      max-width: 760px;
+    }
+
+    .section-kicker {
+      color: rgba(236, 239, 243, 0.48);
+      font-size: 12px;
+      font-weight: 720;
+      letter-spacing: 0.15em;
+    }
+
+    .section h2 {
+      color: var(--text);
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 520;
+      letter-spacing: -0.015em;
+      line-height: 1.18;
+    }
+
+    .section-head p,
+    .preview-copy p,
+    footer p {
+      color: var(--muted);
+      line-height: 1.85;
+    }
+
+    .capability-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .capability-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      color: var(--text);
+      cursor: pointer;
+      min-height: 230px;
+      padding: 24px;
+      position: relative;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .capability-card.reveal-item {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.72s ease, transform 0.72s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .capability-card.reveal-item.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .capability-card:hover,
+    .capability-card:focus {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.24);
+      outline: none;
+      transform: translateY(-4px);
+    }
+
+    .capability-card span {
+      color: rgba(236, 239, 243, 0.46);
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 46px;
+    }
+
+    .capability-card h3 {
+      font-size: 21px;
+      font-weight: 560;
+      line-height: 1.35;
+    }
+
+    .capability-card p {
+      color: var(--muted);
+      line-height: 1.7;
+      margin-top: 12px;
+    }
+
+    .more-tools {
+      align-items: center;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .more-tools a {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+      min-height: 38px;
+      padding: 8px 14px;
+    }
+
+    .product-showcase {
+      align-items: center;
+      display: grid;
+      gap: 58px;
+      grid-template-columns: minmax(0, 0.78fr) minmax(360px, 1.22fr);
+    }
+
+    .product-cards {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+
+    .product-card {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.028));
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      color: var(--text);
+      cursor: pointer;
+      min-height: 230px;
+      padding: 22px;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .product-card:hover,
+    .product-card:focus {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.04));
+      border-color: rgba(255, 255, 255, 0.2);
+      outline: none;
+      transform: translateY(-4px);
+    }
+
+    .product-card.primary {
+      grid-row: span 2;
+      min-height: 474px;
+    }
+
+    .product-card.reveal-item {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.78s ease, transform 0.78s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .product-card.reveal-item.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .product-card-kicker {
+      color: rgba(236, 239, 243, 0.46);
+      font-size: 12px;
+      font-weight: 720;
+      letter-spacing: 0.13em;
+      margin-bottom: 18px;
+    }
+
+    .product-card h3 {
+      font-size: 24px;
+      font-weight: 540;
+      line-height: 1.25;
+    }
+
+    .product-card p {
+      color: var(--muted);
+      line-height: 1.8;
+      margin-top: 12px;
+    }
+
+    .product-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+    }
+
+    .product-tags span {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      color: rgba(236, 239, 243, 0.68);
+      font-size: 12px;
+      padding: 7px 10px;
+    }
+
+    .showcase-wall {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1fr 0.55fr;
+    }
+
+    .showcase-main,
+    .showcase-small {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.028));
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      overflow: hidden;
+      padding: 18px;
+      position: relative;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .showcase-main:hover,
+    .showcase-small:hover {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.082), rgba(255, 255, 255, 0.034));
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-3px);
+    }
+
+    .showcase-wall.reveal-item {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.78s ease, transform 0.78s ease;
+    }
+
+    .showcase-wall.reveal-item.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .showcase-main {
+      min-height: 390px;
+      padding: 0;
+    }
+
+    .showcase-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .showcase-small {
+      min-height: 178px;
+    }
+
+    .preview-title {
+      align-items: center;
+      color: rgba(236, 239, 243, 0.74);
+      display: flex;
+      font-size: 13px;
+      font-weight: 700;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .preview-title::after {
+      background: rgba(236, 239, 243, 0.28);
+      border-radius: 999px;
+      content: "";
+      height: 7px;
+      width: 42px;
+    }
+
+    .workspace-top {
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      padding: 17px 18px;
+    }
+
+    .workspace-top .preview-title {
+      margin-bottom: 0;
+    }
+
+    .workspace-top .preview-title::after {
+      display: none;
+    }
+
+    .workspace-dots {
+      display: flex;
+      gap: 7px;
+    }
+
+    .workspace-dots span {
+      background: rgba(236, 239, 243, 0.22);
+      border-radius: 999px;
+      height: 7px;
+      width: 7px;
+    }
+
+    .workspace-body {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 128px minmax(0, 1fr) 168px;
+      padding: 18px;
+    }
+
+    .workspace-sidebar,
+    .workspace-list,
+    .workspace-detail {
+      background: rgba(255, 255, 255, 0.028);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 18px;
+      min-height: 292px;
+      padding: 14px;
+    }
+
+    .side-pill {
+      background: rgba(236, 239, 243, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.055);
+      border-radius: 999px;
+      color: rgba(236, 239, 243, 0.62);
+      font-size: 11px;
+      margin-bottom: 10px;
+      padding: 8px 10px;
+    }
+
+    .side-pill.active {
+      background: rgba(236, 239, 243, 0.14);
+      color: rgba(244, 242, 237, 0.86);
+    }
+
+    .crm-row {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.055);
+      border-radius: 16px;
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 0.58fr 0.42fr;
+      min-height: 46px;
+      padding: 10px;
+    }
+
+    .crm-row + .crm-row {
+      margin-top: 10px;
+    }
+
+    .crm-row span {
+      color: rgba(236, 239, 243, 0.72);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .crm-row strong {
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 999px;
+      color: rgba(236, 239, 243, 0.62);
+      font-size: 11px;
+      font-weight: 650;
+      justify-self: end;
+      padding: 5px 8px;
+    }
+
+    .detail-metric {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 0 0 13px;
+    }
+
+    .detail-metric + .detail-metric {
+      padding-top: 13px;
+    }
+
+    .detail-metric span {
+      color: rgba(236, 239, 243, 0.42);
+      display: block;
+      font-size: 11px;
+      margin-bottom: 7px;
+    }
+
+    .detail-metric strong {
+      color: rgba(244, 242, 237, 0.86);
+      font-size: 22px;
+      font-weight: 520;
+    }
+
+    .chart-bar {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .analysis-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      color: rgba(236, 239, 243, 0.68);
+      font-size: 12px;
+      line-height: 1.55;
+      padding: 9px 10px;
+    }
+
+    .report-line {
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.055);
+      border-radius: 14px;
+      color: rgba(236, 239, 243, 0.68);
+      display: block;
+      font-size: 12px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      padding: 9px 10px;
+    }
+
+    .report-line.short {
+      width: auto;
+    }
+
+    .backup-footer {
+      border-top: 1px solid var(--line);
+      margin-top: 42px;
+      padding: 30px 0 48px;
+    }
+
+    .backup-row {
+      align-items: center;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+    }
+
+    .backup-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .backup-tip {
+      color: #c9ead6;
+      font-size: 13px;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @keyframes heroFadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
       }
 
-      main {
-        padding: 0 14px 32px;
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
       }
 
-      .library-panel {
-        border-radius: 18px;
-        padding: 16px;
+      .capability-card.reveal-item,
+      .showcase-wall.reveal-item,
+      .product-card.reveal-item {
+        opacity: 1;
+        transform: none;
       }
 
-      .panel-head {
-        display: block;
+      .hero-keyword:hover {
+        text-shadow: none;
+        transform: none;
+      }
+    }
+
+    @media (max-width: 960px) {
+      .nav-inner {
+        grid-template-columns: 1fr auto;
       }
 
-      .tool-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .battle-flow-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .quick-entry {
-        grid-template-columns: 1fr;
-        padding: 18px;
-      }
-
-      .data-safety-center {
-        grid-template-columns: 1fr;
-        padding: 18px;
-      }
-
-      .data-safety-actions {
+      .nav-links {
+        grid-column: 1 / -1;
         justify-content: flex-start;
       }
 
-      .quick-entry-action {
-        align-items: flex-start;
+      .hero-grid,
+      .product-showcase {
+        grid-template-columns: 1fr;
       }
 
-      .tool-card {
+      .hero {
+        padding-top: 116px;
+      }
+
+      .hero-grid {
+        gap: 38px;
         min-height: auto;
-        padding: 18px;
+      }
+
+      .hero-copy {
+        padding-bottom: 0;
+      }
+
+      .hero-panel {
+        justify-self: start;
+        max-width: 520px;
+      }
+
+      .capability-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell,
+      .nav-inner {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .brand {
+        font-size: 14px;
+      }
+
+      .nav-inner {
+        gap: 12px;
+      }
+
+      .nav-inner > .btn-primary {
+        min-height: 38px;
+        padding: 8px 12px;
+      }
+
+      h1 {
+        font-size: clamp(42px, 15vw, 58px);
+      }
+
+      .hero {
+        background-position: center, center, 60% center, center, center;
+        padding-bottom: 54px;
+      }
+
+      .hero-actions,
+      .backup-row {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .hero-actions a,
+      .hero-actions button,
+      .backup-actions button {
+        width: 100%;
+      }
+
+      .hero-stats,
+      .capability-grid,
+      .showcase-wall,
+      .product-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .product-card.primary {
+        grid-row: auto;
+        min-height: 260px;
+      }
+
+      .section {
+        padding: 58px 0;
+      }
+
+      .capability-card {
+        min-height: 188px;
+      }
+
+      .showcase-main,
+      .showcase-small {
+        min-height: auto;
+      }
+
+      .workspace-body {
+        grid-template-columns: 1fr;
+      }
+
+      .workspace-sidebar,
+      .workspace-list,
+      .workspace-detail {
+        min-height: auto;
       }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="hero">
-      <div class="eyebrow">主动营销点将作战台</div>
-      <h1>主动营销点将作战系统</h1>
-      <p class="subtitle">围绕客户池复盘、CRM客户台账、动态研判、获客文案、投流测试和日报输出，形成每天能判断下一步动作的点将作战闭环。</p>
+  <nav class="top-nav" aria-label="主导航">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">Growth Command</a>
+      <div class="nav-links">
+        <a href="index.html">首页</a>
+        <a href="crm.html">CRM</a>
+        <a href="douyin-leads.html">线索</a>
+        <a href="city-analysis.html">AI研判</a>
+        <a href="report.html">日报</a>
+      </div>
+      <a class="btn-primary" href="city-analysis.html">进入今日作战</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-grid">
+      <section class="hero-copy">
+        <div class="eyebrow">ACTIVE MARKETING SYSTEM</div>
+        <h1><span class="hero-keyword">Growth</span><br /><span class="hero-keyword">Command</span></h1>
+        <p class="hero-subtitle">让线索、客户、动作和复盘形成闭环。</p>
+        <p class="hero-note">用于客户池复盘、线索承接、CRM跟进、AI研判与日报输出。</p>
+        <div class="hero-actions">
+          <a class="btn-primary" href="city-analysis.html">进入今日作战</a>
+          <button class="btn-outline" type="button" data-scroll-target="capabilities">查看平台能力</button>
+        </div>
+        <div class="hero-stats" id="heroStats">
+          <article class="hero-stat"><span>今日新增</span><strong>0</strong></article>
+          <article class="hero-stat"><span>今日待跟进</span><strong>0</strong></article>
+          <article class="hero-stat danger"><span>逾期未跟进</span><strong>0</strong></article>
+        </div>
+      </section>
+
+      <aside class="hero-panel" aria-label="今日作战状态">
+        <h2>今日作战状态</h2>
+        <p>只读取本地客户台账，用于快速判断当天动作压力。</p>
+        <div class="panel-lines" id="heroPanelStats">
+          <div class="panel-line"><span>今日新增</span><strong>0</strong></div>
+          <div class="panel-line"><span>今日待跟进</span><strong>0</strong></div>
+          <div class="panel-line"><span>逾期未跟进</span><strong>0</strong></div>
+        </div>
+      </aside>
     </div>
   </header>
 
-  <main>
-    <section class="library-panel">
-      <div class="panel-head">
-        <div>
-          <h2>今日作战流程</h2>
-          <p>按当天执行顺序推进：先复盘客户池，再录入 CRM，随后看漏斗、做研判、补获客素材，晚上输出日报。</p>
-        </div>
+  <main class="shell">
+    <section class="section" id="capabilities">
+      <div class="section-head">
+        <div class="section-kicker">核心能力</div>
+        <h2>把每天的增长动作，收束到四个核心工作台。</h2>
+        <p>首页只保留最高频入口。更多工具以轻量链接承接，避免把首页做成工具目录。</p>
       </div>
 
-      <section class="battle-flow">
-        <div class="battle-flow-grid">
-          <article class="flow-card">
-            <span class="flow-step">①</span>
-            <h3>客户池复盘</h3>
-            <p>先逐个销售复盘客户池，明确新线索、A/B/C客户、已量房、已报价、待跟进和沉睡客户。</p>
-            <a class="btn-primary" href="customer-review.html">开始客户池复盘</a>
-          </article>
-          <article class="flow-card">
-            <span class="flow-step">②</span>
-            <h3>CRM录入客户</h3>
-            <p>将客户录入 CRM，形成完整客户台账，后续可持续跟进和复盘转化。</p>
-            <a class="btn-primary" href="crm.html">录入客户明细</a>
-          </article>
-          <article class="flow-card">
-            <span class="flow-step">③</span>
-            <h3>客户漏斗查看</h3>
-            <p>查看全店和各销售的新线索、A/B/C、量房、报价、签单情况。</p>
-            <a class="btn-primary" href="crm.html#funnel">查看客户漏斗</a>
-          </article>
-          <article class="flow-card">
-            <span class="flow-step">④</span>
-            <h3>AI动态研判</h3>
-            <p>每天把客户池、CRM数据、销售反馈、活动方案粘贴进去，生成下一步作战研判。</p>
-            <a class="btn-primary" href="city-analysis.html#dynamic">进入动态研判</a>
-          </article>
-          <article class="flow-card">
-            <span class="flow-step">⑤</span>
-            <h3>信息流素材矩阵</h3>
-            <p>客户池不足时，快速生成 15秒/30秒/60秒脚本、标题封面字、承接话术、CRM记录和复盘指标。</p>
-            <a class="btn-primary" href="material-lab.html">生成素材矩阵</a>
-          </article>
-          <article class="flow-card">
-            <span class="flow-step">⑥</span>
-            <h3>日报输出</h3>
-            <p>晚上整理今日动作和明日计划，生成日报/周报，用于飞书、微信和工作汇报。</p>
-            <a class="btn-primary" href="report.html">生成工作日报</a>
-          </article>
-        </div>
-      </section>
-
-      <section class="data-safety-center">
-        <div>
-          <h2>数据安全中心</h2>
-          <p>当前系统数据保存在本机浏览器中，建议每天收工前导出一次全部数据备份，避免换电脑、清缓存或浏览器异常导致数据找不到。</p>
-          <div id="backupTip" class="backup-tip"></div>
-        </div>
-        <div class="data-safety-actions">
-          <button class="btn-green" type="button" onclick="exportAllDataBackup()">导出全部数据备份</button>
-          <button class="btn-primary" type="button" onclick="triggerImportAllDataBackup()">导入全部数据备份</button>
-          <input id="backupFileInput" class="hidden" type="file" accept="application/json,.json" onchange="importAllDataBackup(event)" />
-        </div>
-      </section>
-
-      <div class="panel-head">
-        <div>
-          <h2>工具入口</h2>
-          <p>已上线工具会在当前浏览器继续读取原有本地数据。</p>
-        </div>
+      <div class="capability-grid">
+        <article class="capability-card reveal-item" data-href="crm.html" role="link" tabindex="0">
+          <span>01</span>
+          <h3>CRM</h3>
+          <p>客户跟进、阶段推进、漏斗管理</p>
+        </article>
+        <article class="capability-card reveal-item" data-href="douyin-leads.html" role="link" tabindex="0">
+          <span>02</span>
+          <h3>Leads</h3>
+          <p>线索承接、有效判定、转CRM</p>
+        </article>
+        <article class="capability-card reveal-item" data-href="city-analysis.html" role="link" tabindex="0">
+          <span>03</span>
+          <h3>AI Insight</h3>
+          <p>数据洞察、问题判断、明日动作</p>
+        </article>
+        <article class="capability-card reveal-item" data-href="report.html" role="link" tabindex="0">
+          <span>04</span>
+          <h3>Report</h3>
+          <p>数据摘要、AI研判、日报生成</p>
+        </article>
       </div>
 
-      <article class="quick-entry">
-        <div>
-          <span class="quick-entry-badge">中卫执行优先使用</span>
-          <h2>中卫点将执行快捷入口</h2>
-          <p>中卫欧派整装大家居点将执行期间使用，优先进入客户池复盘工具，逐个销售梳理客户情况，自动汇总全店客户池数据，并为后续重点客户跟进和日报输出提供依据。</p>
-        </div>
-        <div class="quick-entry-action">
-          <a class="btn-primary" href="customer-review.html">进入客户池复盘</a>
-        </div>
-      </article>
+      <div class="more-tools">
+        <span>更多工具：</span>
+        <a href="customer-review.html">客户池</a>
+        <a href="material-lab.html">素材</a>
+        <a href="ad-test.html">投流</a>
+      </div>
+    </section>
 
-      <div class="tool-grid">
-        <article class="tool-card">
-          <div class="tool-top">
-            <div class="tool-icon">客</div>
-            <span class="tool-status status-ready">已上线</span>
-          </div>
-          <h2>点将客户跟进工具</h2>
-          <p>客户录入、跟进提醒、客户状态管理、工作日报生成。</p>
-          <div class="tool-actions">
-            <a class="btn-primary" href="crm.html">进入工具</a>
+    <section class="section product-showcase">
+      <div class="preview-copy">
+        <div class="section-kicker">产品展示</div>
+        <h2>From lead to action.</h2>
+        <p>CRM 承接客户推进，AI 研判帮助判断问题，日报输出沉淀当天动作。首页只展示平台能力轮廓，具体数据留在功能页处理。</p>
+      </div>
+
+      <div class="product-cards" aria-label="平台能力预览">
+        <article class="product-card primary reveal-item" data-href="crm.html" role="link" tabindex="0">
+          <div class="product-card-kicker">CRM WORKSPACE</div>
+          <h3>CRM Workspace</h3>
+          <p>把客户阶段、等级、跟进责任和下一步动作收束到同一个客户工作台。</p>
+          <div class="product-tags">
+            <span>客户阶段</span>
+            <span>今日跟进</span>
+            <span>客户漏斗</span>
+            <span>销售责任</span>
           </div>
         </article>
-
-        <article class="tool-card">
-          <div class="tool-top">
-            <div class="tool-icon">研</div>
-            <span class="tool-status status-ready">已上线</span>
-          </div>
-          <h2>AI城市点将研判</h2>
-          <p>新城市调研、客户画像、老板沟通、前7天打法、投流初判。</p>
-          <div class="tool-actions">
-            <a class="btn-primary" href="city-analysis.html">进入工具</a>
+        <article class="product-card reveal-item" data-href="city-analysis.html" role="link" tabindex="0">
+          <div class="product-card-kicker">AI INSIGHT</div>
+          <h3>AI Insight</h3>
+          <p>读取系统数据，辅助判断问题、卡点和明日优先动作。</p>
+          <div class="product-tags">
+            <span>数据洞察</span>
+            <span>问题判断</span>
+            <span>行动建议</span>
           </div>
         </article>
-
-        <article class="tool-card">
-          <div class="tool-top">
-            <div class="tool-icon">投</div>
-            <span class="tool-status status-ready">已上线</span>
-          </div>
-          <h2>投流测试与预算模拟</h2>
-          <p>投流测试记录、预算控制、线索成本、调价校准。</p>
-          <div class="tool-actions">
-            <a class="btn-primary" href="ad-test.html">进入工具</a>
-          </div>
-        </article>
-
-        <article class="tool-card">
-          <div class="tool-top">
-            <div class="tool-icon">报</div>
-            <span class="tool-status status-ready">已上线</span>
-          </div>
-          <h2>工作日报/周报工具</h2>
-          <p>日报、周报、阶段汇报内容生成。</p>
-          <div class="tool-actions">
-            <a class="btn-primary" href="report.html">进入工具</a>
-          </div>
-        </article>
-
-        <article class="tool-card">
-          <div class="tool-top">
-            <div class="tool-icon">池</div>
-            <span class="tool-status status-ready">已上线</span>
-          </div>
-          <h2>客户池复盘工具</h2>
-          <p>用于点将到店调研时快速复盘客户池，判断客户阶段、来源质量、转化卡点，并生成客户推进建议、老板沟通反馈和日报素材。</p>
-          <div class="tool-actions">
-            <a class="btn-primary" href="customer-review.html">进入工具</a>
-          </div>
-        </article>
-
-        <article class="tool-card">
-          <div class="tool-top">
-            <div class="tool-icon">抖</div>
-            <span class="tool-status status-ready">已上线</span>
-          </div>
-          <h2>抖音线索池</h2>
-          <p>单独管理抖音信息流、私信、评论、直播和主页留资线索，先清洗再转入 CRM，避免前端毛线索和正式客户台账混在一起。</p>
-          <div class="tool-actions">
-            <a class="btn-primary" href="douyin-leads.html">进入工具</a>
-          </div>
-        </article>
-
-        <article class="tool-card">
-          <div class="tool-top">
-            <div class="tool-icon">文</div>
-            <span class="tool-status status-ready">已上线</span>
-          </div>
-          <h2>同城高客单信息流素材矩阵</h2>
-          <p>生成 A/B/C/D 四组信息流测试素材，包含标题、封面字、15秒/30秒/60秒脚本、承接话术和复盘指标。</p>
-          <div class="tool-actions">
-            <a class="btn-primary" href="material-lab.html">进入工具</a>
-          </div>
-        </article>
-
-        <article class="tool-card">
-          <div class="tool-top">
-            <div class="tool-icon">交</div>
-            <span class="tool-status status-soon">规划中</span>
-          </div>
-          <h2>客户交接与阶段总结</h2>
-          <p>重点客户清单、离场交接、阶段成果总结。</p>
-          <div class="tool-actions">
-            <button class="btn-soon" type="button" disabled>即将上线</button>
+        <article class="product-card reveal-item" data-href="report.html" role="link" tabindex="0">
+          <div class="product-card-kicker">DAILY REPORT</div>
+          <h3>Daily Report</h3>
+          <p>把客户推进、线索承接和 AI 研判沉淀为可编辑的日报输出。</p>
+          <div class="product-tags">
+            <span>数据摘要</span>
+            <span>日报生成</span>
+            <span>复盘留档</span>
           </div>
         </article>
       </div>
     </section>
   </main>
 
-  <footer>
-    当前工具库为个人点将工作辅助入口，已上线工具的数据仍保存在当前设备浏览器中。后续模块上线后可继续补充投流、周报和阶段交付能力。
+  <footer class="shell backup-footer">
+    <div class="backup-row">
+      <div>
+        <p>数据保存在当前浏览器。收工前建议导出一次全部数据备份。</p>
+        <div id="backupTip" class="backup-tip"></div>
+      </div>
+      <div class="backup-actions">
+        <button class="btn-outline" type="button" onclick="exportAllDataBackup()">导出全部数据备份</button>
+        <button class="btn-outline" type="button" onclick="triggerImportAllDataBackup()">导入全部数据备份</button>
+        <input id="backupFileInput" class="hidden" type="file" accept="application/json,.json" onchange="importAllDataBackup(event)" />
+      </div>
+    </div>
   </footer>
 
   <script>
@@ -682,7 +1145,7 @@
         return;
       }
 
-      tip.style.color = isError ? "#d04444" : "#12945a";
+      tip.style.color = isError ? "#d2a197" : "#c9ead6";
       tip.innerText = message || "";
     }
 
@@ -772,12 +1235,196 @@
         }
       };
 
-      reader.onerror = () => {
-        setBackupTip("导入失败，请检查备份文件格式。", true);
-      };
-
       reader.readAsText(file);
     }
+
+    function safeParse(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return parsed || fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function getArrayFromStorage(keys) {
+      for (const key of keys) {
+        const value = safeParse(key, []);
+        if (Array.isArray(value)) return value;
+      }
+      return [];
+    }
+
+    function getTodayString() {
+      const date = new Date();
+      const pad = value => String(value).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function normalizeDate(value) {
+      if (!value) return "";
+      const match = String(value).match(/\d{4}-\d{2}-\d{2}/);
+      return match ? match[0] : "";
+    }
+
+    function pick(customer, keys) {
+      if (!customer) return "";
+      for (const key of keys) {
+        if (customer[key] !== undefined && customer[key] !== null && customer[key] !== "") {
+          return customer[key];
+        }
+      }
+      return "";
+    }
+
+    function isDeadCustomer(customer) {
+      const level = String(pick(customer, ["customerLevel", "grade", "level"]) || "");
+      const stage = String(pick(customer, ["customerStage", "status", "stage"]) || "");
+      return Boolean(customer && (customer.isDead === true || level.includes("死单") || stage.includes("死单")));
+    }
+
+    function isSignedCustomer(customer) {
+      const stage = String(pick(customer, ["customerStage", "status", "stage"]) || "");
+      return stage.includes("已签单");
+    }
+
+    function getFollowState(customer) {
+      const next = normalizeDate(pick(customer, ["nextFollowDate", "followDate", "nextFollowTime"]));
+      if (!next || isDeadCustomer(customer) || isSignedCustomer(customer)) return "none";
+      const today = getTodayString();
+      if (next < today) return "overdue";
+      if (next === today) return "today";
+      return "future";
+    }
+
+    function getDashboardStats() {
+      const customers = getArrayFromStorage(["decorationStoreCrmCustomers", "customers"]);
+      const today = getTodayString();
+
+      return {
+        todayAdded: customers.filter(customer => normalizeDate(pick(customer, ["newCustomerDate", "createdDate", "createdAt"])) === today).length,
+        todayFollow: customers.filter(customer => getFollowState(customer) === "today").length,
+        overdue: customers.filter(customer => getFollowState(customer) === "overdue").length
+      };
+    }
+
+    function renderHeroStats() {
+      try {
+        const stats = getDashboardStats();
+        const items = [
+          ["今日新增", stats.todayAdded, ""],
+          ["今日待跟进", stats.todayFollow, ""],
+          ["逾期未跟进", stats.overdue, "danger"]
+        ];
+        const heroStats = document.getElementById("heroStats");
+        const panelStats = document.getElementById("heroPanelStats");
+
+        if (heroStats) {
+          heroStats.innerHTML = items.map(([label, value, type]) => `
+            <article class="hero-stat ${type}">
+              <span>${label}</span>
+              <strong data-count-target="${Number(value) || 0}">0</strong>
+            </article>
+          `).join("");
+        }
+
+        if (panelStats) {
+          panelStats.innerHTML = items.map(([label, value]) => `
+            <div class="panel-line"><span>${label}</span><strong data-count-target="${Number(value) || 0}">0</strong></div>
+          `).join("");
+        }
+
+        animateNumbers();
+      } catch (error) {
+        console.error("首页关键数据读取失败", error);
+      }
+    }
+
+    function animateNumbers() {
+      const nodes = document.querySelectorAll("[data-count-target]");
+      const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      nodes.forEach(node => {
+        const target = Number(node.getAttribute("data-count-target")) || 0;
+
+        if (reducedMotion || target <= 0) {
+          node.textContent = String(target);
+          return;
+        }
+
+        const duration = 1400;
+        const startedAt = performance.now();
+
+        function step(now) {
+          const progress = Math.min((now - startedAt) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          node.textContent = String(Math.round(target * eased));
+
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          }
+        }
+
+        requestAnimationFrame(step);
+      });
+    }
+
+    function bindRevealOnScroll() {
+      const items = document.querySelectorAll(".reveal-item");
+
+      if (!items.length) return;
+
+      if (!("IntersectionObserver" in window)) {
+        items.forEach(item => item.classList.add("is-visible"));
+        return;
+      }
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: "0px 0px 120px 0px", threshold: 0.12 });
+
+      items.forEach((item, index) => {
+        item.style.transitionDelay = `${Math.min(index * 80, 240)}ms`;
+        observer.observe(item);
+      });
+    }
+
+    function bindCardNavigation() {
+      document.querySelectorAll("[data-href]").forEach(element => {
+        element.addEventListener("click", () => {
+          const href = element.getAttribute("data-href");
+          if (href) window.location.href = href;
+        });
+        element.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            const href = element.getAttribute("data-href");
+            if (href) window.location.href = href;
+          }
+        });
+      });
+    }
+
+    function bindScrollButtons() {
+      document.querySelectorAll("[data-scroll-target]").forEach(button => {
+        button.addEventListener("click", () => {
+          const target = document.getElementById(button.getAttribute("data-scroll-target"));
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    renderHeroStats();
+    bindCardNavigation();
+    bindScrollButtons();
+    bindRevealOnScroll();
   </script>
 </body>
 </html>
