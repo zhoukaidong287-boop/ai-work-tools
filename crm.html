@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>点将客户跟进工具</title>
+  <title>CRM Workspace | Growth Command</title>
 
   <style>
     :root {
@@ -1518,15 +1518,31 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="shared-ui.css" />
 </head>
 
 <body>
+  <nav class="gc-shell" aria-label="Growth Command 功能导航">
+    <div class="gc-nav">
+      <a class="gc-brand" href="index.html">Growth Command</a>
+      <div class="gc-nav-links">
+        <a href="index.html">首页</a>
+        <a href="crm.html" class="is-active">CRM</a>
+        <a href="douyin-leads.html">线索</a>
+        <a href="customer-review.html">客户池</a>
+        <a href="city-analysis.html">AI研判</a>
+        <a href="report.html">日报</a>
+        <a href="material-lab.html">素材</a>
+        <a href="ad-test.html">投流</a>
+      </div>
+    </div>
+  </nav>
   <header>
     <div class="hero-shell">
       <div class="hero-copy">
-        <div class="hero-eyebrow">点将客户跟进作战台</div>
-        <h1>点将客户跟进工具</h1>
-        <p>用于点将期间客户录入、跟进提醒、客户状态管理与数据留存</p>
+        <div class="hero-eyebrow">Growth Command · Customer Operations</div>
+        <h1>CRM Workspace</h1>
+        <p>客户跟进、阶段推进、跟进记录与漏斗管理。</p>
       </div>
 
       <section class="hero-project">
@@ -3012,7 +3028,8 @@
     }
 
     function renderStatusTags(customer, followState) {
-      let html = `<span class="tag tag-status">${escapeHtml(customer.status)}</span>`;
+      const stageClass = getStatusTagClass(customer.status);
+      let html = `<span class="tag tag-status ${stageClass}">${escapeHtml(customer.status)}</span>`;
 
       if (customer.isNewCustomer) {
         html = `<span class="tag tag-new">新客户</span>` + html;
@@ -3035,6 +3052,22 @@
       }
 
       return html;
+    }
+
+    function getStatusTagClass(status) {
+      const classMap = {
+        "新线索": "gc-tag-lead",
+        "已联系": "gc-tag-contacted",
+        "已进店": "gc-tag-visited",
+        "已量房": "gc-tag-measured",
+        "已出方案": "gc-tag-intent",
+        "已报价": "gc-tag-quoted",
+        "已交定金": "gc-tag-focus",
+        "已签单": "gc-tag-signed",
+        "沉睡客户": "gc-tag-sleep",
+        "死单": "gc-tag-dead"
+      };
+      return classMap[status] || "";
     }
 
     function renderGradeTag(grade) {

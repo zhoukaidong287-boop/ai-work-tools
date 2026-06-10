@@ -3,19 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>抖音线索池</title>
+  <title>Leads Workspace | Growth Command</title>
   <style>
     :root{--bg:#eef3fb;--text:#172033;--muted:#64748b;--line:#dbe4f0;--blue:#2563eb;--green:#12945a;--red:#d04444;--cyan:#0891b2;--shadow:0 18px 50px rgba(21,34,66,.09);--gradient-primary:linear-gradient(135deg,#3861ff 0%,#6757f5 52%,#08b6d8 100%);--gradient-dark:radial-gradient(circle at 18% 16%,rgba(77,208,255,.28),transparent 34%),radial-gradient(circle at 86% 8%,rgba(132,92,255,.34),transparent 30%),linear-gradient(135deg,#111827 0%,#172554 50%,#0f172a 100%)}
     *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 8% 0%,rgba(70,87,240,.14),transparent 28%),var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}header{background:var(--gradient-dark);color:#fff;padding:36px 40px 82px;position:relative;overflow:hidden}header:before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);background-size:42px 42px;opacity:.32}.hero{display:grid;grid-template-columns:1fr auto;gap:22px;max-width:1280px;margin:0 auto;position:relative;z-index:1;align-items:center}.eyebrow{display:inline-flex;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.09);border-radius:999px;color:#c7f1ff;font-size:12px;font-weight:800;padding:7px 12px;margin-bottom:14px}h1,h2,h3,p{margin:0}h1{font-size:clamp(30px,4vw,46px);line-height:1.12}.subtitle{color:#dbeafe;line-height:1.75;margin-top:12px;max-width:860px}main{max-width:1280px;margin:-46px auto 0;padding:0 32px 44px;position:relative;z-index:2}.card{background:rgba(255,255,255,.94);border:1px solid rgba(219,228,240,.92);border-radius:20px;box-shadow:var(--shadow);margin-bottom:22px;padding:22px;backdrop-filter:blur(10px)}.section-head{display:flex;justify-content:space-between;gap:16px;margin-bottom:18px;align-items:flex-start}.section-note{color:var(--muted);line-height:1.65;margin-top:7px}.flow{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.flow span{background:#eff6ff;border:1px solid #bfdbfe;border-radius:999px;color:#172554;font-size:13px;font-weight:800;padding:7px 10px}.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.wide{grid-column:span 2}.full{grid-column:1/-1}label{display:block;font-size:13px;font-weight:800;color:#344054;margin-bottom:6px}input,select,textarea{width:100%;border:1px solid #d7e0ec;border-radius:10px;background:#fbfdff;color:var(--text);font:inherit;font-size:14px;padding:10px 11px;outline:none}textarea{min-height:88px;line-height:1.65;resize:vertical}button,a.button-link{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;color:#fff;cursor:pointer;font:inherit;font-size:14px;font-weight:800;min-height:38px;padding:9px 14px;text-decoration:none;white-space:nowrap}.btn-primary{background:var(--gradient-primary)}.btn-blue{background:var(--blue)}.btn-green{background:var(--green)}.btn-cyan{background:var(--cyan)}.btn-red{background:#fff1f2;border:1px solid #fecdd3;color:#be123c}.btn-light{background:#fff;border:1px solid #bfdbfe;color:#172554!important;box-shadow:0 12px 28px rgba(15,23,42,.15)}.button-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.check-card{display:flex;align-items:center;gap:8px;background:#f8fbff;border:1px solid #dbe4f0;border-radius:12px;padding:9px 12px;font-weight:700}.check-card input{width:auto}.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.stat{background:#f8fbff;border:1px solid #dbeafe;border-radius:14px;padding:14px}.stat span{display:block;color:var(--muted);font-size:13px}.stat strong{display:block;font-size:24px;margin-top:6px}.lead-list{display:grid;gap:12px}.lead-card{border:1px solid #dbeafe;background:#f8fbff;border-radius:16px;padding:16px}.lead-title{font-weight:900;font-size:17px}.lead-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.tag{display:inline-flex;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900;background:#eef2ff;color:#3730a3}.tag-ok{background:#dcfce7;color:#166534}.tag-bad{background:#fee2e2;color:#991b1b}.tag-warn{background:#fef3c7;color:#92400e}.copy-tip{color:var(--green);font-weight:800;min-height:22px;margin-top:8px}@media(max-width:800px){header{padding:28px 20px 74px}.hero{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.wide,.full{grid-column:auto}main{padding:0 16px 36px}button,a.button-link{width:100%}}
   </style>
+  <link rel="stylesheet" href="shared-ui.css" />
 </head>
 <body>
+  <nav class="gc-shell" aria-label="Growth Command 功能导航">
+    <div class="gc-nav">
+      <a class="gc-brand" href="index.html">Growth Command</a>
+      <div class="gc-nav-links">
+        <a href="index.html">首页</a>
+        <a href="crm.html">CRM</a>
+        <a href="douyin-leads.html" class="is-active">线索</a>
+        <a href="customer-review.html">客户池</a>
+        <a href="city-analysis.html">AI研判</a>
+        <a href="report.html">日报</a>
+        <a href="material-lab.html">素材</a>
+        <a href="ad-test.html">投流</a>
+      </div>
+    </div>
+  </nav>
   <header>
     <div class="hero">
       <div>
-        <span class="eyebrow">主动营销点将 · 前端线索清洗</span>
-        <h1>抖音线索池</h1>
-        <p class="subtitle">单独管理抖音信息流、私信、评论、直播、主页留资等前端线索。先清洗、判断有效性、分配销售，再转入 CRM，避免毛线索和正式客户台账混在一起。</p>
+        <span class="eyebrow">Growth Command · Lead Intake</span>
+        <h1>Leads Workspace</h1>
+        <p class="subtitle">抖音线索承接、有效判定、销售分配与转CRM。</p>
         <div class="flow"><span>①录入</span><span>②清洗</span><span>③分配销售</span><span>④转入CRM</span><span>⑤CRM跟进</span><span>⑥日报统计</span></div>
       </div>
       <a class="button-link btn-light" href="index.html">返回工具库首页</a>

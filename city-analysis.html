@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI每日点将研判台</title>
+  <title>AI Insight | Growth Command</title>
 
   <style>
     :root {
@@ -1360,15 +1360,31 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="shared-ui.css" />
 </head>
 
 <body>
+  <nav class="gc-shell" aria-label="Growth Command 功能导航">
+    <div class="gc-nav">
+      <a class="gc-brand" href="index.html">Growth Command</a>
+      <div class="gc-nav-links">
+        <a href="index.html">首页</a>
+        <a href="crm.html">CRM</a>
+        <a href="douyin-leads.html">线索</a>
+        <a href="customer-review.html">客户池</a>
+        <a href="city-analysis.html" class="is-active">AI研判</a>
+        <a href="report.html">日报</a>
+        <a href="material-lab.html">素材</a>
+        <a href="ad-test.html">投流</a>
+      </div>
+    </div>
+  </nav>
   <header>
     <div class="hero-shell">
       <div class="hero-copy">
-        <div class="hero-eyebrow">点将工具库 · 每日研判</div>
-        <h1>AI每日点将研判台</h1>
-        <p>用于每天读取客户池、CRM、抖音线索、活动机制和现场情况，生成可复制的AI研判调令，辅助判断明日重点动作。</p>
+        <div class="hero-eyebrow">Growth Command · Daily Intelligence</div>
+        <h1>AI Insight</h1>
+        <p>读取客户池、CRM、线索与素材数据，生成每日研判。</p>
         <div class="city-hero-actions">
           <button class="btn-light return-home-btn" onclick="location.href='index.html'">返回工具库首页</button>
           <button class="btn-primary" onclick="generatePreJudgePrompt()">生成AI调研指令</button>

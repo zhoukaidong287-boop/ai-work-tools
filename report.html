@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>工作日报/周报工具</title>
+  <title>Daily Report | Growth Command</title>
   <style>
     :root {
       --bg: #eef3fb;
@@ -316,15 +316,31 @@
       .card { border-radius: 16px; padding: 16px; }
     }
   </style>
+  <link rel="stylesheet" href="shared-ui.css" />
 </head>
 
-<body>
+<body class="report-page">
+  <nav class="gc-shell" aria-label="Growth Command 功能导航">
+    <div class="gc-nav">
+      <a class="gc-brand" href="index.html">Growth Command</a>
+      <div class="gc-nav-links">
+        <a href="index.html">首页</a>
+        <a href="crm.html">CRM</a>
+        <a href="douyin-leads.html">线索</a>
+        <a href="customer-review.html">客户池</a>
+        <a href="city-analysis.html">AI研判</a>
+        <a href="report.html" class="is-active">日报</a>
+        <a href="material-lab.html">素材</a>
+        <a href="ad-test.html">投流</a>
+      </div>
+    </div>
+  </nav>
   <header>
     <div class="hero">
       <div>
-        <div class="eyebrow">点将工具库 · 主动营销日报周报</div>
-        <h1>工作日报/周报工具</h1>
-        <p class="subtitle">用于主动营销老师在点将期间生成飞书日报、主动营销周报和主动营销阶段汇报，适合复制到飞书、微信或工作汇报中使用。</p>
+        <div class="eyebrow">Growth Command · Report Desk</div>
+        <h1>Daily Report</h1>
+        <p class="subtitle">读取CRM、客户池、线索与AI研判，生成可编辑日报。</p>
       </div>
       <div class="button-row">
         <a class="button-link return-home-btn" href="index.html">返回工具库首页</a>
