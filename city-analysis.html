@@ -1707,6 +1707,12 @@
 
     const SOURCE_OPTIONS = [
       "抖音线索",
+      "抖音信息流",
+      "抖音私信",
+      "抖音评论",
+      "直播线索",
+      "主页留资",
+      "电商线索",
       "经纪人推荐",
       "自然到店",
       "老客户转介绍",
@@ -1922,6 +1928,12 @@
       const id = customer.id || createId();
       const status = STATUS_MAP[customer.status] || customer.status || "新线索";
       const source = SOURCE_MAP[customer.source] || customer.source || "自然到店";
+      const hasNewCustomerFlag = Object.prototype.hasOwnProperty.call(customer, "isNewCustomer");
+      const isNewCustomer = hasNewCustomerFlag
+        ? customer.isNewCustomer === true || customer.isNewCustomer === "true" || customer.isNewCustomer === "是"
+        : false;
+      const createdAt = normalizeDateTimeValue(customer.createdAt) || now;
+      const newCustomerDate = normalizeDateValue(customer.newCustomerDate || customer.createdDate) || getDatePart(createdAt);
       const followRecords = Array.isArray(customer.followRecords)
         ? customer.followRecords.map(normalizeFollowRecord)
         : [];
@@ -1946,6 +1958,8 @@
         area: customer.area || "",
         layout: customer.layout || "",
         source: SOURCE_OPTIONS.includes(source) ? source : "其他",
+        isNewCustomer,
+        newCustomerDate,
         need: customer.need || "",
         budget: customer.budget || "待确认",
         grade: GRADE_OPTIONS.includes(customer.grade) ? customer.grade : "C类客户",
@@ -1953,7 +1967,7 @@
         owner: customer.owner || "",
         nextFollowDate: normalizeDateValue(customer.nextFollowDate),
         followRecords,
-        createdAt: normalizeDateTimeValue(customer.createdAt) || now,
+        createdAt,
         updatedAt: normalizeDateTimeValue(customer.updatedAt) || now
       };
     }
@@ -2781,7 +2795,7 @@
 
       return {
         today,
-        todayNew: customers.filter(customer => getDatePart(customer.createdAt) === today).length,
+        todayNew: customers.filter(customer => normalizeDateValue(customer.newCustomerDate || customer.createdDate) === today).length,
         todayFollowed: followedCustomerIds.size,
         todayMeasured: countTodayUpdatedByStatus("已量房", today),
         todayQuoted: countTodayUpdatedByStatus("已报价", today),
@@ -4303,13 +4317,23 @@
       const list = Array.isArray(customers) ? customers : [];
       const stats = {
         total: list.length, effective: 0, dead: 0, a: 0, b: 0, c: 0, todayFollow: 0, overdue: 0,
-        measured: 0, quoted: 0, signed: 0, sleeping: 0, deadReasons: {}, sales: {}
+        newCustomers: 0, todayNew: 0, todayNewMeasured: 0, todayNewQuoted: 0,
+        measured: 0, quoted: 0, signed: 0, sleeping: 0, stageNew: 0, deadReasons: {}, sales: {}
       };
       list.forEach(customer => {
         const dead = isDailyDead(customer);
         const owner = customer.owner || "未填写销售";
-        stats.sales[owner] = stats.sales[owner] || { total: 0, a: 0, b: 0, c: 0, dead: 0, today: 0, overdue: 0 };
+        const isNew = customer.isNewCustomer === true || customer.isNewCustomer === "true" || customer.isNewCustomer === "是";
+        const newDate = normalizeDateValue(customer.newCustomerDate || customer.createdDate);
+        stats.sales[owner] = stats.sales[owner] || { total: 0, newCustomers: 0, todayNew: 0, a: 0, b: 0, c: 0, dead: 0, today: 0, overdue: 0 };
         stats.sales[owner].total += 1;
+        if (isNew) { stats.newCustomers += 1; stats.sales[owner].newCustomers += 1; }
+        if (newDate === date) {
+          stats.todayNew += 1;
+          stats.sales[owner].todayNew += 1;
+          if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是") stats.todayNewMeasured += 1;
+          if (["已报价", "已交定金", "已签单"].includes(customer.status)) stats.todayNewQuoted += 1;
+        }
         if (dead) {
           stats.dead += 1;
           stats.sales[owner].dead += 1;
@@ -4321,6 +4345,7 @@
         if (customer.grade === "A类客户") { stats.a += 1; stats.sales[owner].a += 1; }
         if (customer.grade === "B类客户") { stats.b += 1; stats.sales[owner].b += 1; }
         if (customer.grade === "C类客户") { stats.c += 1; stats.sales[owner].c += 1; }
+        if (customer.status === "新线索") stats.stageNew += 1;
         if (customer.status === "沉睡客户") stats.sleeping += 1;
         if (customer.status === "已签单") stats.signed += 1;
         if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是") stats.measured += 1;
@@ -4331,7 +4356,7 @@
           if (next < date) { stats.overdue += 1; stats.sales[owner].overdue += 1; }
         }
       });
-      stats.salesSummary = Object.entries(stats.sales).map(([name, s]) => `${name}客户${s.total}组/A${s.a}/B${s.b}/C${s.c}/今日${s.today}/逾期${s.overdue}/死单${s.dead}`).join("；") || "暂无销售统计";
+      stats.salesSummary = Object.entries(stats.sales).map(([name, s]) => `${name}客户${s.total}组/新客户${s.newCustomers}/今日新增${s.todayNew}/A${s.a}/B${s.b}/C${s.c}/今日跟进${s.today}/逾期${s.overdue}/死单${s.dead}`).join("；") || "暂无销售统计";
       return stats;
     }
 
@@ -4393,6 +4418,11 @@
         `- 日期：${date}`,
         `- 客户总数：${crm.total}`,
         `- 有效客户：${crm.effective}`,
+        `- 新客户数：${crm.newCustomers}`,
+        `- 今日新增客户：${crm.todayNew}`,
+        `- 今日新增已量房：${crm.todayNewMeasured}`,
+        `- 今日新增已报价：${crm.todayNewQuoted}`,
+        `- 阶段新线索：${crm.stageNew}`,
         `- A/B/C：${crm.a}/${crm.b}/${crm.c}`,
         `- 死单：${crm.dead}`,
         `- 今日待跟进：${crm.todayFollow}`,
@@ -4420,7 +4450,9 @@
         "此处留给用户手动填写。",
         "",
         "六、明日目标",
-        "此处留给用户手动填写。"
+        "此处留给用户手动填写。",
+        "",
+        "提示：新客户不等于客户阶段“新线索”。如果今日新增客户已经进入量房或报价，也要计入今日新增客户。"
       ].join("\n");
     }
 
@@ -4434,7 +4466,8 @@
       const lines = [
         "【今日系统数据摘要】",
         `研判日期：${date}`,
-        `CRM：客户总数${crm.total}组，有效客户${crm.effective}组，死单${crm.dead}组，A/B/C ${crm.a}/${crm.b}/${crm.c}组，今日待跟进${crm.todayFollow}组，逾期未跟进${crm.overdue}组，已量房${crm.measured}组，已报价${crm.quoted}组，已签单${crm.signed}组，沉睡${crm.sleeping}组。主要死单原因：${dailyTopMap(crm.deadReasons)}。`,
+        `CRM：客户总数${crm.total}组，有效客户${crm.effective}组，死单${crm.dead}组，新客户${crm.newCustomers}组，今日新增客户${crm.todayNew}组，今日新增已量房${crm.todayNewMeasured}组，今日新增已报价${crm.todayNewQuoted}组，阶段新线索${crm.stageNew}组，A/B/C ${crm.a}/${crm.b}/${crm.c}组，今日待跟进${crm.todayFollow}组，逾期未跟进${crm.overdue}组，已量房${crm.measured}组，已报价${crm.quoted}组，已签单${crm.signed}组，沉睡${crm.sleeping}组。主要死单原因：${dailyTopMap(crm.deadReasons)}。`,
+        "新客户口径：新客户不等于客户阶段“新线索”；今日新增客户如果已经推进到量房或报价，也必须计入今日新增客户。",
         `按销售统计：${crm.salesSummary}`,
         `抖音线索：总数${douyin.total}条，当日新增${douyin.todayNew}条，待清洗${douyin.pending}条，有效${douyin.valid}条，无效${douyin.invalid}条，已分配销售${douyin.assigned}条，已转入CRM${douyin.transferred}条。主要来源：${dailyTopMap(douyin.sources, "条")}。主要无效原因：${dailyTopMap(douyin.invalidReasons, "条")}。按销售分配：${dailyTopMap(douyin.sales, "条")}。`,
         `客户池复盘：${reviewText}`,

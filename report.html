@@ -811,7 +811,15 @@
       return "future";
     }
 
-    function getCrmDataStats(customers) {
+    function getCrmNewDate(customer) {
+      return normalizeDate(customer.newCustomerDate || customer.createdDate);
+    }
+
+    function isCrmNewCustomer(customer) {
+      return customer && (customer.isNewCustomer === true || customer.isNewCustomer === "true" || customer.isNewCustomer === "是");
+    }
+
+    function getCrmDataStats(customers, reportDate = today()) {
       const stats = {
         total: customers.length,
         effective: 0,
@@ -820,6 +828,10 @@
         gradeC: 0,
         deadGrade: 0,
         newCustomers: 0,
+        stageNewCustomers: 0,
+        todayNew: 0,
+        todayNewMeasured: 0,
+        todayNewQuoted: 0,
         measured: 0,
         quoted: 0,
         signed: 0,
@@ -843,7 +855,13 @@
         if (!dead && customer.grade === "A类客户") stats.gradeA += 1;
         if (!dead && customer.grade === "B类客户") stats.gradeB += 1;
         if (!dead && customer.grade === "C类客户") stats.gradeC += 1;
-        if (!dead && customer.status === "新线索") stats.newCustomers += 1;
+        if (isCrmNewCustomer(customer)) stats.newCustomers += 1;
+        if (!dead && customer.status === "新线索") stats.stageNewCustomers += 1;
+        if (getCrmNewDate(customer) === reportDate) {
+          stats.todayNew += 1;
+          if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是") stats.todayNewMeasured += 1;
+          if (["已报价", "已交定金", "已签单"].includes(customer.status)) stats.todayNewQuoted += 1;
+        }
         if (!dead && (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是")) stats.measured += 1;
         if (!dead && ["已报价", "已交定金", "已签单"].includes(customer.status)) stats.quoted += 1;
         if (customer.status === "已签单") stats.signed += 1;
@@ -902,7 +920,8 @@
     function readTodayCustomerPoolAndCrmData() {
       const reviewSource = getCustomerReviewSource();
       const customers = loadCrmCustomersForReport();
-      const crmStats = getCrmDataStats(customers);
+      const reportDate = normalizeDate(getValue("dailyDate")) || today();
+      const crmStats = getCrmDataStats(customers, reportDate);
       const douyinLeads = loadDouyinLeadsForReport();
       const douyinStats = getDouyinLeadStats(Array.isArray(douyinLeads) ? douyinLeads : []);
 
@@ -922,8 +941,11 @@
           ? `客户池复盘：销售${reviewSummary.salesCount || 0}人，客户总数${reviewSummary.totalCustomers || 0}组，新线索${reviewSummary.newCustomers || 0}组，A/B/C类客户${reviewSummary.gradeA || 0}/${reviewSummary.gradeB || 0}/${reviewSummary.gradeC || 0}组，已量房${reviewSummary.measured || 0}组，已报价${reviewSummary.quoted || 0}组，已签单${reviewSummary.signed || 0}组，待跟进${reviewSummary.needFollow || 0}组，沉睡${reviewSummary.sleeping || 0}组。`
           : "客户池复盘：暂无客户池复盘草稿或历史记录。",
         customers.length
-          ? `CRM台账：当前已登记客户${crmStats.total}组，有效客户${crmStats.effective}组，死单客户${crmStats.dead}组，新线索${crmStats.newCustomers}组，A/B/C类客户${crmStats.gradeA}/${crmStats.gradeB}/${crmStats.gradeC}组，已量房${crmStats.measured}组，已报价${crmStats.quoted}组，已签单${crmStats.signed}组，沉睡${crmStats.sleeping}组。死单原因摘要：${getTopMapSummary(crmStats.deadReasons, "暂无死单原因")}。`
+          ? `CRM台账：当前已登记客户${crmStats.total}组，有效客户${crmStats.effective}组，死单客户${crmStats.dead}组，新客户${crmStats.newCustomers}组，${reportDate}新增客户${crmStats.todayNew}组，阶段为新线索${crmStats.stageNewCustomers}组，A/B/C类客户${crmStats.gradeA}/${crmStats.gradeB}/${crmStats.gradeC}组，已量房${crmStats.measured}组，已报价${crmStats.quoted}组，已签单${crmStats.signed}组，沉睡${crmStats.sleeping}组。死单原因摘要：${getTopMapSummary(crmStats.deadReasons, "暂无死单原因")}。`
           : "CRM台账：暂无已登记客户数据。",
+        crmStats.todayNewMeasured || crmStats.todayNewQuoted
+          ? `新增客户推进提示：${reportDate}新增客户中，已有${crmStats.todayNewMeasured}组进入量房及后续阶段，${crmStats.todayNewQuoted}组进入报价及后续阶段。新客户不等于客户阶段“新线索”，已推进到量房/报价的新增客户也需要计入今日新增。`
+          : "",
         customers.length
           ? `跟进提醒：今日待跟进${crmStats.todayFollow}组，逾期未跟进${crmStats.overdue}组。`
           : "跟进提醒：暂无CRM客户，无法统计今日待跟进和逾期未跟进。",

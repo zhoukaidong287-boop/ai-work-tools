@@ -1137,6 +1137,12 @@
       color: #1d4ed8;
     }
 
+    .tag-new {
+      background: #f0fdfa;
+      border-color: #5eead4;
+      color: #0f766e;
+    }
+
     .tag-grade-a {
       background: linear-gradient(135deg, #fff7ed, #ffedd5);
       border-color: #fdba74;
@@ -1809,6 +1815,17 @@
         <section class="form-section-card">
           <div class="form-section-title"><span>📊</span>客户等级与阶段</div>
           <div class="form-grid">
+            <div>
+              <label for="isNewCustomer">是否新客户</label>
+              <select id="isNewCustomer">
+                <option value="true">是</option>
+                <option value="false">否</option>
+              </select>
+            </div>
+            <div>
+              <label for="newCustomerDate">新增日期</label>
+              <input id="newCustomerDate" type="date" />
+            </div>
             <div>
               <label for="grade">客户等级</label>
               <select id="grade">
@@ -2619,6 +2636,12 @@
       const status = STATUS_MAP[customer.status] || customer.status || "新线索";
       const source = SOURCE_MAP[customer.source] || customer.source || "自然到店";
       const grade = GRADE_MAP[customer.grade] || customer.grade || "C类客户";
+      const hasNewCustomerFlag = Object.prototype.hasOwnProperty.call(customer, "isNewCustomer");
+      const isNewCustomer = hasNewCustomerFlag
+        ? customer.isNewCustomer === true || customer.isNewCustomer === "true" || customer.isNewCustomer === "是"
+        : false;
+      const createdAt = normalizeDateTimeValue(customer.createdAt) || now;
+      const newCustomerDate = normalizeDateValue(customer.newCustomerDate || customer.createdDate) || getDatePart(createdAt);
       const followRecords = Array.isArray(customer.followRecords)
         ? customer.followRecords.map(normalizeFollowRecord)
         : [];
@@ -2643,6 +2666,8 @@
         area: customer.area || "",
         layout: customer.layout || "",
         source: SOURCE_OPTIONS.includes(source) ? source : "其他",
+        isNewCustomer,
+        newCustomerDate,
         need: customer.need || "",
         designer: customer.designer || "",
         blockReason: customer.blockReason || customer.lossReason || "",
@@ -2657,7 +2682,7 @@
         owner: customer.owner || "",
         nextFollowDate: normalizeDateValue(customer.nextFollowDate),
         followRecords,
-        createdAt: normalizeDateTimeValue(customer.createdAt) || now,
+        createdAt,
         updatedAt: normalizeDateTimeValue(customer.updatedAt) || now
       };
     }
@@ -2844,6 +2869,8 @@
         area: getValue("area"),
         layout: getLayoutValue(),
         source: getValue("source"),
+        isNewCustomer: getValue("isNewCustomer") === "true",
+        newCustomerDate: normalizeDateValue(getValue("newCustomerDate")) || (existing ? existing.newCustomerDate : getTodayString()),
         need: composeChoiceFieldValue("need"),
         designer: getValue("designer"),
         blockReason: composeChoiceFieldValue("blockReason"),
@@ -2946,7 +2973,10 @@
           </td>
           <td class="compact-cell">${escapeHtml(customer.owner || "-")}</td>
           <td class="compact-cell">${renderGradeTag(customer.grade)}</td>
-          <td class="compact-cell">${renderStatusTags(customer, followState)}</td>
+          <td class="compact-cell">
+            ${renderStatusTags(customer, followState)}
+            ${customer.isNewCustomer && customer.newCustomerDate ? `<div class="subtle nowrap">新增：${escapeHtml(customer.newCustomerDate)}</div>` : ""}
+          </td>
           <td class="compact-cell">
             <div>${escapeHtml(customer.measuredStatus || "否")}</div>
             <div class="subtle nowrap">${escapeHtml(customer.measureDate || "-")}</div>
@@ -2983,6 +3013,10 @@
 
     function renderStatusTags(customer, followState) {
       let html = `<span class="tag tag-status">${escapeHtml(customer.status)}</span>`;
+
+      if (customer.isNewCustomer) {
+        html = `<span class="tag tag-new">新客户</span>` + html;
+      }
 
       if (customer.status === "已签单") {
         html += '<span class="tag tag-ok">已成交</span>';
@@ -3106,6 +3140,8 @@
             ${renderDetailItem("房屋面积", customer.area)}
             ${renderDetailItem("户型", customer.layout)}
             ${renderDetailItem("客户来源", customer.source)}
+            ${renderDetailItem("是否新客户", customer.isNewCustomer ? "是" : "否")}
+            ${renderDetailItem("新增日期", customer.newCustomerDate)}
             ${renderDetailItem("预算区间", customer.budget)}
             ${renderDetailItem("客户等级", `${customer.grade} · ${getGradeLabel(customer.grade)}`)}
             ${renderDetailItem("客户状态", customer.status)}
@@ -3289,6 +3325,14 @@
 
     function isEffectiveCustomer(customer) {
       return customer && !isDeadCustomer(customer);
+    }
+
+    function isNewCustomerEntry(customer) {
+      return customer && customer.isNewCustomer === true;
+    }
+
+    function getNewCustomerDate(customer) {
+      return normalizeDateValue(customer && customer.newCustomerDate) || normalizeDateValue(customer && customer.createdDate) || "";
     }
 
     function isFollowableCustomer(customer) {
@@ -3608,6 +3652,8 @@
       setValue("area", customer.area);
       setLayoutValue(customer.layout);
       setValue("source", customer.source);
+      setValue("isNewCustomer", customer.isNewCustomer ? "true" : "false");
+      setValue("newCustomerDate", normalizeDateValue(customer.newCustomerDate));
       setValue("budget", customer.budget);
       setValue("grade", customer.grade);
       setValue("status", customer.status);
@@ -3696,6 +3742,8 @@
       ["blockReason", "nextAction", "need"].forEach(clearChoiceField);
       setLayoutValue("三室两厅一厨两卫");
       setValue("source", "自然到店");
+      setValue("isNewCustomer", "true");
+      setValue("newCustomerDate", getTodayString());
       setValue("budget", "待确认");
       setValue("grade", "C类客户");
       setValue("status", "新线索");
@@ -3763,6 +3811,8 @@
         "房屋面积",
         "户型",
         "客户来源",
+        "是否新客户",
+        "新增日期",
         "装修需求",
         "预算区间",
         "客户等级",
@@ -3792,6 +3842,8 @@
           customer.area,
           customer.layout,
           customer.source,
+          customer.isNewCustomer ? "是" : "否",
+          customer.newCustomerDate || "",
           customer.need,
           customer.budget,
           customer.grade,
@@ -4078,7 +4130,8 @@
 
       return {
         today,
-        todayNew: customers.filter(customer => getDatePart(customer.createdAt) === today).length,
+        todayNew: customers.filter(customer => getNewCustomerDate(customer) === today).length,
+        newCustomers: customers.filter(isNewCustomerEntry).length,
         todayFollowed: followedCustomerIds.size,
         todayMeasured: countTodayUpdatedByStatus("已量房", today),
         todayQuoted: countTodayUpdatedByStatus("已报价", today),
@@ -4830,7 +4883,9 @@
           items: [
             ["客户总数", stats.total],
             ["有效客户", stats.effective],
-            ["新线索", stats.newCount],
+            ["新客户", stats.newCount],
+            ["今日新增", stats.todayNew],
+            ["阶段新线索", stats.stageNewCount],
             ["A类", stats.gradeA],
             ["B类", stats.gradeB],
             ["C类", stats.gradeC]
@@ -4882,7 +4937,9 @@
                 <th>销售</th>
                 <th>客户总数</th>
                 <th>有效客户</th>
-                <th>新线索</th>
+                <th>新客户</th>
+                <th>今日新增</th>
+                <th>阶段新线索</th>
                 <th>A类</th>
                 <th>B类</th>
                 <th>C类</th>
@@ -4907,6 +4964,8 @@
                     <td>${salesStats.total}</td>
                     <td>${salesStats.effective}</td>
                     <td>${salesStats.newCount}</td>
+                    <td>${salesStats.todayNew}</td>
+                    <td>${salesStats.stageNewCount}</td>
                     <td>${salesStats.gradeA}</td>
                     <td>${salesStats.gradeB}</td>
                     <td>${salesStats.gradeC}</td>
@@ -4926,7 +4985,7 @@
       `;
 
       const gradeA = customers.filter(c => c.grade === "A类客户").length;
-      const newCount = countByStatus("新线索");
+      const newCount = getCrmFunnelStats(customers).stageNewCount;
       const quoted = countByStatus("已报价");
       const signed = countByStatus("已签单");
       const sleeping = countByStatus("沉睡客户");
@@ -4952,7 +5011,9 @@
       return {
         total: list.length,
         effective: effectiveList.length,
-        newCount: effectiveList.filter(customer => customer.status === "新线索").length,
+        newCount: list.filter(isNewCustomerEntry).length,
+        todayNew: list.filter(customer => getNewCustomerDate(customer) === getTodayString()).length,
+        stageNewCount: effectiveList.filter(customer => customer.status === "新线索").length,
         gradeA: effectiveList.filter(customer => customer.grade === "A类客户").length,
         gradeB: effectiveList.filter(customer => customer.grade === "B类客户").length,
         gradeC: effectiveList.filter(customer => customer.grade === "C类客户").length,
@@ -5416,6 +5477,8 @@
     fillFilterOptions();
     toggleLayoutOther();
     initPresetSales();
+    setValue("isNewCustomer", "true");
+    setValue("newCustomerDate", getTodayString());
     renderCustomers();
     handleInitialHashNavigation();
   </script>
