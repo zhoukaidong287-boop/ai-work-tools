@@ -24,6 +24,15 @@
 - 固化代码屎山治理顺序。
 - 明确 Computer Use 和 Skill 的使用原则。
 
+## 第 3 刀：douyin-leads.html 格式化治理
+
+- 整理 `douyin-leads.html` 压缩式代码。
+- 保留原 `localStorage` key。
+- 保留抖音线索转 CRM 逻辑。
+- 保留 `isNewCustomer` / `newCustomerDate` 写入逻辑。
+- 保留有效/无效、分配销售、导出、删除等功能。
+- 未修改业务逻辑。
+
 ## 已完成核心模块
 
 - 首页工具入口。
