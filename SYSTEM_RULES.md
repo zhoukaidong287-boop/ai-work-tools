@@ -2,6 +2,13 @@
 
 本文档是 `ai-work-tools` 的项目规则。后续修改代码前，应先阅读本文件。
 
+## AGENTS.md 优先级
+
+- `AGENTS.md` 是 Codex 执行修改任务的入口规则文件。
+- 任何代码修改前必须先读取 `AGENTS.md`。
+- 如果 `AGENTS.md` 与临时任务冲突，以更严格的数据安全规则为准。
+- 涉及 `localStorage`、CRM 主数据、导入导出、删除、覆盖、清空时，必须优先遵守 `AGENTS.md` 数据安全红线。
+
 ## 1. 数据安全规则
 
 - `localStorage` 是当前系统主要数据源。

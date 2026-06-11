@@ -47,3 +47,10 @@
 - 未经用户明确确认，不要删除客户、线索、日报、AI 研判或客户池复盘历史。
 - 未经用户明确确认，Codex 不要默认 Commit / Push。
 - 新增字段必须兼容旧数据，旧数据缺字段时不能报错。
+
+## 项目修改规则
+
+- 本项目已新增 `AGENTS.md`。
+- 所有 Codex / AI 修改任务必须优先阅读 `AGENTS.md`。
+- 数据安全、页面职责、`localStorage` key、Commit/Push 规则以 `AGENTS.md` 为准。
+- 未经用户确认，不允许自动 Commit 或 Push。

@@ -15,6 +15,15 @@
 - 全站覆盖导入前自动保存 `fullBackupBeforeImport_YYYYMMDD_HHmmss` 备份。
 - `city-analysis.html` 的 CRM 高危写操作统一引导到 CRM 页面，保持 AI 研判页只读 CRM 数据。
 
+## 第 2 刀：新增 AGENTS.md 项目约束
+
+- 新增 `AGENTS.md` 作为 Codex 修改项目的入口规则文件。
+- 固化项目定位、页面职责、数据安全红线。
+- 固化 `localStorage` key 保护规则。
+- 固化 Codex 修改范围、Commit/Push、自检验收规则。
+- 固化代码屎山治理顺序。
+- 明确 Computer Use 和 Skill 的使用原则。
+
 ## 已完成核心模块
 
 - 首页工具入口。
