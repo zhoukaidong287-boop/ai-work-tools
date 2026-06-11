@@ -1357,7 +1357,15 @@
     function isDeadCustomer(customer) {
       const level = String(pick(customer, ["customerLevel", "grade", "level"]) || "");
       const stage = String(pick(customer, ["customerStage", "status", "stage"]) || "");
-      return Boolean(customer && (customer.isDead === true || level.includes("死单") || stage.includes("死单")));
+      return Boolean(customer && (customer.isDead === true || level.includes("死单") || level.includes("无效") || stage.includes("死单") || stage.includes("无效")));
+    }
+
+    function isEffectiveCustomer(customer) {
+      return customer && !isDeadCustomer(customer);
+    }
+
+    function getNewCustomerDate(customer) {
+      return normalizeDate(pick(customer, ["newCustomerDate", "createdDate", "createdAt"]));
     }
 
     function isSignedCustomer(customer) {
@@ -1379,7 +1387,10 @@
       const today = getTodayKey();
 
       return {
-        todayAdded: customers.filter(customer => isSameDateKey(normalizeDate(pick(customer, ["newCustomerDate", "createdDate", "createdAt"])), today)).length,
+        total: customers.length,
+        effective: customers.filter(isEffectiveCustomer).length,
+        dead: customers.filter(isDeadCustomer).length,
+        todayAdded: customers.filter(customer => isSameDateKey(getNewCustomerDate(customer), today)).length,
         todayFollow: customers.filter(customer => getFollowState(customer) === "today").length,
         overdue: customers.filter(customer => getFollowState(customer) === "overdue").length
       };

@@ -2000,6 +2000,92 @@
       };
     }
 
+    function getCustomerStage(customer = {}) {
+      const raw = String(customer.customerStage || customer.status || customer.stage || "").trim();
+      const mapped = STATUS_MAP[raw] || raw;
+      const aliases = {
+        "待联系": "新线索",
+        "已沟通": "已联系",
+        "已流失": "死单",
+        "流失客户": "死单",
+        "无效客户": "无效客户",
+        "已死单": "死单",
+        "暂缓": "死单"
+      };
+      return aliases[mapped] || mapped || "新线索";
+    }
+
+    function getCustomerLevel(customer = {}) {
+      const raw = String(customer.customerLevel || customer.grade || customer.level || "").trim();
+      if (/^(A|A类|A级|A客户|A类客户)$/.test(raw)) return "A类客户";
+      if (/^(B|B类|B级|B客户|B类客户)$/.test(raw)) return "B类客户";
+      if (/^(C|C类|C级|C客户|C类客户)$/.test(raw)) return "C类客户";
+      if (raw.includes("死单") || raw.includes("无效") || raw === "D类客户") return "死单";
+      return raw || "C类客户";
+    }
+
+    function isDeadCustomer(customer = {}) {
+      const stage = getCustomerStage(customer);
+      const level = getCustomerLevel(customer);
+      return Boolean(customer.isDead === true || stage === "死单" || stage === "无效客户" || level === "死单" || level === "无效客户");
+    }
+
+    function isEffectiveCustomer(customer) {
+      return customer && !isDeadCustomer(customer);
+    }
+
+    function getNewCustomerDate(customer = {}) {
+      return normalizeDateValue(customer.newCustomerDate || customer.createdDate) || getDatePart(customer.createdAt || "");
+    }
+
+    function isNewCustomer(customer, businessDate = "") {
+      const date = getNewCustomerDate(customer);
+      if (businessDate) return date === normalizeDateValue(businessDate);
+      return Boolean(date || customer?.isNewCustomer === true || customer?.isNewCustomer === "true" || customer?.isNewCustomer === "是");
+    }
+
+    function countKeyword(records, keywords) {
+      return records.reduce((sum, record) => {
+        const text = [record.method, record.content, record.nextAction, record.blockReason, record.need]
+          .filter(Boolean)
+          .join(" ");
+        return sum + (keywords.some(keyword => text.includes(keyword)) ? 1 : 0);
+      }, 0);
+    }
+
+    function getActionCounts(customer = {}) {
+      const records = Array.isArray(customer.followRecords) ? customer.followRecords : [];
+      const measureCount = Number(customer.measureCount || customer.measuredCount || 0) || (customer.measuredStatus === "是" || customer.isMeasured === true ? 1 : 0);
+      return {
+        contactCount: records.length,
+        visitCount: Math.max(0, Number(customer.visitCount || customer.storeVisitCount || 0) || 0),
+        measureCount: Math.max(0, measureCount),
+        planCount: Math.max(0, Number(customer.planCount || customer.schemeCount || countKeyword(records, ["方案", "出方案"])) || 0),
+        quoteCount: Math.max(0, Number(customer.quoteCount || customer.quotationCount || 0) || 0),
+        followCount: records.length,
+        depositCount: Math.max(0, Number(customer.depositCount || 0) || 0),
+        signedCount: getCustomerStage(customer) === "已签单" ? 1 : Math.max(0, Number(customer.signedCount || 0) || 0)
+      };
+    }
+
+    function getStageCounts(list) {
+      return list.reduce((map, customer) => {
+        const stage = getCustomerStage(customer);
+        map[stage] = (map[stage] || 0) + 1;
+        return map;
+      }, {});
+    }
+
+    function getActionSummary(list) {
+      return list.reduce((summary, customer) => {
+        const counts = getActionCounts(customer);
+        Object.keys(counts).forEach(key => {
+          summary[key] = (summary[key] || 0) + counts[key];
+        });
+        return summary;
+      }, {});
+    }
+
     function fillFilterOptions() {
       const sourceSelect = document.getElementById("filterSource");
       const statusSelect = document.getElementById("filterStatus");
@@ -2592,12 +2678,12 @@
         keyStatusParts.push(`A类客户${stats.gradeA}组`);
       }
 
-      if (stats.measuredOrLater) {
-        keyStatusParts.push(`已量房及后续客户${stats.measuredOrLater}组`);
+      if (stats.measureActions) {
+        keyStatusParts.push(`量房动作${stats.measureActions}次`);
       }
 
-      if (stats.quotedOrLater) {
-        keyStatusParts.push(`已报价及后续客户${stats.quotedOrLater}组`);
+      if (stats.quoteActions) {
+        keyStatusParts.push(`报价动作${stats.quoteActions}次`);
       }
 
       if (stats.overdueTodo) {
@@ -2643,7 +2729,7 @@
 
       return {
         today,
-        todayNew: customers.filter(customer => normalizeDateValue(customer.newCustomerDate || customer.createdDate) === today).length,
+        todayNew: customers.filter(customer => isNewCustomer(customer, today)).length,
         todayFollowed: followedCustomerIds.size,
         todayMeasured: countTodayUpdatedByStatus("已量房", today),
         todayQuoted: countTodayUpdatedByStatus("已报价", today),
@@ -2651,12 +2737,12 @@
         todayLost: countTodayUpdatedByStatus("已流失", today),
         todayTodo: customers.filter(customer => getFollowState(customer) === "today").length,
         overdueTodo: customers.filter(customer => getFollowState(customer) === "overdue").length,
-        gradeA: customers.filter(customer => customer.grade === "A类客户").length,
-        gradeB: customers.filter(customer => customer.grade === "B类客户").length,
-        gradeC: customers.filter(customer => customer.grade === "C类客户").length,
-        gradeD: customers.filter(customer => customer.grade === "D类客户").length,
-        measuredOrLater: countAtOrAfterStatus("已量房"),
-        quotedOrLater: countAtOrAfterStatus("已报价")
+        gradeA: customers.filter(customer => isEffectiveCustomer(customer) && getCustomerLevel(customer) === "A类客户").length,
+        gradeB: customers.filter(customer => isEffectiveCustomer(customer) && getCustomerLevel(customer) === "B类客户").length,
+        gradeC: customers.filter(customer => isEffectiveCustomer(customer) && getCustomerLevel(customer) === "C类客户").length,
+        gradeD: customers.filter(isDeadCustomer).length,
+        measureActions: getActionSummary(customers.filter(isEffectiveCustomer)).measureCount || 0,
+        quoteActions: getActionSummary(customers.filter(isEffectiveCustomer)).quoteCount || 0
       };
     }
 
@@ -3718,8 +3804,8 @@
 
     function updateStats() {
       const total = customers.length;
-      const signed = customers.filter(customer => customer.status === "已签单").length;
-      const activeTotal = customers.filter(customer => customer.status !== "已流失").length;
+      const signed = customers.filter(customer => getCustomerStage(customer) === "已签单").length;
+      const activeTotal = customers.filter(isEffectiveCustomer).length;
       const reportStats = getDailyReportStats();
 
       setText("statTotal", total);
@@ -3728,15 +3814,15 @@
       setText("statTodayNeedFollow", reportStats.todayTodo);
       setText("statOverdueFollow", reportStats.overdueTodo);
       setText("statNeedFollow", customers.filter(customer => ["today", "overdue"].includes(getFollowState(customer))).length);
-      setText("statMeasured", customers.filter(customer => customer.status === "已量房").length);
-      setText("statQuoted", customers.filter(customer => customer.status === "已报价").length);
+      setText("statMeasured", customers.filter(customer => isEffectiveCustomer(customer) && getCustomerStage(customer) === "已量房").length);
+      setText("statQuoted", customers.filter(customer => isEffectiveCustomer(customer) && getCustomerStage(customer) === "已报价").length);
       setText("statSigned", signed);
-      setText("statLost", customers.filter(customer => customer.status === "已流失").length);
+      setText("statLost", customers.filter(isDeadCustomer).length);
       setText("statConversion", activeTotal ? `${Math.round((signed / activeTotal) * 100)}%` : "0%");
-      setText("statGradeA", customers.filter(customer => customer.grade === "A类客户").length);
-      setText("statGradeB", customers.filter(customer => customer.grade === "B类客户").length);
-      setText("statGradeC", customers.filter(customer => customer.grade === "C类客户").length);
-      setText("statGradeD", customers.filter(customer => customer.grade === "D类客户").length);
+      setText("statGradeA", customers.filter(customer => isEffectiveCustomer(customer) && getCustomerLevel(customer) === "A类客户").length);
+      setText("statGradeB", customers.filter(customer => isEffectiveCustomer(customer) && getCustomerLevel(customer) === "B类客户").length);
+      setText("statGradeC", customers.filter(customer => isEffectiveCustomer(customer) && getCustomerLevel(customer) === "C类客户").length);
+      setText("statGradeD", customers.filter(isDeadCustomer).length);
       renderStageFunnel();
       renderFollowTodos();
       renderSourceStats();
@@ -3875,18 +3961,17 @@
     }
 
     function countByStatus(status) {
-      return customers.filter(customer => customer.status === status).length;
+      return customers.filter(customer => getCustomerStage(customer) === status).length;
     }
 
     function countAtOrAfterStatus(status) {
-      const startIndex = FUNNEL_PROGRESS_STATUSES.indexOf(status);
-
-      if (startIndex === -1) {
-        return 0;
+      if (status === "已量房") {
+        return getActionSummary(customers.filter(isEffectiveCustomer)).measureCount || 0;
       }
-
-      const statuses = FUNNEL_PROGRESS_STATUSES.slice(startIndex);
-      return customers.filter(customer => statuses.includes(customer.status)).length;
+      if (status === "已报价") {
+        return getActionSummary(customers.filter(isEffectiveCustomer)).quoteCount || 0;
+      }
+      return countByStatus(status);
     }
 
     function formatPercent(numerator, denominator) {
@@ -3900,7 +3985,7 @@
     function getFollowState(customer) {
       const nextFollowDate = normalizeDateValue(customer.nextFollowDate);
 
-      if (!nextFollowDate || ["已签单", "已流失"].includes(customer.status)) {
+      if (!nextFollowDate || getCustomerStage(customer) === "已签单" || isDeadCustomer(customer)) {
         return "none";
       }
 
@@ -4185,7 +4270,7 @@
     }
 
     function isDailyDead(customer) {
-      return customer && (customer.grade === "死单" || customer.status === "死单");
+      return isDeadCustomer(customer);
     }
 
     function dailyMapCount(list, key) {
@@ -4204,43 +4289,52 @@
     function getDailyCrmStats(date) {
       const customers = dailySafeParse(STORAGE_KEY, dailySafeParse(OLD_STORAGE_KEY, []));
       const list = Array.isArray(customers) ? customers : [];
+      const effectiveList = list.filter(isEffectiveCustomer);
+      const stageCounts = getStageCounts(effectiveList);
+      const actionCounts = getActionSummary(effectiveList);
       const stats = {
-        total: list.length, effective: 0, dead: 0, a: 0, b: 0, c: 0, todayFollow: 0, overdue: 0,
-        newCustomers: 0, todayNew: 0, todayNewMeasured: 0, todayNewQuoted: 0,
-        measured: 0, quoted: 0, signed: 0, sleeping: 0, stageNew: 0, deadReasons: {}, sales: {}
+        total: list.length,
+        effective: effectiveList.length,
+        dead: list.filter(isDeadCustomer).length,
+        a: effectiveList.filter(customer => getCustomerLevel(customer) === "A类客户").length,
+        b: effectiveList.filter(customer => getCustomerLevel(customer) === "B类客户").length,
+        c: effectiveList.filter(customer => getCustomerLevel(customer) === "C类客户").length,
+        todayFollow: 0,
+        overdue: 0,
+        newCustomers: list.filter(isNewCustomer).length,
+        todayNew: list.filter(customer => isNewCustomer(customer, date)).length,
+        todayNewMeasured: list.filter(customer => isNewCustomer(customer, date) && getActionCounts(customer).measureCount > 0).length,
+        todayNewQuoted: list.filter(customer => isNewCustomer(customer, date) && getActionCounts(customer).quoteCount > 0).length,
+        measured: stageCounts["已量房"] || 0,
+        quoted: stageCounts["已报价"] || 0,
+        signed: stageCounts["已签单"] || 0,
+        sleeping: stageCounts["沉睡客户"] || 0,
+        stageNew: stageCounts["新线索"] || 0,
+        actionCounts,
+        deadReasons: {},
+        sales: {}
       };
       list.forEach(customer => {
         const dead = isDailyDead(customer);
         const owner = customer.owner || "未填写销售";
-        const isNew = customer.isNewCustomer === true || customer.isNewCustomer === "true" || customer.isNewCustomer === "是";
-        const newDate = normalizeDateValue(customer.newCustomerDate || customer.createdDate);
+        const level = getCustomerLevel(customer);
         stats.sales[owner] = stats.sales[owner] || { total: 0, newCustomers: 0, todayNew: 0, a: 0, b: 0, c: 0, dead: 0, today: 0, overdue: 0 };
         stats.sales[owner].total += 1;
-        if (isNew) { stats.newCustomers += 1; stats.sales[owner].newCustomers += 1; }
-        if (newDate === date) {
-          stats.todayNew += 1;
+        if (isNewCustomer(customer)) stats.sales[owner].newCustomers += 1;
+        if (isNewCustomer(customer, date)) {
           stats.sales[owner].todayNew += 1;
-          if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是") stats.todayNewMeasured += 1;
-          if (["已报价", "已交定金", "已签单"].includes(customer.status)) stats.todayNewQuoted += 1;
         }
         if (dead) {
-          stats.dead += 1;
           stats.sales[owner].dead += 1;
           const reason = String(customer.blockReason || "未填写原因").split(/[；、,，]/)[0] || "未填写原因";
           stats.deadReasons[reason] = (stats.deadReasons[reason] || 0) + 1;
           return;
         }
-        stats.effective += 1;
-        if (customer.grade === "A类客户") { stats.a += 1; stats.sales[owner].a += 1; }
-        if (customer.grade === "B类客户") { stats.b += 1; stats.sales[owner].b += 1; }
-        if (customer.grade === "C类客户") { stats.c += 1; stats.sales[owner].c += 1; }
-        if (customer.status === "新线索") stats.stageNew += 1;
-        if (customer.status === "沉睡客户") stats.sleeping += 1;
-        if (customer.status === "已签单") stats.signed += 1;
-        if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是") stats.measured += 1;
-        if (["已报价", "已交定金", "已签单"].includes(customer.status)) stats.quoted += 1;
+        if (level === "A类客户") stats.sales[owner].a += 1;
+        if (level === "B类客户") stats.sales[owner].b += 1;
+        if (level === "C类客户") stats.sales[owner].c += 1;
         const next = normalizeDateValue(customer.nextFollowDate);
-        if (next && customer.status !== "已签单") {
+        if (next && getCustomerStage(customer) !== "已签单") {
           if (next === date) { stats.todayFollow += 1; stats.sales[owner].today += 1; }
           if (next < date) { stats.overdue += 1; stats.sales[owner].overdue += 1; }
         }
@@ -4309,15 +4403,16 @@
         `- 有效客户：${crm.effective}`,
         `- 新客户数：${crm.newCustomers}`,
         `- 今日新增客户：${crm.todayNew}`,
-        `- 今日新增已量房：${crm.todayNewMeasured}`,
-        `- 今日新增已报价：${crm.todayNewQuoted}`,
+        `- 今日新增客户中有量房动作：${crm.todayNewMeasured}`,
+        `- 今日新增客户中有报价动作：${crm.todayNewQuoted}`,
         `- 阶段新线索：${crm.stageNew}`,
         `- A/B/C：${crm.a}/${crm.b}/${crm.c}`,
         `- 死单：${crm.dead}`,
         `- 今日待跟进：${crm.todayFollow}`,
         `- 逾期未跟进：${crm.overdue}`,
-        `- 已量房：${crm.measured}`,
-        `- 已报价：${crm.quoted}`,
+        `- 当前阶段已量房：${crm.measured}`,
+        `- 当前阶段已报价：${crm.quoted}`,
+        `- 动作发生量：进店${crm.actionCounts.visitCount || 0}次、量房${crm.actionCounts.measureCount || 0}次、报价${crm.actionCounts.quoteCount || 0}次、跟进${crm.actionCounts.followCount || 0}次`,
         `- 已签单：${crm.signed}`,
         "",
         "二、抖音线索情况",
@@ -4341,7 +4436,7 @@
         "六、明日目标",
         "此处留给用户手动填写。",
         "",
-        "提示：新客户不等于客户阶段“新线索”。如果今日新增客户已经进入量房或报价，也要计入今日新增客户。"
+        "提示：新客户不等于客户阶段“新线索”。当前阶段分布和动作发生量是两个维度，今日新增客户如果已有量房或报价动作，也要计入今日新增客户。"
       ].join("\n");
     }
 
@@ -4355,8 +4450,8 @@
       const lines = [
         "【今日系统数据摘要】",
         `研判日期：${date}`,
-        `CRM：客户总数${crm.total}组，有效客户${crm.effective}组，死单${crm.dead}组，新客户${crm.newCustomers}组，今日新增客户${crm.todayNew}组，今日新增已量房${crm.todayNewMeasured}组，今日新增已报价${crm.todayNewQuoted}组，阶段新线索${crm.stageNew}组，A/B/C ${crm.a}/${crm.b}/${crm.c}组，今日待跟进${crm.todayFollow}组，逾期未跟进${crm.overdue}组，已量房${crm.measured}组，已报价${crm.quoted}组，已签单${crm.signed}组，沉睡${crm.sleeping}组。主要死单原因：${dailyTopMap(crm.deadReasons)}。`,
-        "新客户口径：新客户不等于客户阶段“新线索”；今日新增客户如果已经推进到量房或报价，也必须计入今日新增客户。",
+        `CRM：客户总数${crm.total}组，有效客户${crm.effective}组，死单${crm.dead}组，新客户${crm.newCustomers}组，今日新增客户${crm.todayNew}组，今日新增客户中有量房动作${crm.todayNewMeasured}组、有报价动作${crm.todayNewQuoted}组，阶段新线索${crm.stageNew}组，A/B/C ${crm.a}/${crm.b}/${crm.c}组，今日待跟进${crm.todayFollow}组，逾期未跟进${crm.overdue}组，当前阶段已量房${crm.measured}组、当前阶段已报价${crm.quoted}组，已签单${crm.signed}组，沉睡${crm.sleeping}组。主要死单原因：${dailyTopMap(crm.deadReasons)}。`,
+        `阶段与动作口径：当前阶段分布和动作发生量是两个维度；动作发生量为进店${crm.actionCounts.visitCount || 0}次、量房${crm.actionCounts.measureCount || 0}次、报价${crm.actionCounts.quoteCount || 0}次、跟进${crm.actionCounts.followCount || 0}次。新客户按newCustomerDate判断，不等于客户阶段“新线索”。`,
         `按销售统计：${crm.salesSummary}`,
         `抖音线索：总数${douyin.total}条，当日新增${douyin.todayNew}条，待清洗${douyin.pending}条，有效${douyin.valid}条，无效${douyin.invalid}条，已分配销售${douyin.assigned}条，已转入CRM${douyin.transferred}条。主要来源：${dailyTopMap(douyin.sources, "条")}。主要无效原因：${dailyTopMap(douyin.invalidReasons, "条")}。按销售分配：${dailyTopMap(douyin.sales, "条")}。`,
         `客户池复盘：${reviewText}`,
