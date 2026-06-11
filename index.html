@@ -1302,16 +1302,46 @@
       return [];
     }
 
-    function getTodayString() {
+    // 首页只展示系统今天的轻量统计；业务日期由功能页选择器负责。
+    function pad2(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function formatDateKey(value) {
+      if (!value) return "";
+      const date = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        const match = String(value).match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        return match ? `${match[1]}-${pad2(match[2])}-${pad2(match[3])}` : "";
+      }
+      return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+    }
+
+    function getTodayKey() {
       const date = new Date();
-      const pad = value => String(value).padStart(2, "0");
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+      return formatDateKey(date);
+    }
+
+    function normalizeDateKey(value) {
+      return formatDateKey(value);
+    }
+
+    function isSameDateKey(a, b) {
+      return normalizeDateKey(a) === normalizeDateKey(b);
+    }
+
+    function isBeforeDateKey(a, b) {
+      const left = normalizeDateKey(a);
+      const right = normalizeDateKey(b);
+      return Boolean(left && right && left < right);
+    }
+
+    function getTodayString() {
+      return getTodayKey();
     }
 
     function normalizeDate(value) {
-      if (!value) return "";
-      const match = String(value).match(/\d{4}-\d{2}-\d{2}/);
-      return match ? match[0] : "";
+      return normalizeDateKey(value);
     }
 
     function pick(customer, keys) {
@@ -1338,18 +1368,18 @@
     function getFollowState(customer) {
       const next = normalizeDate(pick(customer, ["nextFollowDate", "followDate", "nextFollowTime"]));
       if (!next || isDeadCustomer(customer) || isSignedCustomer(customer)) return "none";
-      const today = getTodayString();
-      if (next < today) return "overdue";
-      if (next === today) return "today";
+      const today = getTodayKey();
+      if (isBeforeDateKey(next, today)) return "overdue";
+      if (isSameDateKey(next, today)) return "today";
       return "future";
     }
 
     function getDashboardStats() {
       const customers = getArrayFromStorage(["decorationStoreCrmCustomers", "customers"]);
-      const today = getTodayString();
+      const today = getTodayKey();
 
       return {
-        todayAdded: customers.filter(customer => normalizeDate(pick(customer, ["newCustomerDate", "createdDate", "createdAt"])) === today).length,
+        todayAdded: customers.filter(customer => isSameDateKey(normalizeDate(pick(customer, ["newCustomerDate", "createdDate", "createdAt"])), today)).length,
         todayFollow: customers.filter(customer => getFollowState(customer) === "today").length,
         overdue: customers.filter(customer => getFollowState(customer) === "overdue").length
       };

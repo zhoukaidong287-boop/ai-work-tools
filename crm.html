@@ -5087,7 +5087,7 @@
         total: list.length,
         effective: effectiveList.length,
         newCount: list.filter(isNewCustomerEntry).length,
-        todayNew: list.filter(customer => getNewCustomerDate(customer) === getTodayString()).length,
+        todayNew: list.filter(customer => isSameDateKey(getNewCustomerDate(customer), getTodayKey())).length,
         stageNewCount: effectiveList.filter(customer => customer.status === "新线索").length,
         gradeA: effectiveList.filter(customer => customer.grade === "A类客户").length,
         gradeB: effectiveList.filter(customer => customer.grade === "B类客户").length,
@@ -5116,10 +5116,10 @@
     }
 
     function getOverdueFollowCustomers() {
-      const today = getTodayString();
+      const today = getTodayKey();
       return customers.filter(customer => {
         const date = normalizeDateValue(customer.nextFollowDate);
-        return date && date < today && isFollowableCustomer(customer);
+        return date && isBeforeDateKey(date, today) && isFollowableCustomer(customer);
       });
     }
 
@@ -5130,7 +5130,7 @@
         return 0;
       }
 
-      const todayTime = new Date(getTodayString()).getTime();
+      const todayTime = new Date(getTodayKey()).getTime();
       const followTime = new Date(date).getTime();
 
       if (Number.isNaN(todayTime) || Number.isNaN(followTime)) {
@@ -5363,13 +5363,13 @@
         return "none";
       }
 
-      const today = getTodayString();
+      const today = getTodayKey();
 
-      if (nextFollowDate < today) {
+      if (isBeforeDateKey(nextFollowDate, today)) {
         return "overdue";
       }
 
-      if (nextFollowDate === today) {
+      if (isSameDateKey(nextFollowDate, today)) {
         return "today";
       }
 
@@ -5529,8 +5529,47 @@
       return `crm-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     }
 
+    // ================================
+    // 日期 helper：CRM 业务日期统一使用 YYYY-MM-DD
+    // ================================
+    function pad2(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function formatDateKey(value) {
+      return getDatePart(value);
+    }
+
+    function getTodayKey() {
+      return formatDateKey(new Date());
+    }
+
+    function getYesterdayKey() {
+      const date = new Date();
+      date.setDate(date.getDate() - 1);
+      return formatDateKey(date);
+    }
+
+    function normalizeDateKey(value, fallback = "") {
+      return normalizeDateValue(value) || fallback;
+    }
+
+    function getBusinessDateKey(inputId) {
+      return inputId ? normalizeDateKey(getValue(inputId), getTodayKey()) : getTodayKey();
+    }
+
+    function isSameDateKey(a, b) {
+      return normalizeDateKey(a) === normalizeDateKey(b);
+    }
+
+    function isBeforeDateKey(a, b) {
+      const left = normalizeDateKey(a);
+      const right = normalizeDateKey(b);
+      return Boolean(left && right && left < right);
+    }
+
     function getTodayString() {
-      return getDatePart(new Date());
+      return getTodayKey();
     }
 
     function getNowString() {

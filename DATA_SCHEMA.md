@@ -2,6 +2,18 @@
 
 本文档记录 `ai-work-tools` 的核心数据结构、字段含义和 `localStorage` key。字段命名以业务语义为准；当前代码中部分字段存在历史别名，修改前必须搜索实际实现。
 
+## 日期字段规范
+
+- `YYYY-MM-DD` 是所有业务日期 key 的标准格式。
+- 系统当天不等于业务日期；业务日期优先来自页面日期选择器。
+- `report.html` 必须使用日报日期选择器读取客户池、CRM、抖音线索和 AI 研判数据。
+- `city-analysis.html` 必须按研判日期保存 `dailyAnalysisHistory`。
+- `dailyAnalysisHistory` 按 `dateKey` / 日期 key 读取，旧数据缺字段时按历史对象 key 兼容。
+- `newCustomerDate` 是客户新增业务日期，不得随意重写。
+- `nextFollowDate` 用于今日待跟进和逾期判断，必须使用 `YYYY-MM-DD` 对比。
+- `savedAt`、`exportTime`、`backupTime` 是操作时间，不等同于业务日期。
+- 凌晨补写昨日日报时，必须允许用户选择昨日日期。
+
 ## 1. CRM 客户数据字段
 
 CRM 客户主数据保存在 `decorationStoreCrmCustomers`。旧版本可能使用 `customers`。

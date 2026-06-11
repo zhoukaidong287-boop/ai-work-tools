@@ -4088,8 +4088,47 @@
     const CUSTOMER_REVIEW_RECORDS_KEY = "customerReviewRecords";
     const MATERIAL_HISTORY_KEY = "materialLabHistory";
 
+    // ================================
+    // 日期 helper：每日研判业务日期统一使用 YYYY-MM-DD
+    // ================================
+    function pad2(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function formatDateKey(value) {
+      return getDatePart(value);
+    }
+
+    function getTodayKey() {
+      return formatDateKey(new Date());
+    }
+
+    function getYesterdayKey() {
+      const date = new Date();
+      date.setDate(date.getDate() - 1);
+      return formatDateKey(date);
+    }
+
+    function normalizeDateKey(value, fallback = "") {
+      return normalizeDateValue(value) || fallback;
+    }
+
+    function getBusinessDateKey(inputId = "dailyAnalysisDate") {
+      return normalizeDateKey(getValue(inputId), getTodayKey());
+    }
+
+    function isSameDateKey(a, b) {
+      return normalizeDateKey(a) === normalizeDateKey(b);
+    }
+
+    function isBeforeDateKey(a, b) {
+      const left = normalizeDateKey(a);
+      const right = normalizeDateKey(b);
+      return Boolean(left && right && left < right);
+    }
+
     function dailyToday() {
-      return getDatePart(new Date());
+      return getTodayKey();
     }
 
     function dailyLocalTime() {
@@ -4108,7 +4147,7 @@
     }
 
     function dailyGetDate() {
-      return getValue("dailyAnalysisDate") || dailyToday();
+      return getBusinessDateKey("dailyAnalysisDate");
     }
 
     function dailyDrafts() {
@@ -4119,6 +4158,8 @@
       const date = dailyGetDate();
       const all = dailyDrafts();
       all[date] = {
+        dateKey: date,
+        businessDate: date,
         systemData: getValue("dailySystemSummary"),
         draft: getValue("dailyAnalysisDraft"),
         policy: getValue("currentActivityPolicy"),
@@ -4478,6 +4519,8 @@
       const all = dailyHistory();
       all[date] = {
         date,
+        dateKey: date,
+        businessDate: date,
         systemData: getValue("dailySystemSummary"),
         draft: getValue("dailyAnalysisDraft"),
         aiPrompt: getValue("dailyAiPrompt"),

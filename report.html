@@ -624,9 +624,65 @@
     let reportRecords = loadReports();
     let weeklyDailies = [];
 
-    function today() {
+    // ================================
+    // 日期 helper：业务日期统一使用 YYYY-MM-DD
+    // ================================
+    function pad2(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function formatDateKey(value) {
+      if (!value) return "";
+      if (value instanceof Date) {
+        if (Number.isNaN(value.getTime())) return "";
+        return `${value.getFullYear()}-${pad2(value.getMonth() + 1)}-${pad2(value.getDate())}`;
+      }
+      const text = String(value).trim();
+      const match = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (match) {
+        const year = Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        const date = new Date(year, month - 1, day);
+        if (date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
+          return `${String(year).padStart(4, "0")}-${pad2(month)}-${pad2(day)}`;
+        }
+        return "";
+      }
+      const date = new Date(text);
+      return Number.isNaN(date.getTime()) ? "" : formatDateKey(date);
+    }
+
+    function getTodayKey() {
+      return formatDateKey(new Date());
+    }
+
+    function getYesterdayKey() {
       const date = new Date();
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      date.setDate(date.getDate() - 1);
+      return formatDateKey(date);
+    }
+
+    function normalizeDateKey(value, fallback = "") {
+      return formatDateKey(value) || fallback;
+    }
+
+    function getBusinessDateKey(inputId = "dailyDate") {
+      return normalizeDateKey(getValue(inputId), getTodayKey());
+    }
+
+    function isSameDateKey(a, b) {
+      return normalizeDateKey(a) === normalizeDateKey(b);
+    }
+
+    function isBeforeDateKey(a, b) {
+      const left = normalizeDateKey(a);
+      const right = normalizeDateKey(b);
+      return Boolean(left && right && left < right);
+    }
+
+    function today() {
+      return getTodayKey();
     }
 
     function getValue(id) {
@@ -789,13 +845,7 @@
     }
 
     function normalizeDate(value) {
-      if (!value) return "";
-      const text = String(value).trim();
-      const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (match) return `${match[1]}-${match[2]}-${match[3]}`;
-      const date = new Date(text);
-      if (Number.isNaN(date.getTime())) return "";
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      return normalizeDateKey(value);
     }
 
     function getCustomerReviewSource() {
@@ -892,10 +942,10 @@
       }
     }
 
-    function getCrmFollowState(customer) {
+    function getCrmFollowState(customer, businessDate = getTodayKey()) {
       const date = normalizeDate(customer.nextFollowDate);
       if (!date || ["已签单", "死单"].includes(customer.status) || customer.grade === "死单") return "none";
-      const current = today();
+      const current = normalizeDateKey(businessDate, getTodayKey());
       if (date < current) return "overdue";
       if (date === current) return "today";
       return "future";
@@ -909,7 +959,8 @@
       return customer && (customer.isNewCustomer === true || customer.isNewCustomer === "true" || customer.isNewCustomer === "是");
     }
 
-    function getCrmDataStats(customers, reportDate = today()) {
+    function getCrmDataStats(customers, reportDate = getTodayKey()) {
+      const businessDate = normalizeDateKey(reportDate, getTodayKey());
       const stats = {
         total: customers.length,
         effective: 0,
@@ -947,7 +998,7 @@
         if (!dead && customer.grade === "C类客户") stats.gradeC += 1;
         if (isCrmNewCustomer(customer)) stats.newCustomers += 1;
         if (!dead && customer.status === "新线索") stats.stageNewCustomers += 1;
-        if (getCrmNewDate(customer) === reportDate) {
+        if (isSameDateKey(getCrmNewDate(customer), businessDate)) {
           stats.todayNew += 1;
           if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(customer.status) || customer.measuredStatus === "是") stats.todayNewMeasured += 1;
           if (["已报价", "已交定金", "已签单"].includes(customer.status)) stats.todayNewQuoted += 1;
@@ -956,13 +1007,13 @@
         if (!dead && ["已报价", "已交定金", "已签单"].includes(customer.status)) stats.quoted += 1;
         if (customer.status === "已签单") stats.signed += 1;
         if (!dead && customer.status === "沉睡客户") stats.sleeping += 1;
-        const followState = getCrmFollowState(customer);
+        const followState = getCrmFollowState(customer, businessDate);
         if (followState === "today") stats.todayFollow += 1;
         if (followState === "overdue") stats.overdue += 1;
       });
       stats.topCustomers = customers
         .filter(customer => customer.grade !== "死单" && customer.status !== "死单")
-        .filter(customer => customer.grade === "A类客户" || getCrmFollowState(customer) === "today" || getCrmFollowState(customer) === "overdue")
+        .filter(customer => customer.grade === "A类客户" || getCrmFollowState(customer, businessDate) === "today" || getCrmFollowState(customer, businessDate) === "overdue")
         .slice(0, 6)
         .map(customer => `${customer.name || "未填写客户"}（${customer.owner || "未填写销售"}｜${customer.grade || "-"}｜${customer.status || "-"}）`);
       return stats;
@@ -977,8 +1028,8 @@
       return safeParseStorage(DOUYIN_LEADS_KEY, []);
     }
 
-    function getDouyinLeadStats(leads) {
-      const todayText = today();
+    function getDouyinLeadStats(leads, reportDate = getTodayKey()) {
+      const businessDate = normalizeDateKey(reportDate, getTodayKey());
       const stats = {
         total: leads.length,
         todayNew: 0,
@@ -993,7 +1044,7 @@
       };
       leads.forEach(lead => {
         const createdDate = normalizeDate(lead.createdAt);
-        if (createdDate === todayText) stats.todayNew += 1;
+        if (isSameDateKey(createdDate, businessDate)) stats.todayNew += 1;
         if (lead.status === "待清洗") stats.pending += 1;
         if (lead.status === "已联系") stats.contacted += 1;
         if (lead.validity === "有效" || lead.status === "有效线索") stats.valid += 1;
@@ -1010,10 +1061,10 @@
     function readTodayCustomerPoolAndCrmData() {
       const reviewSource = getCustomerReviewSource();
       const customers = loadCrmCustomersForReport();
-      const reportDate = normalizeDate(getValue("dailyDate")) || today();
+      const reportDate = getBusinessDateKey("dailyDate");
       const crmStats = getCrmDataStats(customers, reportDate);
       const douyinLeads = loadDouyinLeadsForReport();
-      const douyinStats = getDouyinLeadStats(Array.isArray(douyinLeads) ? douyinLeads : []);
+      const douyinStats = getDouyinLeadStats(Array.isArray(douyinLeads) ? douyinLeads : [], reportDate);
 
       if (!reviewSource && !customers.length && !douyinStats.total) {
         setValue("dailyDataSummary", "暂未读取到客户池复盘、CRM或抖音线索数据，请先完成客户池复盘、录入CRM客户或整理抖音线索池。");
@@ -1124,10 +1175,7 @@
     }
 
     function useYesterdayDate() {
-      const date = new Date();
-      date.setDate(date.getDate() - 1);
-      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-      setValue("dailyDate", value);
+      setValue("dailyDate", getYesterdayKey());
       updateReportConsoleStatus();
       updateReportFunnel();
     }
@@ -1153,7 +1201,7 @@
     }
 
     function readTodayAiAnalysis() {
-      const date = getValue("dailyDate") || today();
+      const date = getBusinessDateKey("dailyDate");
       const history = safeParseStorage(DAILY_ANALYSIS_HISTORY_KEY, {});
       const record = history && history[date];
       if (!record || !record.analysisResult) {
@@ -1206,7 +1254,7 @@
       const dailyDataWork = buildDailyDataWorkText(getValue("dailyDataSummary"));
       const aiAnalysisWork = buildAiAnalysisWorkText(getValue("dailyAnalysisSummary"));
       const finalWorkText = [workText, dailyDataWork, aiAnalysisWork].filter(Boolean).join("\n\n");
-      const reportDate = getValue("dailyDate") || today();
+      const reportDate = getBusinessDateKey("dailyDate");
       const report = [
         "【主动营销工作日报】",
         "",
@@ -1253,7 +1301,7 @@
       return {
         id: `report-${Date.now()}-${Math.random().toString(16).slice(2)}`,
         type: "日报",
-        date: getValue("dailyDate") || today(),
+        date: getBusinessDateKey("dailyDate"),
         mall: base.mall,
         mallType: base.mallType,
         period: base.period,
@@ -1846,7 +1894,7 @@
       const aiText = getValue("dailyAnalysisSummary");
       const reportText = getValue("dailyOutput");
 
-      if (dateStatus) dateStatus.textContent = `日报日期：${getValue("dailyDate") || today()}`;
+      if (dateStatus) dateStatus.textContent = `日报日期：${getBusinessDateKey("dailyDate")}`;
       if (dataStatus) {
         dataStatus.textContent = `数据：${dataText ? "已读取" : "未读取"}`;
         dataStatus.classList.toggle("is-ready", Boolean(dataText));
@@ -1972,9 +2020,9 @@
     function init() {
       renderChecks("dailyActions", "dailyAction", DAILY_ACTIONS);
       fillBaseInfo();
-      setValue("dailyDate", today());
-      setValue("weeklyEnd", today());
-      setValue("stageEnd", today());
+      setValue("dailyDate", getTodayKey());
+      setValue("weeklyEnd", getTodayKey());
+      setValue("stageEnd", getTodayKey());
       loadReportDrafts();
       renderHistory();
       bindReportConsoleStatus();
