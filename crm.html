@@ -3798,12 +3798,20 @@
     }
 
     function clearAllCustomers() {
-      const confirmed = confirm("确定要清空全部客户数据吗？这个操作不能恢复。");
+      alert("清空前请先点击“导出客户数据”导出 CRM 备份。系统也会尝试在本地 localStorage 自动生成清空前备份。");
+      const confirmed = confirm("你即将清空 CRM 客户主数据。\n此操作会影响客户台账、日报统计、AI研判读取和客户漏斗。\n建议先导出备份。\n\n是否继续？");
 
       if (!confirmed) {
         return;
       }
 
+      const confirmText = prompt("请输入确认词：清空CRM");
+      if (confirmText !== "清空CRM") {
+        alert("确认词不一致，已取消清空。");
+        return;
+      }
+
+      const backupKey = createCrmLocalBackup("crmBackupBeforeClear");
       customers = [];
       editingId = "";
       expandedId = "";
@@ -3812,7 +3820,7 @@
       localStorage.removeItem(OLD_STORAGE_KEY);
       clearForm();
       resetFilters();
-      alert("客户数据已清空");
+      alert(`客户数据已清空。\n已在本地生成清空前备份：${backupKey}`);
     }
 
     function showNeedFollow() {
@@ -3924,14 +3932,13 @@
         return;
       }
 
-      const exportPayload = customers.map(normalizeCustomer);
-      const jsonContent = JSON.stringify(exportPayload, null, 2);
+      const jsonContent = JSON.stringify(buildCrmBackupPayload(), null, 2);
       const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
 
       link.href = url;
-      link.download = `装修整装门店CRM客户数据-${getTodayString()}.json`;
+      link.download = `crm-backup-${getBackupFileTimestamp()}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -3954,32 +3961,67 @@
         return;
       }
 
-      const confirmed = confirm("导入客户数据会覆盖当前页面里的全部客户数据，确定继续吗？");
-
-      if (!confirmed) {
-        event.target.value = "";
-        return;
-      }
-
       const reader = new FileReader();
 
       reader.onload = function () {
         try {
           const parsed = JSON.parse(reader.result);
+          const rawCustomers = extractImportCustomers(parsed);
 
-          if (!Array.isArray(parsed)) {
-            alert("导入失败：请选择由本 CRM 导出的 JSON 客户数据文件");
+          if (!Array.isArray(rawCustomers)) {
+            alert("导入失败：请选择由本 CRM 导出的 JSON 客户数据文件，支持数组、{ customers: [...] } 或 { data: [...] } 格式。");
             return;
           }
 
-          customers = parsed.map(normalizeCustomer);
+          const preview = analyzeCustomerImport(rawCustomers);
+          const mode = prompt(
+            [
+              "CRM 导入预览：",
+              `导入客户数量：${preview.importCount}`,
+              `当前已有客户数量：${preview.currentCount}`,
+              `可能重复客户数量：${preview.duplicateCount}`,
+              `新增客户数量：${preview.newCount}`,
+              `缺字段/异常客户数量：${preview.invalidCount}`,
+              "",
+              "请选择导入模式：",
+              "1 = 合并导入（默认，保留现有客户，跳过重复客户）",
+              "2 = 覆盖导入（高风险，会替换当前 CRM 主数据）",
+              "其他或取消 = 取消导入"
+            ].join("\n"),
+            "1"
+          );
+
+          if (mode === null || (mode !== "1" && mode !== "2" && mode.trim() !== "")) {
+            alert("已取消导入，当前 CRM 数据未被修改。");
+            return;
+          }
+
+          if (mode === "2") {
+            const overwriteText = prompt("覆盖导入会替换当前 CRM 主数据。请输入确认词：覆盖导入CRM");
+            if (overwriteText !== "覆盖导入CRM") {
+              alert("确认词不一致，已取消覆盖导入。");
+              return;
+            }
+            const backupKey = createCrmLocalBackup("crmBackupBeforeImport");
+            customers = preview.normalized.filter(customer => customer.name || customer.phone || customer.community);
+            editingId = "";
+            expandedId = "";
+            currentDisplayCustomers = [];
+            saveToLocalStorage();
+            clearForm();
+            resetFilters();
+            alert(`已完成覆盖导入，并生成导入前备份：${backupKey}\n当前客户数：${customers.length}`);
+            return;
+          }
+
+          const result = mergeImportedCustomers(preview.normalized);
           editingId = "";
           expandedId = "";
           currentDisplayCustomers = [];
           saveToLocalStorage();
           clearForm();
           resetFilters();
-          alert(`导入完成，共恢复 ${customers.length} 条客户数据`);
+          alert(`合并导入完成：新增 ${result.added} 条，跳过重复 ${result.skipped} 条，异常 ${result.invalid} 条。当前客户总数：${customers.length}`);
         } catch (error) {
           console.error("客户数据导入失败", error);
           alert("导入失败：JSON 文件格式不正确");
@@ -5342,6 +5384,120 @@
       return customer.followRecords
         .slice()
         .sort((a, b) => new Date(b.followTime) - new Date(a.followTime))[0];
+    }
+
+    function getBackupTimestamp() {
+      const now = new Date();
+      const pad = value => String(value).padStart(2, "0");
+      return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    }
+
+    function getBackupFileTimestamp() {
+      return getBackupTimestamp().replace("_", "-");
+    }
+
+    function createCrmLocalBackup(prefix) {
+      const key = `${prefix}_${getBackupTimestamp()}`;
+      const backupCustomers = customers.map(normalizeCustomer);
+      const backup = {
+        backupTime: new Date().toISOString(),
+        sourceKey: STORAGE_KEY,
+        customers: backupCustomers,
+        count: backupCustomers.length
+      };
+      localStorage.setItem(key, JSON.stringify(backup));
+      return key;
+    }
+
+    function buildCrmBackupPayload() {
+      const exportPayload = customers.map(normalizeCustomer);
+      return {
+        version: "crm-backup-v2",
+        exportTime: new Date().toISOString(),
+        source: "crm.html",
+        key: STORAGE_KEY,
+        count: exportPayload.length,
+        customers: exportPayload
+      };
+    }
+
+    function extractImportCustomers(parsed) {
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && Array.isArray(parsed.customers)) return parsed.customers;
+      if (parsed && Array.isArray(parsed.data)) return parsed.data;
+      return null;
+    }
+
+    function getCustomerDuplicateKey(customer) {
+      const phone = String(customer.phone || "").trim();
+      const name = String(customer.name || "").trim();
+      const community = String(customer.community || "").trim();
+      const area = String(customer.area || "").trim();
+      if (phone) return `phone:${phone}`;
+      if (name && community) return `name-community:${name}|${community}`;
+      if (name && area && community) return `name-area-community:${name}|${area}|${community}`;
+      return "";
+    }
+
+    function analyzeCustomerImport(rawCustomers) {
+      const normalized = [];
+      let invalidCount = 0;
+      rawCustomers.forEach(item => {
+        if (!item || typeof item !== "object") {
+          invalidCount += 1;
+          return;
+        }
+        const customer = normalizeCustomer(item);
+        if (!customer.name && !customer.phone && !customer.community) {
+          invalidCount += 1;
+        }
+        normalized.push(customer);
+      });
+      const existingKeys = new Set(customers.map(getCustomerDuplicateKey).filter(Boolean));
+      const incomingKeys = new Set();
+      let duplicateCount = 0;
+      let newCount = 0;
+      normalized.forEach(customer => {
+        const key = getCustomerDuplicateKey(customer);
+        if (key && (existingKeys.has(key) || incomingKeys.has(key))) {
+          duplicateCount += 1;
+        } else {
+          newCount += 1;
+          if (key) incomingKeys.add(key);
+        }
+      });
+      return {
+        normalized,
+        currentCount: customers.length,
+        importCount: normalized.length,
+        duplicateCount,
+        newCount,
+        invalidCount
+      };
+    }
+
+    function mergeImportedCustomers(importCustomers) {
+      const existingKeys = new Set(customers.map(getCustomerDuplicateKey).filter(Boolean));
+      const next = customers.slice();
+      let added = 0;
+      let skipped = 0;
+      let invalid = 0;
+      importCustomers.forEach(customer => {
+        if (!customer.name && !customer.phone && !customer.community) {
+          invalid += 1;
+          return;
+        }
+        const key = getCustomerDuplicateKey(customer);
+        if (key && existingKeys.has(key)) {
+          skipped += 1;
+          return;
+        }
+        next.push(customer);
+        added += 1;
+        if (key) existingKeys.add(key);
+      });
+      customers = next;
+      return { added, skipped, invalid };
     }
 
     function saveToLocalStorage() {

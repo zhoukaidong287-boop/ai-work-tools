@@ -2,6 +2,19 @@
 
 本文档初始化记录当前 `ai-work-tools` 已完成的重要功能和后续维护规则。
 
+## P0 数据安全加固
+
+- CRM 清空全部数据增加二次确认和确认词 `清空CRM`。
+- CRM 清空前自动保存 `crmBackupBeforeClear_YYYYMMDD_HHmmss` 备份。
+- CRM JSON 导出升级为结构化备份文件，文件名格式为 `crm-backup-YYYYMMDD-HHmmss.json`。
+- CRM JSON 导入增加预览：导入数量、当前数量、重复数量、新增数量、异常数量和覆盖风险。
+- CRM 导入默认走合并导入，保留现有客户并跳过重复客户。
+- CRM 覆盖导入必须输入确认词 `覆盖导入CRM`，并先保存 `crmBackupBeforeImport_YYYYMMDD_HHmmss` 备份。
+- 首页全站数据备份文件名升级为 `ai-work-tools-full-backup-YYYYMMDD-HHmmss.json`。
+- 首页全站数据导入增加 key 预览、覆盖风险提示和确认词 `覆盖导入全部数据`。
+- 全站覆盖导入前自动保存 `fullBackupBeforeImport_YYYYMMDD_HHmmss` 备份。
+- `city-analysis.html` 的 CRM 高危写操作统一引导到 CRM 页面，保持 AI 研判页只读 CRM 数据。
+
 ## 已完成核心模块
 
 - 首页工具入口。

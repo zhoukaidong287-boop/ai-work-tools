@@ -1153,14 +1153,16 @@
       const now = new Date();
       const pad = value => String(value).padStart(2, "0");
 
-      return [
-        now.getFullYear(),
-        pad(now.getMonth() + 1),
-        pad(now.getDate())
-      ].join("-") + "-" + [pad(now.getHours()), pad(now.getMinutes())].join("-");
+      return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
     }
 
-    function exportAllDataBackup() {
+    function formatStorageBackupKeyTimestamp() {
+      const now = new Date();
+      const pad = value => String(value).padStart(2, "0");
+      return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    }
+
+    function collectLocalStorageSnapshot() {
       const storage = {};
 
       for (let index = 0; index < localStorage.length; index += 1) {
@@ -1171,19 +1173,27 @@
         }
       }
 
+      return storage;
+    }
+
+    function exportAllDataBackup() {
+      const storage = collectLocalStorageSnapshot();
+
       const backup = {
         app: "ai-work-tools",
-        version: "backup-v1",
-        backupTime: new Date().toISOString(),
+        version: "full-backup-v2",
+        exportTime: new Date().toISOString(),
         note: "该文件为 ai-work-tools 本机浏览器 localStorage 数据备份。",
-        localStorage: storage
+        localStorageData: storage,
+        localStorage: storage,
+        keys: Object.keys(storage)
       };
       const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
 
       link.href = url;
-      link.download = `ai-work-tools-backup-${formatBackupTimestamp()}.json`;
+      link.download = `ai-work-tools-full-backup-${formatBackupTimestamp()}.json`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -1212,23 +1222,58 @@
       reader.onload = () => {
         try {
           const parsed = JSON.parse(String(reader.result || ""));
-          const storage = parsed && parsed.localStorage;
+          const storage = parsed && (parsed.localStorageData || parsed.localStorage);
 
           if (!storage || typeof storage !== "object" || Array.isArray(storage)) {
             throw new Error("invalid backup");
           }
 
-          const confirmed = confirm("确认导入备份数据吗？导入后将覆盖当前浏览器中的同名数据。建议先导出当前数据备份后再导入。");
+          const incomingKeys = Object.keys(storage);
+          const currentKeys = Object.keys(collectLocalStorageSnapshot());
+          const currentKeySet = new Set(currentKeys);
+          const overwriteKeys = incomingKeys.filter(key => currentKeySet.has(key));
+          const contains = key => incomingKeys.includes(key) ? "是" : "否";
+          const confirmed = confirm([
+            "全量备份导入预览：",
+            `备份文件包含 key：${incomingKeys.length} 个`,
+            `当前本地已有 key：${currentKeys.length} 个`,
+            `即将覆盖 key：${overwriteKeys.length} 个`,
+            `包含 CRM 主数据 decorationStoreCrmCustomers：${contains("decorationStoreCrmCustomers")}`,
+            `包含日报/周报历史 pointReportRecords：${contains("pointReportRecords")}`,
+            `包含AI研判 dailyAnalysisHistory：${contains("dailyAnalysisHistory")}`,
+            `包含客户池 customerReviewRecords/customerReviewDraft：${contains("customerReviewRecords")}/${contains("customerReviewDraft")}`,
+            `包含抖音线索 douyinLeads：${contains("douyinLeads")}`,
+            "",
+            "导入会覆盖同名 localStorage 数据。是否继续？"
+          ].join("\n"));
 
           if (!confirmed) {
             setBackupTip("已取消导入，当前数据未被覆盖。");
             return;
           }
 
+          if (overwriteKeys.length) {
+            const confirmText = prompt("本次全量导入将覆盖现有同名数据。请输入确认词：覆盖导入全部数据");
+            if (confirmText !== "覆盖导入全部数据") {
+              setBackupTip("确认词不一致，已取消导入，当前数据未被覆盖。", true);
+              return;
+            }
+          }
+
+          const backupKey = `fullBackupBeforeImport_${formatStorageBackupKeyTimestamp()}`;
+          const currentSnapshot = {
+            backupTime: new Date().toISOString(),
+            app: "ai-work-tools",
+            source: "index.html",
+            localStorageData: collectLocalStorageSnapshot(),
+            keys: currentKeys
+          };
+          localStorage.setItem(backupKey, JSON.stringify(currentSnapshot));
+
           Object.entries(storage).forEach(([key, value]) => {
             localStorage.setItem(key, String(value));
           });
-          setBackupTip("数据备份已恢复，请刷新页面查看。");
+          setBackupTip(`数据备份已恢复，请刷新页面查看。导入前本地备份：${backupKey}`);
         } catch (error) {
           console.error("备份导入失败", error);
           setBackupTip("导入失败，请检查备份文件格式。", true);

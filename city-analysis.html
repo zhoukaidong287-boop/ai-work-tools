@@ -1930,9 +1930,7 @@
           return [];
         }
 
-        const normalized = parsed.map(normalizeCustomer);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
-        return normalized;
+        return parsed.map(normalizeCustomer);
       } catch (error) {
         console.error("客户数据读取失败", error);
         return [];
@@ -2021,41 +2019,7 @@
     }
 
     function saveCustomer() {
-      const now = getNowString();
-      const existing = customers.find(customer => customer.id === editingId);
-      const customer = {
-        id: existing ? existing.id : createId(),
-        name: getValue("name"),
-        phone: getValue("phone"),
-        community: getValue("community"),
-        area: getValue("area"),
-        layout: getValue("layout"),
-        source: getValue("source"),
-        need: getValue("need"),
-        budget: getValue("budget"),
-        grade: getValue("grade"),
-        status: getValue("status"),
-        owner: getValue("owner"),
-        nextFollowDate: normalizeDateValue(getValue("nextFollowDate")),
-        followRecords: existing ? existing.followRecords : [],
-        createdAt: existing ? existing.createdAt : now,
-        updatedAt: now
-      };
-
-      if (!customer.name || !customer.phone) {
-        alert("客户姓名和手机号必须填写");
-        return;
-      }
-
-      if (existing) {
-        customers = customers.map(item => item.id === editingId ? customer : item);
-      } else {
-        customers.unshift(customer);
-      }
-
-      saveToLocalStorage();
-      clearForm();
-      renderCustomers();
+      goCrmForDangerousAction("新增或编辑客户");
     }
 
     function renderCustomers() {
@@ -2363,89 +2327,15 @@
     }
 
     function addFollowRecord(id) {
-      const customer = customers.find(item => item.id === id);
-
-      if (!customer) {
-        return;
-      }
-
-      const content = getValue(`followContent-${id}`);
-
-      if (!content) {
-        alert("请填写跟进内容");
-        return;
-      }
-
-      const nextFollowDate = normalizeDateValue(getValue(`followNext-${id}`));
-      const owner = getValue(`followOwner-${id}`) || customer.owner;
-      const now = getNowString();
-      const followTime = normalizeDateTimeValue(getValue(`followTime-${id}`)) || now;
-
-      customer.followRecords.push({
-        id: createId(),
-        followTime,
-        method: getValue(`followMethod-${id}`),
-        content,
-        nextFollowDate,
-        owner,
-        createdAt: now
-      });
-
-      customer.owner = owner;
-      customer.nextFollowDate = nextFollowDate;
-      customer.updatedAt = now;
-
-      saveToLocalStorage();
-      renderCustomers();
-      renderCustomerDetailModal();
+      goCrmForDangerousAction("新增客户跟进记录");
     }
 
     function editCustomer(id) {
-      const customer = customers.find(item => item.id === id);
-
-      if (!customer) {
-        return;
-      }
-
-      setValue("name", customer.name);
-      setValue("phone", customer.phone);
-      setValue("community", customer.community);
-      setValue("area", customer.area);
-      setValue("layout", customer.layout);
-      setValue("source", customer.source);
-      setValue("budget", customer.budget);
-      setValue("grade", customer.grade);
-      setValue("status", customer.status);
-      setValue("owner", customer.owner);
-      setValue("nextFollowDate", normalizeDateValue(customer.nextFollowDate));
-      setValue("need", customer.need);
-
-      editingId = id;
-      document.getElementById("formTitle").innerText = "编辑客户";
-      document.getElementById("saveButton").innerText = "更新客户";
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      goCrmForDangerousAction("编辑客户");
     }
 
     function deleteCustomer(id) {
-      const customer = customers.find(item => item.id === id);
-      const confirmed = confirm(`确定要删除客户「${customer ? customer.name : ""}」吗？`);
-
-      if (!confirmed) {
-        return;
-      }
-
-      customers = customers.filter(item => item.id !== id);
-
-      if (editingId === id) {
-        clearForm();
-      }
-
-      if (expandedId === id) {
-        expandedId = "";
-      }
-
-      saveToLocalStorage();
-      renderCustomers();
+      goCrmForDangerousAction("删除客户");
     }
 
     function clearForm() {
@@ -2464,21 +2354,12 @@
     }
 
     function clearAllCustomers() {
-      const confirmed = confirm("确定要清空全部客户数据吗？这个操作不能恢复。");
+      goCrmForDangerousAction("清空全部客户数据");
+    }
 
-      if (!confirmed) {
-        return;
-      }
-
-      customers = [];
-      editingId = "";
-      expandedId = "";
-      currentDisplayCustomers = [];
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(OLD_STORAGE_KEY);
-      clearForm();
-      resetFilters();
-      alert("客户数据已清空");
+    function goCrmForDangerousAction(actionName) {
+      alert(`${actionName}属于 CRM 主数据高危操作。\ncity-analysis.html 原则上只读取 CRM 数据用于AI研判，不作为 CRM 主数据管理入口。\n请前往 CRM 页面操作，并先导出备份。`);
+      location.href = "crm.html";
     }
 
     function showNeedFollow() {
@@ -2587,61 +2468,12 @@
     }
 
     function triggerImportCustomerData() {
-      const input = document.getElementById("importDataFile");
-
-      if (input) {
-        input.value = "";
-        input.click();
-      }
+      goCrmForDangerousAction("导入客户数据");
     }
 
     function importCustomerData(event) {
-      const file = event.target.files && event.target.files[0];
-
-      if (!file) {
-        return;
-      }
-
-      const confirmed = confirm("导入客户数据会覆盖当前页面里的全部客户数据，确定继续吗？");
-
-      if (!confirmed) {
-        event.target.value = "";
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onload = function () {
-        try {
-          const parsed = JSON.parse(reader.result);
-
-          if (!Array.isArray(parsed)) {
-            alert("导入失败：请选择由本 CRM 导出的 JSON 客户数据文件");
-            return;
-          }
-
-          customers = parsed.map(normalizeCustomer);
-          editingId = "";
-          expandedId = "";
-          currentDisplayCustomers = [];
-          saveToLocalStorage();
-          clearForm();
-          resetFilters();
-          alert(`导入完成，共恢复 ${customers.length} 条客户数据`);
-        } catch (error) {
-          console.error("客户数据导入失败", error);
-          alert("导入失败：JSON 文件格式不正确");
-        } finally {
-          event.target.value = "";
-        }
-      };
-
-      reader.onerror = function () {
-        alert("导入失败：文件读取出错");
-        event.target.value = "";
-      };
-
-      reader.readAsText(file, "UTF-8");
+      goCrmForDangerousAction("导入客户数据");
+      if (event && event.target) event.target.value = "";
     }
 
     function renderDailyActionChecks() {
@@ -4096,7 +3928,7 @@
     }
 
     function saveToLocalStorage() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+      console.warn("city-analysis.html 只读 CRM 数据，不写入 CRM 主数据。");
     }
 
     function getValue(id) {

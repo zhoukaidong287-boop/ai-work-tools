@@ -6,6 +6,23 @@
 
 CRM 客户主数据保存在 `decorationStoreCrmCustomers`。旧版本可能使用 `customers`。
 
+### CRM 主数据与备份规则
+
+- `decorationStoreCrmCustomers` 是 CRM 正式客户主台账 key，后续不得随意改名。
+- `customers` 仅作为旧版数据读取兼容 key，新增功能不得继续写入该 key。
+- CRM 清空、覆盖导入、全量覆盖导入前必须先自动备份当前数据。
+- CRM 清空前备份 key：`crmBackupBeforeClear_YYYYMMDD_HHmmss`。
+- CRM 覆盖导入前备份 key：`crmBackupBeforeImport_YYYYMMDD_HHmmss`。
+- 全站数据覆盖导入前备份 key：`fullBackupBeforeImport_YYYYMMDD_HHmmss`。
+- CRM JSON 导出文件名格式：`crm-backup-YYYYMMDD-HHmmss.json`。
+- 全站 JSON 备份文件名格式：`ai-work-tools-full-backup-YYYYMMDD-HHmmss.json`。
+- CRM 导入默认必须走合并导入，保留现有客户并跳过重复客户。
+- CRM 覆盖导入必须输入确认词 `覆盖导入CRM`。
+- CRM 清空必须输入确认词 `清空CRM`。
+- 全站覆盖导入必须输入确认词 `覆盖导入全部数据`。
+- 重复客户判断优先级：相同电话；无电话时相同姓名 + 小区；再按姓名 + 面积 + 小区兼容判断。
+- 导入兼容格式：数组、`{ customers: [...] }`、`{ data: [...] }`。
+
 ### 标准业务字段
 
 - `id`：客户唯一 ID。
@@ -146,7 +163,7 @@ CRM 客户主数据保存在 `decorationStoreCrmCustomers`。旧版本可能使�
 
 ### 日报/周报
 
-- `pointReportRecords`：日报/周报/阶段汇报历史。
+- `pointReportRecords`：日报/周报/阶段汇报历史，同一 key 内可能混合日报、周报、阶段汇报等不同记录类型，读取时必须按 `type`、标题或日期字段防御式过滤。
 - `pointReportBaseInfo`：日报基础项目信息。
 - `reportDataSummaryDraft`：日报读取数据摘要草稿。
 - `reportAnalysisSummaryDraft`：日报读取 AI 研判摘要草稿。
@@ -155,7 +172,7 @@ CRM 客户主数据保存在 `decorationStoreCrmCustomers`。旧版本可能使�
 ### AI 每日点将研判
 
 - `dailyAnalysisDrafts`：每日 AI 研判草稿。
-- `dailyAnalysisHistory`：每日 AI 研判历史。
+- `dailyAnalysisHistory`：每日 AI 研判历史，按日期读取和保存，不能默认只读取系统当天；跨日期读取时必须使用用户选择的日期。
 - `activityPolicyTemplates`：活动政策/机制资料模板。
 - `currentActivityPolicy`：当前活动政策/机制资料。
 - `dailyAnalysisPromptTemplates`：AI 调令模板。
