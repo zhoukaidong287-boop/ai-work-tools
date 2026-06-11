@@ -206,20 +206,6 @@
       box-shadow: none;
     }
 
-    .return-home-btn {
-      background: rgba(255, 255, 255, 0.98);
-      border: 1px solid rgba(96, 165, 250, 0.75);
-      color: #172554 !important;
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
-    }
-
-    .return-home-btn:hover {
-      background: #ffffff;
-      border-color: rgba(37, 99, 235, 0.9);
-      color: #0f172a !important;
-      box-shadow: 0 16px 34px rgba(37, 99, 235, 0.28);
-    }
-
     .button-row {
       display: flex;
       flex-wrap: wrap;
@@ -335,101 +321,155 @@
       </div>
     </div>
   </nav>
-  <header>
+  <header class="report-hero report-command">
     <div class="hero">
-      <div>
-        <div class="eyebrow">Growth Command · Report Desk</div>
+      <div class="report-hero-copy">
+        <div class="eyebrow">Growth Command · Daily Report Console</div>
         <h1>Daily Report</h1>
-        <p class="subtitle">读取CRM、客户池、线索与AI研判，生成可编辑日报。</p>
+        <p class="subtitle">Generate, edit and archive daily operating reports.</p>
+        <p class="report-hero-note">读取客户池、CRM与AI研判，生成可编辑日报。</p>
       </div>
-      <div class="button-row">
-        <a class="button-link return-home-btn" href="index.html">返回工具库首页</a>
+      <div class="report-status-panel" aria-label="今日日报流程">
+        <div class="report-flow-heading">
+          <div>
+            <div class="report-status-title">今日日报流程</div>
+            <div class="report-status-subtitle">Daily Report Flow</div>
+          </div>
+          <label class="report-date-control" for="dailyDate">
+            <span>日报日期</span>
+            <input id="dailyDate" type="date" />
+            <button class="report-yesterday-button" type="button" onclick="useYesterdayDate()">使用昨日日期</button>
+          </label>
+        </div>
+        <div class="report-status-pills">
+          <span id="reportDateStatus" class="report-status-pill">日报日期</span>
+          <span id="reportDataStatus" class="report-status-pill">数据：未读取</span>
+          <span id="reportAiStatus" class="report-status-pill">AI：未引用</span>
+          <span id="reportDraftStatus" class="report-status-pill">日报：未生成</span>
+        </div>
+        <div class="button-row report-actions report-command-actions">
+          <button class="btn-primary report-main-action" onclick="oneClickGenerateDaily()">一键生成今日日报</button>
+          <button class="btn-blue" onclick="readTodayCustomerPoolAndCrmData()">读取数据</button>
+          <button class="btn-blue" onclick="readTodayAiAnalysis()">引用AI研判</button>
+        </div>
       </div>
     </div>
   </header>
 
-  <main>
-    <section class="card">
-      <div class="section-head">
-        <div>
-          <h2>项目基础信息</h2>
-          <p class="section-note">固定信息只填写一次，保存后会自动带入每天的飞书日报和周报。</p>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div><label for="baseMall">点将商场</label><input id="baseMall" placeholder="例如：中卫某商场" /></div>
-        <div><label for="baseMallType">商场类型</label><input id="baseMallType" placeholder="例如：区域家居商场/综合商场" /></div>
-        <div><label for="basePeriod">点将时段</label><input id="basePeriod" placeholder="例如：2026-06-01 至 2026-06-15" /></div>
-        <div><label for="baseOrderTarget">订单目标（户，数字表述）</label><input id="baseOrderTarget" type="number" min="0" placeholder="例如：10" /></div>
-        <div class="full"><label for="baseCoreHandle">本次活动核心抓手</label><textarea id="baseCoreHandle" placeholder="例如：围绕本地新房交付、客户预算痛点和活动政策做邀约转化"></textarea></div>
-      </div>
-      <div class="button-row">
-        <button class="btn-primary" onclick="saveBaseInfo()">保存项目基础信息</button>
-      </div>
-      <div id="baseTip" class="copy-tip"></div>
-    </section>
-
-    <section class="card">
-      <div class="section-head">
-        <div>
-          <h2>飞书日报生成</h2>
-          <p class="section-note">建议先研判，后日报。先完成客户池复盘、CRM跟进、抖音线索整理，再到AI每日点将研判台保存今日研判，最后回到这里生成可编辑日报。</p>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div><label for="dailyDate">日期</label><input id="dailyDate" type="date" /></div>
-        <div><label for="dailyTodaySign">今日签单（户，数字表述）</label><input id="dailyTodaySign" type="number" min="0" /></div>
-        <div><label for="dailyTotalSign">累计签单（户，数字表述）</label><input id="dailyTotalSign" type="number" min="0" /></div>
-      </div>
-      <h3 style="margin:18px 0 10px;">今日工作动作</h3>
-      <div id="dailyActions" class="check-grid"></div>
-      <div class="data-read-panel">
-        <h3>客户池与CRM数据摘要（可编辑）</h3>
-        <p class="section-note">读取后可手动修改，生成日报时使用这里的最终文本。</p>
-        <div class="form-grid" style="margin-top:14px;">
-          <div class="full">
-            <label for="dailyDataSummary">读取结果</label>
-            <textarea id="dailyDataSummary" class="data-summary-output" placeholder="点击“读取客户池与CRM数据”后，会在这里生成日报可用摘要，可编辑。"></textarea>
-            <div id="dailyDataTip" class="copy-tip"></div>
+  <main class="report-main">
+    <section class="report-console-layout" aria-label="Daily Report Console 工作区">
+      <section class="card report-panel report-funnel" aria-label="今日客户漏斗">
+        <div class="section-head">
+          <div>
+            <h2>今日客户漏斗</h2>
+            <p class="section-note">客户推进阶段一眼判断。</p>
           </div>
         </div>
-        <div class="button-row">
-          <button class="btn-blue" onclick="readTodayCustomerPoolAndCrmData()">读取今日客户池与CRM数据</button>
+        <div class="report-funnel-list">
+          <div class="report-funnel-row" data-stage="new"><div><span>新线索</span><strong id="funnelNew">0</strong></div><i><b style="width:0%"></b></i></div>
+          <div class="report-funnel-row" data-stage="contacted"><div><span>已联系</span><strong id="funnelContacted">0</strong></div><i><b style="width:0%"></b></i></div>
+          <div class="report-funnel-row" data-stage="visited"><div><span>已进店</span><strong id="funnelVisited">0</strong></div><i><b style="width:0%"></b></i></div>
+          <div class="report-funnel-row" data-stage="measured"><div><span>已量房</span><strong id="funnelMeasured">0</strong></div><i><b style="width:0%"></b></i></div>
+          <div class="report-funnel-row" data-stage="quoted"><div><span>已报价</span><strong id="funnelQuoted">0</strong></div><i><b style="width:0%"></b></i></div>
+          <div class="report-funnel-row" data-stage="signed"><div><span>已签单</span><strong id="funnelSigned">0</strong></div><i><b style="width:0%"></b></i></div>
+        </div>
+        <p class="report-funnel-note">未读取数据时显示 0；读取后基于当前日报摘要与 CRM 数据展示。</p>
+      </section>
+
+      <section class="card report-panel report-summary">
+          <div class="section-head">
+            <div>
+            <h2>数据文字摘要</h2>
+            <p class="section-note">可复制进日报的文字依据，生成日报时使用此处最终文本。</p>
+          </div>
+        </div>
+        <label for="dailyDataSummary">客户池与CRM数据摘要</label>
+        <div id="dailyDataPreview" class="report-summary-preview">尚未读取数据。点击“读取数据”或“一键生成今日日报”后，这里会显示可用于日报的摘要预览。</div>
+        <details class="report-inline-accordion">
+          <summary>展开编辑文字摘要</summary>
+          <textarea id="dailyDataSummary" class="data-summary-output report-summary-editor" placeholder="点击“读取客户池与CRM数据”后，会在这里生成日报可用摘要，可编辑。"></textarea>
+        </details>
+        <div id="dailyDataTip" class="copy-tip"></div>
+        <div class="button-row report-actions">
+          <button class="btn-blue" onclick="readTodayCustomerPoolAndCrmData()">读取客户池与CRM数据</button>
           <button class="btn-green" onclick="copyOutput('dailyDataSummary', 'dailyDataTip', '数据摘要已复制')">复制摘要</button>
           <button class="btn-light" onclick="saveReportDraft('data')">保存摘要草稿</button>
           <button class="btn-red" onclick="clearReportField('dailyDataSummary','dailyDataTip','摘要已清空')">清空摘要</button>
         </div>
-      </div>
-      <div class="data-read-panel" style="margin-top:16px;">
-        <h3>今日AI研判摘要（可编辑）</h3>
-        <p class="section-note">从 AI每日点将研判台读取当天保存的研判结果，日报会引用这里的最终文本。</p>
-        <div class="form-grid" style="margin-top:14px;">
-          <div class="full">
-            <label for="dailyAnalysisSummary">研判摘要</label>
-            <textarea id="dailyAnalysisSummary" class="data-summary-output" placeholder="点击“读取今日AI研判”后填入，可编辑。"></textarea>
-            <div id="dailyAnalysisTip" class="copy-tip"></div>
+      </section>
+
+      <section class="card report-panel report-editor-panel report-main-editor" aria-label="Report Editor">
+          <div class="section-head">
+            <div>
+              <h2>今日日报正文</h2>
+              <p class="section-note"><span class="report-editor-kicker">Report Editor</span> · 生成后可继续编辑，复制/保存时使用最终修改版本。</p>
+            </div>
+            <div class="report-editor-state">
+              <span>日报正文</span>
+              <strong id="reportEditorStatus">当前状态：草稿</strong>
+              <em id="reportWordCount">0 字</em>
+              <em id="reportLastSaved">最后保存：-</em>
+            </div>
           </div>
-        </div>
-        <div class="button-row">
-          <button class="btn-blue" onclick="readTodayAiAnalysis()">读取今日AI研判</button>
-          <button class="btn-green" onclick="copyOutput('dailyAnalysisSummary', 'dailyAnalysisTip', 'AI研判摘要已复制')">复制研判摘要</button>
-          <button class="btn-light" onclick="saveReportDraft('analysis')">保存研判草稿</button>
-          <button class="btn-red" onclick="clearReportField('dailyAnalysisSummary','dailyAnalysisTip','研判摘要已清空')">清空研判摘要</button>
-        </div>
-      </div>
-      <div class="form-grid" style="margin-top:16px;">
-        <div class="wide"><label for="dailyWorkSummary">今日重点工作简述</label><textarea id="dailyWorkSummary" placeholder="今天重点做了什么，优先按你的原话润色"></textarea></div>
-        <div class="wide"><label for="dailyTomorrow">明日工作计划</label><textarea id="dailyTomorrow" placeholder="明天准备推进什么"></textarea></div>
-        <div class="full"><label for="dailyOutput">主动营销工作日报（可编辑）</label><textarea id="dailyOutput" class="output"></textarea><div id="dailyTip" class="copy-tip"></div></div>
-      </div>
-      <div class="button-row">
-        <button class="btn-primary" onclick="generateDaily()">生成日报</button>
-        <button class="btn-green" onclick="copyOutput('dailyOutput', 'dailyTip', '日报已复制')">复制日报</button>
-        <button class="btn-blue" onclick="saveDailyReport()">保存日报</button>
-      </div>
+          <div class="form-grid report-meta-grid">
+            <div><label for="dailyTodaySign">今日签单（户）</label><input id="dailyTodaySign" type="number" min="0" /></div>
+            <div><label for="dailyTotalSign">累计签单（户）</label><input id="dailyTotalSign" type="number" min="0" /></div>
+          </div>
+          <div class="report-action-block">
+            <h3>今日工作动作</h3>
+            <div id="dailyActions" class="check-grid report-check-grid"></div>
+          </div>
+          <div class="form-grid report-note-grid">
+            <div class="wide"><label for="dailyWorkSummary">今日重点工作简述</label><textarea id="dailyWorkSummary" placeholder="今天重点做了什么，优先按你的原话润色"></textarea></div>
+            <div class="wide"><label for="dailyTomorrow">明日工作计划</label><textarea id="dailyTomorrow" placeholder="明天准备推进什么"></textarea></div>
+            <div class="full"><label for="dailyOutput">主动营销工作日报（可编辑）</label><textarea id="dailyOutput" class="output report-output"></textarea><div id="dailyTip" class="copy-tip"></div></div>
+          </div>
+          <div class="button-row report-actions report-primary-actions">
+            <button class="btn-primary" onclick="oneClickGenerateDaily()">一键生成今日日报</button>
+            <button class="btn-green" onclick="copyOutput('dailyOutput', 'dailyTip', '日报已复制')">复制日报</button>
+            <button class="btn-blue" onclick="saveDailyReport()">保存日报</button>
+            <button class="btn-red" onclick="clearReportField('dailyOutput','dailyTip','日报已清空')">清空日报</button>
+          </div>
+      </section>
+
+      <section class="card report-panel report-ai-assist" aria-label="AI研判摘要">
+          <div class="section-head">
+            <div>
+              <h2>AI研判摘要</h2>
+              <p class="section-note">引用AI研判，辅助判断问题与明日动作。</p>
+            </div>
+          </div>
+          <div class="report-insight-grid">
+            <div class="report-ai-block"><strong>今日判断</strong><span id="aiBlockJudgement">引用后自动归纳今日判断。</span></div>
+            <div class="report-ai-block"><strong>主要问题</strong><span id="aiBlockProblem">引用后自动归纳主要问题。</span></div>
+            <div class="report-ai-block"><strong>明日动作</strong><span id="aiBlockAction">引用后自动归纳明日动作。</span></div>
+            <div class="report-ai-block"><strong>风险提醒</strong><span id="aiBlockRisk">引用后自动归纳风险提醒。</span></div>
+          </div>
+          <label for="dailyAnalysisSummary">完整研判文本</label>
+          <textarea id="dailyAnalysisSummary" class="data-summary-output report-summary-editor report-ai-editor" placeholder="点击“引用AI研判”后读取当前日报日期的研判，可编辑。"></textarea>
+          <div id="dailyAnalysisTip" class="copy-tip"></div>
+          <div class="button-row report-actions">
+            <button class="btn-blue" onclick="readTodayAiAnalysis()">引用AI研判</button>
+            <button class="btn-green" onclick="copyOutput('dailyAnalysisSummary', 'dailyAnalysisTip', 'AI研判摘要已复制')">复制研判</button>
+            <button class="btn-light" onclick="saveReportDraft('analysis')">保存研判摘要</button>
+            <button class="btn-blue" onclick="appendAiInsightToDaily()">应用到日报</button>
+            <button class="btn-red" onclick="clearReportField('dailyAnalysisSummary','dailyAnalysisTip','研判摘要已清空')">清空研判</button>
+          </div>
+      </section>
+
     </section>
 
-    <section class="card">
+    <section class="report-more-section" aria-label="更多输出">
+      <div class="section-head">
+        <div>
+          <h2>更多输出</h2>
+          <p class="section-note">更多输出、历史记录和固定资料默认收起，不干扰今日日报主流程。</p>
+        </div>
+      </div>
+
+      <details class="report-accordion">
+        <summary>周报生成</summary>
+        <section class="card report-panel report-weekly">
       <div class="section-head">
         <div>
           <h2>主动营销周报生成</h2>
@@ -449,16 +489,19 @@
         </div>
         <div class="full"><label for="weeklyOutput">主动营销周报</label><textarea id="weeklyOutput" class="output" readonly></textarea><div id="weeklyTip" class="copy-tip"></div></div>
       </div>
-      <div class="button-row">
+      <div class="button-row report-actions">
         <button class="btn-blue" onclick="readWeeklyDailies()">读取本周日报</button>
         <button class="btn-primary" onclick="generateWeeklyFromDailies()">根据日报生成周报</button>
         <button class="btn-green" onclick="copyOutput('weeklyOutput', 'weeklyTip', '周报已复制')">复制周报</button>
         <button class="btn-green" onclick="downloadWeeklyWord()">下载周报文档版</button>
         <button class="btn-blue" onclick="saveCurrentReport('周报', weeklyMeta(), getValue('weeklyOutput'), 'weeklyTip')">保存周报</button>
       </div>
-    </section>
+        </section>
+      </details>
 
-    <section class="card">
+      <details class="report-accordion">
+        <summary>阶段汇报</summary>
+        <section class="card report-panel report-stage">
       <div class="section-head">
         <div>
           <h2>主动营销阶段汇报生成</h2>
@@ -481,21 +524,49 @@
         <div class="full"><label for="stageHandover">需要交接事项</label><textarea id="stageHandover"></textarea></div>
         <div class="full"><label for="stageOutput">主动营销阶段汇报</label><textarea id="stageOutput" class="output" readonly></textarea><div id="stageTip" class="copy-tip"></div></div>
       </div>
-      <div class="button-row">
+      <div class="button-row report-actions">
         <button class="btn-primary" onclick="generateStage()">生成阶段汇报</button>
         <button class="btn-green" onclick="copyOutput('stageOutput', 'stageTip', '阶段汇报已复制')">复制阶段汇报</button>
         <button class="btn-blue" onclick="saveCurrentReport('阶段汇报', stageMeta(), getValue('stageOutput'), 'stageTip')">保存阶段汇报</button>
       </div>
-    </section>
+        </section>
+      </details>
 
-    <section class="card">
+      <details class="report-accordion">
+        <summary>历史记录</summary>
+        <section class="card report-panel report-history report-timeline">
       <div class="section-head">
         <div>
           <h2>历史记录</h2>
-          <p class="section-note">日报、周报和阶段汇报单独保存在当前浏览器，不影响客户、城市研判或投流数据。</p>
+          <p class="section-note">沉淀日报、周报与本周读取结果；所有记录单独保存在当前浏览器。</p>
         </div>
       </div>
-      <div id="historyList" class="history-list"></div>
+          <div id="historyList" class="history-list"></div>
+        </section>
+      </details>
+
+      <details class="report-accordion">
+        <summary>固定资料设置</summary>
+        <section class="card report-panel report-base-panel">
+          <div class="section-head">
+            <div>
+              <h2>项目基础信息</h2>
+              <p class="section-note">固定信息只填写一次，保存后会自动带入每天的飞书日报和周报。</p>
+            </div>
+          </div>
+          <div class="form-grid report-compact-grid">
+            <div><label for="baseMall">点将商场</label><input id="baseMall" placeholder="例如：中卫某商场" /></div>
+            <div><label for="baseMallType">商场类型</label><input id="baseMallType" placeholder="例如：区域家居商场/综合商场" /></div>
+            <div><label for="basePeriod">点将时段</label><input id="basePeriod" placeholder="例如：2026-06-01 至 2026-06-15" /></div>
+            <div><label for="baseOrderTarget">订单目标（户，数字表述）</label><input id="baseOrderTarget" type="number" min="0" placeholder="例如：10" /></div>
+            <div class="full"><label for="baseCoreHandle">本次活动核心抓手</label><textarea id="baseCoreHandle" placeholder="例如：围绕本地新房交付、客户预算痛点和活动政策做邀约转化"></textarea></div>
+          </div>
+          <div class="button-row report-actions">
+            <button class="btn-primary" onclick="saveBaseInfo()">保存项目基础信息</button>
+          </div>
+          <div id="baseTip" class="copy-tip"></div>
+        </section>
+      </details>
     </section>
   </main>
 
@@ -570,7 +641,10 @@
 
     function setValue(id, value) {
       const element = document.getElementById(id);
-      if (element) element.value = value || "";
+      if (element) {
+        element.value = value || "";
+        if (typeof updateReportConsoleStatus === "function") updateReportConsoleStatus();
+      }
     }
 
     function setText(id, value) {
@@ -944,6 +1018,7 @@
       if (!reviewSource && !customers.length && !douyinStats.total) {
         setValue("dailyDataSummary", "暂未读取到客户池复盘、CRM或抖音线索数据，请先完成客户池复盘、录入CRM客户或整理抖音线索池。");
         setText("dailyDataTip", "暂无可读取数据");
+        updateReportFunnel();
         return;
       }
 
@@ -986,6 +1061,89 @@
       setValue("dailyDataSummary", lines.join("\n"));
       localStorage.setItem(REPORT_DATA_SUMMARY_DRAFT_KEY, getValue("dailyDataSummary"));
       setText("dailyDataTip", "已读取客户池与CRM数据");
+      updateReportFunnel();
+    }
+
+    function getReportFunnelStats() {
+      const customers = loadCrmCustomersForReport();
+      const stats = { new: 0, contacted: 0, visited: 0, measured: 0, quoted: 0, signed: 0 };
+      customers.forEach(customer => {
+        const status = customer.status || "";
+        const dead = customer.grade === "死单" || status === "死单" || status === "已死单" || status === "无效客户";
+        if (dead) return;
+        if (status === "新线索") stats.new += 1;
+        if (status === "已联系") stats.contacted += 1;
+        if (status === "已进店") stats.visited += 1;
+        if (["已量房", "已出方案", "已报价", "已交定金", "已签单"].includes(status) || customer.measuredStatus === "是") stats.measured += 1;
+        if (["已报价", "已交定金", "已签单"].includes(status)) stats.quoted += 1;
+        if (status === "已签单") stats.signed += 1;
+      });
+
+      if (!customers.length) {
+        const text = getValue("dailyDataSummary");
+        const pick = pattern => {
+          const match = text.match(pattern);
+          return match ? Number(match[1]) || 0 : 0;
+        };
+        stats.new = pick(/新线索(?:客户)?(?:为|客户)?(\d+)组/);
+        stats.measured = pick(/已量房(\d+)组/);
+        stats.quoted = pick(/已报价(\d+)组/);
+        stats.signed = pick(/已签单(\d+)组/);
+      }
+      return stats;
+    }
+
+    function updateReportFunnel() {
+      const stats = getReportFunnelStats();
+      const values = [
+        ["funnelNew", stats.new],
+        ["funnelContacted", stats.contacted],
+        ["funnelVisited", stats.visited],
+        ["funnelMeasured", stats.measured],
+        ["funnelQuoted", stats.quoted],
+        ["funnelSigned", stats.signed]
+      ];
+      const max = Math.max(...values.map(([, value]) => value), 1);
+      values.forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        const row = element ? element.closest(".report-funnel-row") : null;
+        const bar = row ? row.querySelector("b") : null;
+        if (element) element.textContent = value;
+        if (bar) bar.style.width = `${Math.max(6, Math.round((value / max) * 100))}%`;
+      });
+    }
+
+    function oneClickGenerateDaily() {
+      readTodayCustomerPoolAndCrmData();
+      readTodayAiAnalysis();
+      generateDaily();
+      const aiMissing = getValue("dailyAnalysisSummary").startsWith("当前日期暂无AI研判");
+      setText("dailyTip", aiMissing ? "已生成无AI研判版日报，本次基于客户池/CRM/线索数据生成，请确认后保存" : "已一键生成今日日报，请确认后保存");
+      updateReportConsoleStatus();
+      updateReportFunnel();
+    }
+
+    function useYesterdayDate() {
+      const date = new Date();
+      date.setDate(date.getDate() - 1);
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      setValue("dailyDate", value);
+      updateReportConsoleStatus();
+      updateReportFunnel();
+    }
+
+    function appendAiInsightToDaily() {
+      const aiText = getValue("dailyAnalysisSummary");
+      if (!aiText || aiText.startsWith("当前日期暂无AI研判")) {
+        setText("dailyAnalysisTip", "暂无可应用的AI研判");
+        return;
+      }
+      const current = getValue("dailyOutput");
+      const appendix = `\n\n【AI研判补充】\n${aiText}`;
+      setValue("dailyOutput", current ? `${current}${appendix}` : appendix.trim());
+      localStorage.setItem(DAILY_REPORT_DRAFT_KEY, getValue("dailyOutput"));
+      setText("dailyAnalysisTip", "AI研判已应用到日报正文");
+      updateReportConsoleStatus();
     }
 
     function buildDailyDataWorkText(summary) {
@@ -999,9 +1157,10 @@
       const history = safeParseStorage(DAILY_ANALYSIS_HISTORY_KEY, {});
       const record = history && history[date];
       if (!record || !record.analysisResult) {
-        setValue("dailyAnalysisSummary", "暂未读取到今日AI研判，请先到AI每日点将研判台保存今日研判。");
-        setText("dailyAnalysisTip", "暂无今日AI研判");
+        setValue("dailyAnalysisSummary", `当前日期暂无AI研判。\n可切换日期，或先到AI每日研判台保存该日期研判。\n研判日期：${date}`);
+        setText("dailyAnalysisTip", "当前日期暂无AI研判");
         saveReportDraft("analysis");
+        updateAiInsightBlocks();
         return;
       }
       const text = [
@@ -1012,12 +1171,13 @@
       ].filter(Boolean).join("\n");
       setValue("dailyAnalysisSummary", text);
       localStorage.setItem(REPORT_ANALYSIS_SUMMARY_DRAFT_KEY, text);
-      setText("dailyAnalysisTip", "已读取今日AI研判");
+      setText("dailyAnalysisTip", "已读取当前日期AI研判");
+      updateAiInsightBlocks();
     }
 
     function buildAiAnalysisWorkText(summary) {
       const text = String(summary || "").trim();
-      if (!text || text.startsWith("暂未读取到今日AI研判")) return "";
+      if (!text || text.startsWith("当前日期暂无AI研判")) return "";
       return `根据今日AI研判，已进一步明确客户池、CRM漏斗、抖音线索质量和明日重点动作，后续围绕A/B类客户、已量房/已报价客户、逾期未跟进客户和有效抖音线索推进。\n${text}`;
     }
 
@@ -1046,8 +1206,12 @@
       const dailyDataWork = buildDailyDataWorkText(getValue("dailyDataSummary"));
       const aiAnalysisWork = buildAiAnalysisWorkText(getValue("dailyAnalysisSummary"));
       const finalWorkText = [workText, dailyDataWork, aiAnalysisWork].filter(Boolean).join("\n\n");
+      const reportDate = getValue("dailyDate") || today();
       const report = [
         "【主动营销工作日报】",
+        "",
+        "0. 日报日期",
+        reportDate,
         "",
         "1. 点将商场",
         base.mall || "未填写",
@@ -1124,6 +1288,13 @@
       saveReports();
       renderHistory();
       setText("dailyTip", "日报已保存");
+      const draftStatus = document.getElementById("reportDraftStatus");
+      if (draftStatus) {
+        draftStatus.textContent = "日报：已保存";
+        draftStatus.classList.add("is-ready");
+      }
+      setText("reportEditorStatus", "当前状态：已保存");
+      setText("reportLastSaved", `最后保存：${formatDateTime(new Date().toISOString())}`);
     }
 
     function readWeeklyDailies() {
@@ -1641,23 +1812,98 @@
     function renderHistory() {
       const list = document.getElementById("historyList");
       if (!reportRecords.length) {
-        list.innerHTML = '<div class="subtle">暂无历史记录</div>';
+        list.innerHTML = '<div class="subtle report-timeline-empty">暂无历史记录</div>';
         return;
       }
       list.innerHTML = reportRecords.map(record => `
-        <div class="history-item">
-          <div>
+        <div class="history-item report-timeline-item">
+          <div class="report-timeline-time">
+            <span>${escapeHtml(record.date || record.period || "-")}</span>
+            <strong>${escapeHtml(formatDateTime(record.createdAt))}</strong>
+          </div>
+          <div class="report-timeline-body">
             <div class="history-title">${escapeHtml(record.type)} · ${escapeHtml(record.project || record.mall || "-")}</div>
-            <div class="subtle">${escapeHtml(record.date || record.period || "-")} · ${escapeHtml(formatDateTime(record.createdAt))}</div>
+            <div class="report-timeline-tag">${escapeHtml(record.type || "记录")}</div>
             <div class="subtle">${escapeHtml(record.content || "").slice(0, 180)}${(record.content || "").length > 180 ? "..." : ""}</div>
           </div>
-          <div class="button-row">
+          <div class="button-row report-timeline-actions">
             <button class="btn-blue" onclick="viewHistory('${record.id}')">查看</button>
             <button class="btn-green" onclick="copyHistory('${record.id}')">复制</button>
             <button class="btn-red" onclick="deleteHistory('${record.id}')">删除</button>
           </div>
         </div>
       `).join("");
+    }
+
+    function updateReportConsoleStatus() {
+      const dateStatus = document.getElementById("reportDateStatus");
+      const dataStatus = document.getElementById("reportDataStatus");
+      const aiStatus = document.getElementById("reportAiStatus");
+      const draftStatus = document.getElementById("reportDraftStatus");
+      const wordCount = document.getElementById("reportWordCount");
+      const editorStatus = document.getElementById("reportEditorStatus");
+      const dataText = getValue("dailyDataSummary");
+      const aiText = getValue("dailyAnalysisSummary");
+      const reportText = getValue("dailyOutput");
+
+      if (dateStatus) dateStatus.textContent = `日报日期：${getValue("dailyDate") || today()}`;
+      if (dataStatus) {
+        dataStatus.textContent = `数据：${dataText ? "已读取" : "未读取"}`;
+        dataStatus.classList.toggle("is-ready", Boolean(dataText));
+      }
+      if (aiStatus) {
+        const hasAi = Boolean(aiText && !aiText.startsWith("当前日期暂无AI研判"));
+        aiStatus.textContent = `AI：${hasAi ? "已引用" : "未引用"}`;
+        aiStatus.classList.toggle("is-ready", hasAi);
+      }
+      if (draftStatus) {
+        draftStatus.textContent = `日报：${reportText ? "已生成" : "未生成"}`;
+        draftStatus.classList.toggle("is-ready", Boolean(reportText));
+      }
+      if (editorStatus) editorStatus.textContent = `当前状态：${reportText ? "已生成" : "草稿"}`;
+      if (wordCount) wordCount.textContent = `${reportText.length} 字`;
+      updateDataSummaryPreview();
+      updateAiInsightBlocks();
+    }
+
+    function setInlineText(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    }
+
+    function summarizeLine(text, keywords, fallback) {
+      const lines = String(text || "").split(/\n+/).map(line => line.trim()).filter(Boolean);
+      return lines.find(line => keywords.some(keyword => line.includes(keyword))) || fallback;
+    }
+
+    function updateDataSummaryPreview() {
+      const preview = document.getElementById("dailyDataPreview");
+      if (!preview) return;
+      const text = getValue("dailyDataSummary");
+      preview.textContent = text
+        ? text.replace(/\n+/g, " ").slice(0, 180) + (text.length > 180 ? "..." : "")
+        : "尚未读取数据。点击“读取数据”或“一键生成今日日报”后，这里会显示可用于日报的摘要预览。";
+    }
+
+    function updateAiInsightBlocks() {
+      const text = getValue("dailyAnalysisSummary");
+      const empty = !text || text.startsWith("当前日期暂无AI研判");
+      const emptyMessage = "当前日期暂无AI研判，请切换日期，或先到AI每日研判台保存该日期研判。";
+      setInlineText("aiBlockJudgement", empty ? emptyMessage : summarizeLine(text, ["判断", "总体", "情况", "客户池"], "已读取AI研判，建议结合客户池和CRM状态进行今日复盘。"));
+      setInlineText("aiBlockProblem", empty ? emptyMessage : summarizeLine(text, ["问题", "卡点", "不足", "风险"], "重点关注客户承接、跟进节奏和阶段转化卡点。"));
+      setInlineText("aiBlockAction", empty ? emptyMessage : summarizeLine(text, ["明日", "动作", "计划", "推进"], "明日优先推进重点客户、逾期跟进和已量房/已报价客户。"));
+      setInlineText("aiBlockRisk", empty ? emptyMessage : summarizeLine(text, ["风险", "提醒", "注意", "避免"], "持续关注线索质量、跟进延迟和客户流失风险。"));
+    }
+
+    function bindReportConsoleStatus() {
+      ["dailyDate", "dailyDataSummary", "dailyAnalysisSummary", "dailyOutput"].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener("input", updateReportConsoleStatus);
+          if (id === "dailyDataSummary" || id === "dailyDate") element.addEventListener("input", updateReportFunnel);
+          if (id === "dailyAnalysisSummary") element.addEventListener("input", updateAiInsightBlocks);
+        }
+      });
     }
 
     function viewHistory(id) {
@@ -1731,6 +1977,9 @@
       setValue("stageEnd", today());
       loadReportDrafts();
       renderHistory();
+      bindReportConsoleStatus();
+      updateReportConsoleStatus();
+      updateReportFunnel();
     }
 
     init();
