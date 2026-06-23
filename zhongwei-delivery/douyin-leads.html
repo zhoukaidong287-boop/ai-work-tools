@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leads Workspace | Growth Command</title>
+  <style>
+    :root {
+      --bg: #eef3fb;
+      --text: #172033;
+      --muted: #64748b;
+      --line: #dbe4f0;
+      --blue: #2563eb;
+      --green: #12945a;
+      --red: #d04444;
+      --cyan: #0891b2;
+      --shadow: 0 18px 50px rgba(21, 34, 66, .09);
+      --gradient-primary: linear-gradient(135deg, #3861ff 0%, #6757f5 52%, #08b6d8 100%);
+      --gradient-dark:
+        radial-gradient(circle at 18% 16%, rgba(77, 208, 255, .28), transparent 34%),
+        radial-gradient(circle at 86% 8%, rgba(132, 92, 255, .34), transparent 30%),
+        linear-gradient(135deg, #111827 0%, #172554 50%, #0f172a 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 8% 0%, rgba(70, 87, 240, .14), transparent 28%), var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    header {
+      background: var(--gradient-dark);
+      color: #fff;
+      padding: 36px 40px 82px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .055) 1px, transparent 1px);
+      background-size: 42px 42px;
+      opacity: .32;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 22px;
+      max-width: 1280px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      border: 1px solid rgba(255, 255, 255, .15);
+      background: rgba(255, 255, 255, .09);
+      border-radius: 999px;
+      color: #c7f1ff;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 7px 12px;
+      margin-bottom: 14px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.12;
+    }
+
+    .subtitle {
+      color: #dbeafe;
+      line-height: 1.75;
+      margin-top: 12px;
+      max-width: 860px;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: -46px auto 0;
+      padding: 0 32px 44px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid rgba(219, 228, 240, .92);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      align-items: flex-start;
+    }
+
+    .section-note {
+      color: var(--muted);
+      line-height: 1.65;
+      margin-top: 7px;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .flow span {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      color: #172554;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 7px 10px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .wide {
+      grid-column: span 2;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      color: #344054;
+      margin-bottom: 6px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #d7e0ec;
+      border-radius: 10px;
+      background: #fbfdff;
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 88px;
+      line-height: 1.65;
+      resize: vertical;
+    }
+
+    button,
+    a.button-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 10px;
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      min-height: 38px;
+      padding: 9px 14px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+    }
+
+    .btn-blue {
+      background: var(--blue);
+    }
+
+    .btn-green {
+      background: var(--green);
+    }
+
+    .btn-cyan {
+      background: var(--cyan);
+    }
+
+    .btn-red {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      color: #be123c;
+    }
+
+    .btn-light {
+      background: #fff;
+      border: 1px solid #bfdbfe;
+      color: #172554 !important;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, .15);
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .check-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fbff;
+      border: 1px solid #dbe4f0;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-weight: 700;
+    }
+
+    .check-card input {
+      width: auto;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      background: #f8fbff;
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      margin-top: 6px;
+    }
+
+    .lead-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .lead-card {
+      border: 1px solid #dbeafe;
+      background: #f8fbff;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .lead-title {
+      font-weight: 900;
+      font-size: 17px;
+    }
+
+    .lead-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    .tag-ok {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .tag-bad {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .tag-warn {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .copy-tip {
+      color: var(--green);
+      font-weight: 800;
+      min-height: 22px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 800px) {
+      header {
+        padding: 28px 20px 74px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wide,
+      .full {
+        grid-column: auto;
+      }
+
+      main {
+        padding: 0 16px 36px;
+      }
+
+      button,
+      a.button-link {
+        width: 100%;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="shared-ui.css" />
+</head>
+<body>
+  <nav class="gc-shell" aria-label="Growth Command 功能导航">
+    <div class="gc-nav">
+      <a class="gc-brand" href="index.html">Growth Command</a>
+      <div class="gc-nav-links">
+        <a href="index.html">首页</a>
+        <a href="crm.html">CRM</a>
+        <a href="douyin-leads.html" class="is-active">线索</a>
+        <a href="customer-review.html">客户池</a>
+      </div>
+    </div>
+  </nav>
+
+  <header>
+    <div class="hero">
+      <div>
+        <span class="eyebrow">Growth Command · Lead Intake</span>
+        <h1>Leads Workspace</h1>
+        <p class="subtitle">抖音线索承接、有效判定、销售分配与转CRM。</p>
+        <div class="flow">
+          <span>①录入</span>
+          <span>②清洗</span>
+          <span>③分配销售</span>
+          <span>④转入CRM</span>
+          <span>⑤CRM跟进</span>
+          <span>⑥日报统计</span>
+        </div>
+      </div>
+      <a class="button-link btn-light" href="index.html">返回工具库首页</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>抖音线索统计</h2>
+          <p class="section-note">用于判断来源质量、素材有效性、销售承接和无效原因。</p>
+        </div>
+      </div>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div id="sourceStats" class="section-note" style="margin-top:14px;"></div>
+      <div id="salesStats" class="section-note"></div>
+      <div id="invalidStats" class="section-note"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2 id="formTitle">录入抖音线索</h2>
+          <p class="section-note">有效线索再转入 CRM；无效线索保留在这里用于复盘投流和承接。</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <label for="leadName">客户姓名/称呼</label>
+          <input id="leadName" />
+        </div>
+        <div>
+          <label for="leadPhone">电话</label>
+          <input id="leadPhone" />
+        </div>
+        <div>
+          <label for="leadWechat">微信</label>
+          <input id="leadWechat" />
+        </div>
+        <div>
+          <label for="leadCity">城市</label>
+          <input id="leadCity" value="中卫" />
+        </div>
+        <div>
+          <label for="leadArea">区域/小区</label>
+          <input id="leadArea" />
+        </div>
+        <div>
+          <label for="leadAreaSize">面积</label>
+          <input id="leadAreaSize" />
+        </div>
+        <div>
+          <label for="leadLayout">户型</label>
+          <input id="leadLayout" />
+        </div>
+        <div>
+          <label for="decorateType">装修类型</label>
+          <select id="decorateType">
+            <option>新房装修</option>
+            <option>旧房翻新</option>
+            <option>局部改造</option>
+            <option>精装改造</option>
+            <option>整装咨询</option>
+            <option>大平层/改善型</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div>
+          <label for="leadSource">线索来源</label>
+          <select id="leadSource">
+            <option>抖音信息流表单</option>
+            <option>抖音私信</option>
+            <option>抖音评论</option>
+            <option>直播线索</option>
+            <option>主页留资</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="wide">
+          <label for="materialName">来源视频/素材名称</label>
+          <input id="materialName" />
+        </div>
+        <div>
+          <label for="leadStatus">线索状态</label>
+          <select id="leadStatus">
+            <option>待清洗</option>
+            <option>已联系</option>
+            <option>有效线索</option>
+            <option>无效线索</option>
+            <option>已分配销售</option>
+            <option>已转入CRM</option>
+          </select>
+        </div>
+        <div>
+          <label for="validity">是否有效</label>
+          <select id="validity">
+            <option>待判断</option>
+            <option>有效</option>
+            <option>无效</option>
+          </select>
+        </div>
+        <div>
+          <label for="invalidReason">无效原因</label>
+          <select id="invalidReason">
+            <option value="">未选择</option>
+            <option>电话无效</option>
+            <option>区域不符</option>
+            <option>预算明显不匹配</option>
+            <option>暂时不装</option>
+            <option>已装修</option>
+            <option>只问价格</option>
+            <option>重复线索</option>
+            <option>其他原因</option>
+          </select>
+        </div>
+        <div>
+          <label for="assignedSales">分配销售</label>
+          <select id="assignedSales">
+            <option value="">未分配</option>
+          </select>
+        </div>
+        <div>
+          <label for="leadGrade">客户等级初判</label>
+          <select id="leadGrade">
+            <option>C类客户</option>
+            <option>B类客户</option>
+            <option>A类客户</option>
+          </select>
+        </div>
+        <div>
+          <label for="nextFollowDate">下次跟进时间</label>
+          <input id="nextFollowDate" type="date" />
+        </div>
+        <div class="wide">
+          <label for="initialQuestion">客户初始问题</label>
+          <input id="initialQuestion" placeholder="例如：想知道100平整装多少钱" />
+        </div>
+        <div class="full">
+          <label>私信关键词</label>
+          <div class="check-grid" id="keywordChecks"></div>
+        </div>
+        <div class="full">
+          <label>客户痛点</label>
+          <div class="check-grid" id="painChecks"></div>
+        </div>
+        <div class="full">
+          <label for="leadNote">备注</label>
+          <textarea id="leadNote"></textarea>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button id="saveLeadBtn" class="btn-primary" onclick="saveLead()">添加抖音线索</button>
+        <button class="btn-light" onclick="clearForm()">清空表单</button>
+        <button class="btn-blue" onclick="exportCsv()">导出抖音线索 CSV</button>
+        <button class="btn-green" onclick="exportJson()">导出抖音线索 JSON</button>
+      </div>
+      <div id="tip" class="copy-tip"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>抖音线索列表</h2>
+          <p class="section-note">快速查看状态、来源、销售和是否已转入 CRM。</p>
+        </div>
+      </div>
+      <div class="lead-list" id="leadList"></div>
+    </section>
+  </main>
+
+  <script>
+    // ================================
+    // 常量与基础配置
+    // ================================
+    const LEADS_KEY = "douyinLeads";
+    const HISTORY_KEY = "douyinLeadHistory";
+    const CRM_KEY = "decorationStoreCrmCustomers";
+    const SALES = ["王玉玲", "李瑞兰", "朱丽", "折秀萍", "王淑慧", "詹莉君"];
+    const keywordOptions = ["预算", "旧改", "户型", "报价", "案例", "环保", "量房", "其他"];
+    const painOptions = [
+      "怕预算超",
+      "怕增项",
+      "怕效果图落不了地",
+      "怕施工不靠谱",
+      "怕材料不环保",
+      "没时间到店",
+      "不知道怎么装",
+      "只想先问价格",
+      "暂时不急",
+      "其他"
+    ];
+
+    let leads = loadLeads();
+    let editingId = "";
+
+    const el = id => document.getElementById(id);
+    const value = id => (el(id).value || "").trim();
+    const escapeHtml = text => String(text || "").replace(/[&<>"']/g, s => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;"
+    }[s]));
+
+    function today() {
+      const date = new Date();
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function createId() {
+      return `crm-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function showTip(text) {
+      el("tip").textContent = text;
+      setTimeout(() => {
+        if (el("tip").textContent === text) {
+          el("tip").textContent = "";
+        }
+      }, 2200);
+    }
+
+    // ================================
+    // localStorage 安全读取/保存
+    // ================================
+    function loadLeads() {
+      try {
+        return JSON.parse(localStorage.getItem(LEADS_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveLeads() {
+      localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
+    }
+
+    function crmCustomers() {
+      try {
+        return JSON.parse(localStorage.getItem(CRM_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function logHistory(lead, action) {
+      let list = [];
+      try {
+        list = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      } catch {}
+
+      list.unshift({
+        id: `h-${Date.now()}`,
+        leadId: lead.id,
+        action,
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+    }
+
+    // ================================
+    // 线索数据结构与默认值
+    // ================================
+    function leadFromForm() {
+      return {
+        id: editingId || `dy-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name: value("leadName"),
+        phone: value("leadPhone"),
+        wechat: value("leadWechat"),
+        city: value("leadCity"),
+        area: value("leadArea"),
+        areaSize: value("leadAreaSize"),
+        layout: value("leadLayout"),
+        decorateType: value("decorateType"),
+        source: value("leadSource"),
+        materialName: value("materialName"),
+        keywords: checked("keywordChecks"),
+        pains: checked("painChecks"),
+        status: value("leadStatus"),
+        validity: value("validity"),
+        invalidReason: value("invalidReason"),
+        assignedSales: value("assignedSales"),
+        grade: value("leadGrade"),
+        nextFollowDate: value("nextFollowDate"),
+        initialQuestion: value("initialQuestion"),
+        note: value("leadNote"),
+        crmCustomerId: "",
+        transferredAt: "",
+        createdAt: editingId
+          ? (leads.find(lead => lead.id === editingId)?.createdAt || new Date().toISOString())
+          : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    function toCrmSource(source) {
+      return source === "抖音私信"
+        ? "抖音私信"
+        : source === "抖音评论"
+          ? "抖音评论"
+          : source === "直播线索"
+            ? "直播线索"
+            : source === "主页留资"
+              ? "主页留资"
+              : "抖音信息流";
+    }
+
+    // ================================
+    // 渲染函数
+    // ================================
+    function renderChecks(id, options) {
+      el(id).innerHTML = options.map(item => `
+        <label class="check-card">
+          <input type="checkbox" value="${escapeHtml(item)}">
+          <span>${escapeHtml(item)}</span>
+        </label>
+      `).join("");
+    }
+
+    function checked(id) {
+      return Array.from(el(id).querySelectorAll("input:checked")).map(input => input.value);
+    }
+
+    function setChecked(id, values = []) {
+      const valueSet = new Set(values);
+      el(id).querySelectorAll("input").forEach(input => {
+        input.checked = valueSet.has(input.value);
+      });
+    }
+
+    function countBy(key, val) {
+      return leads.filter(lead => lead[key] === val).length;
+    }
+
+    function tagClass(lead) {
+      return lead.status === "已转入CRM"
+        ? "tag-ok"
+        : lead.validity === "无效"
+          ? "tag-bad"
+          : lead.validity === "有效"
+            ? "tag-ok"
+            : "tag-warn";
+    }
+
+    function renderStats() {
+      const total = leads.length;
+      const valid = countBy("validity", "有效");
+      const invalid = countBy("validity", "无效");
+      const transferred = countBy("status", "已转入CRM");
+      const items = [
+        ["抖音线索总数", total],
+        ["待清洗", countBy("status", "待清洗")],
+        ["已联系", countBy("status", "已联系")],
+        ["有效线索", valid],
+        ["无效线索", invalid],
+        ["已分配销售", leads.filter(lead => lead.assignedSales).length],
+        ["已转入CRM", transferred],
+        ["有效率", total ? `${Math.round((valid / total) * 100)}%` : "0%"],
+        ["转CRM率", total ? `${Math.round((transferred / total) * 100)}%` : "0%"]
+      ];
+
+      el("statsGrid").innerHTML = items.map(([label, stat]) => `
+        <div class="stat">
+          <span>${label}</span>
+          <strong>${stat}</strong>
+        </div>
+      `).join("");
+
+      el("sourceStats").textContent = `按来源统计：${["抖音信息流表单", "抖音私信", "抖音评论", "直播线索", "主页留资"]
+        .map(source => `${source}${countBy("source", source)}条`)
+        .join("，")}`;
+      el("salesStats").textContent = `按销售统计：${SALES
+        .map(sales => `${sales}分配${leads.filter(lead => lead.assignedSales === sales).length}条/有效${leads.filter(lead => lead.assignedSales === sales && lead.validity === "有效").length}条/转CRM${leads.filter(lead => lead.assignedSales === sales && lead.status === "已转入CRM").length}条`)
+        .join("；")}`;
+      el("invalidStats").textContent = `无效原因统计：${["电话无效", "区域不符", "预算明显不匹配", "暂时不装", "已装修", "只问价格", "重复线索", "其他原因"]
+        .map(reason => `${reason}${countBy("invalidReason", reason)}条`)
+        .join("，")}`;
+    }
+
+    function renderList() {
+      el("leadList").innerHTML = leads.length
+        ? leads.map(lead => `
+          <article class="lead-card">
+            <div class="lead-title">${escapeHtml(lead.name || "未填写客户")} · ${escapeHtml(lead.phone || lead.wechat || "无联系方式")}</div>
+            <div class="lead-meta">
+              <span class="tag ${tagClass(lead)}">${escapeHtml(lead.status)}</span>
+              <span class="tag">${escapeHtml(lead.source)}</span>
+              <span class="tag">有效性：${escapeHtml(lead.validity)}</span>
+              <span class="tag">销售：${escapeHtml(lead.assignedSales || "未分配")}</span>
+              <span class="tag">等级：${escapeHtml(lead.grade || "C类客户")}</span>
+            </div>
+            <p class="section-note">
+              小区/区域：${escapeHtml(lead.area || "-")}｜素材：${escapeHtml(lead.materialName || "-")}｜痛点：${escapeHtml((lead.pains || []).join("、") || "-")}
+            </p>
+            <div class="button-row">
+              <button class="btn-blue" onclick="editLead('${lead.id}')">编辑</button>
+              <button class="btn-green" onclick="markValid('${lead.id}')">标记有效</button>
+              <button class="btn-red" onclick="markInvalid('${lead.id}')">标记无效</button>
+              <button class="btn-cyan" onclick="assignSales('${lead.id}')">分配销售</button>
+              <button class="btn-primary" onclick="transferToCrm('${lead.id}')">一键转入 CRM</button>
+              <button class="btn-red" onclick="deleteLead('${lead.id}')">删除</button>
+            </div>
+          </article>
+        `).join("")
+        : '<div class="section-note">暂无抖音线索。</div>';
+    }
+
+    function renderAll() {
+      renderStats();
+      renderList();
+    }
+
+    // ================================
+    // 新增/编辑/删除线索
+    // ================================
+    function saveLead() {
+      const lead = leadFromForm();
+
+      if (!lead.name && !lead.phone && !lead.wechat) {
+        return alert("请至少填写客户姓名、电话或微信。");
+      }
+
+      if (editingId) {
+        leads = leads.map(item => item.id === editingId
+          ? {
+            ...item,
+            ...lead,
+            crmCustomerId: item.crmCustomerId || lead.crmCustomerId,
+            transferredAt: item.transferredAt || lead.transferredAt
+          }
+          : item);
+        logHistory(lead, "编辑线索");
+      } else {
+        leads.unshift(lead);
+        logHistory(lead, "新增线索");
+      }
+
+      saveLeads();
+      clearForm();
+      renderAll();
+      showTip("线索已保存。");
+    }
+
+    function clearForm() {
+      editingId = "";
+      [
+        "leadName",
+        "leadPhone",
+        "leadWechat",
+        "leadArea",
+        "leadAreaSize",
+        "leadLayout",
+        "materialName",
+        "initialQuestion",
+        "leadNote"
+      ].forEach(id => {
+        el(id).value = "";
+      });
+      el("leadCity").value = "中卫";
+      el("leadStatus").value = "待清洗";
+      el("validity").value = "待判断";
+      el("invalidReason").value = "";
+      el("assignedSales").value = "";
+      el("leadGrade").value = "C类客户";
+      el("nextFollowDate").value = "";
+      setChecked("keywordChecks", []);
+      setChecked("painChecks", []);
+      el("saveLeadBtn").textContent = "添加抖音线索";
+      el("formTitle").textContent = "录入抖音线索";
+    }
+
+    function editLead(id) {
+      const lead = leads.find(item => item.id === id);
+
+      if (!lead) {
+        return;
+      }
+
+      [
+        "leadName:name",
+        "leadPhone:phone",
+        "leadWechat:wechat",
+        "leadCity:city",
+        "leadArea:area",
+        "leadAreaSize:areaSize",
+        "leadLayout:layout",
+        "decorateType:decorateType",
+        "leadSource:source",
+        "materialName:materialName",
+        "leadStatus:status",
+        "validity:validity",
+        "invalidReason:invalidReason",
+        "assignedSales:assignedSales",
+        "leadGrade:grade",
+        "nextFollowDate:nextFollowDate",
+        "initialQuestion:initialQuestion",
+        "leadNote:note"
+      ].forEach(pair => {
+        const [id, key] = pair.split(":");
+        el(id).value = lead[key] || "";
+      });
+      setChecked("keywordChecks", lead.keywords || []);
+      setChecked("painChecks", lead.pains || []);
+      el("saveLeadBtn").textContent = "保存线索修改";
+      el("formTitle").textContent = "编辑抖音线索";
+      window.scrollTo({ top: 260, behavior: "smooth" });
+    }
+
+    function deleteLead(id) {
+      if (!confirm("确认删除这条抖音线索吗？")) {
+        return;
+      }
+
+      const lead = leads.find(item => item.id === id);
+      leads = leads.filter(item => item.id !== id);
+      saveLeads();
+      if (lead) {
+        logHistory(lead, "删除线索");
+      }
+      renderAll();
+    }
+
+    function updateLead(id, patch, action) {
+      const lead = leads.find(item => item.id === id);
+      leads = leads.map(item => item.id === id
+        ? { ...item, ...patch, updatedAt: new Date().toISOString() }
+        : item);
+      saveLeads();
+      if (lead) {
+        logHistory({ ...lead, ...patch }, action);
+      }
+      renderAll();
+    }
+
+    // ================================
+    // 有效/无效判断
+    // ================================
+    function markValid(id) {
+      updateLead(id, { validity: "有效", status: "有效线索" }, "标记有效");
+    }
+
+    function markInvalid(id) {
+      const reason = prompt("请输入无效原因，可填写：电话无效、区域不符、预算明显不匹配、暂时不装、已装修、只问价格、重复线索、其他原因") || "其他原因";
+      updateLead(id, { validity: "无效", status: "无效线索", invalidReason: reason }, "标记无效");
+    }
+
+    // ================================
+    // 分配销售
+    // ================================
+    function assignSales(id) {
+      const lead = leads.find(item => item.id === id);
+
+      if (!lead) {
+        return;
+      }
+
+      const sales = prompt(`请输入销售姓名：${SALES.join("、")}`, lead.assignedSales || "王淑慧");
+      if (!sales) {
+        return;
+      }
+
+      updateLead(id, {
+        assignedSales: sales,
+        status: lead.status === "已转入CRM" ? "已转入CRM" : "已分配销售"
+      }, "分配销售");
+    }
+
+    // ================================
+    // 转入 CRM
+    // ================================
+    function transferToCrm(id) {
+      const lead = leads.find(item => item.id === id);
+
+      if (!lead) {
+        return;
+      }
+
+      if (lead.status === "已转入CRM" || lead.crmCustomerId) {
+        return alert("该线索已转入 CRM，请勿重复操作。");
+      }
+
+      if (lead.validity !== "有效") {
+        return alert("请先将该线索标记为有效后再转入 CRM。");
+      }
+
+      if (!lead.assignedSales) {
+        return alert("请先分配销售后再转入 CRM。");
+      }
+
+      if (!lead.phone && !lead.wechat && !confirm("该线索缺少电话或微信，建议补充联系方式后再转入 CRM。确认继续吗？")) {
+        return;
+      }
+
+      const customers = crmCustomers();
+
+      // 注意：转 CRM 去重规则涉及客户主数据安全，不得随意修改。
+      const duplicate = customers.find(customer =>
+        (lead.phone && customer.phone === lead.phone)
+        || (!lead.phone
+          && customer.name === lead.name
+          && customer.community === lead.area
+          && String(customer.need || "").includes(lead.materialName || "__no_material__"))
+      );
+
+      if (duplicate) {
+        updateLead(id, {
+          status: "已转入CRM",
+          crmCustomerId: duplicate.id,
+          transferredAt: new Date().toISOString()
+        }, "关联已存在CRM客户");
+        return alert("检测到重复客户，已关联已有 CRM 客户，请勿重复新增。");
+      }
+
+      const crmId = createId();
+      const now = new Date().toISOString();
+      const newCustomerDate = today();
+      const note = [
+        `抖音线索来源：${lead.source}`,
+        `微信：${lead.wechat || "-"}`,
+        `来源视频/素材：${lead.materialName || "-"}`,
+        `私信关键词：${(lead.keywords || []).join("、") || "-"}`,
+        `客户初始问题：${lead.initialQuestion || "-"}`,
+        `客户痛点：${(lead.pains || []).join("、") || "-"}`,
+        `装修类型：${lead.decorateType || "-"}`,
+        `线索备注：${lead.note || "-"}`
+      ].join("；");
+
+      customers.unshift({
+        id: crmId,
+        name: lead.name || "抖音线索客户",
+        phone: lead.phone || lead.wechat || "",
+        community: lead.area || lead.city || "",
+        area: lead.areaSize || "",
+        layout: lead.layout || "",
+        source: toCrmSource(lead.source),
+        // 注意：isNewCustomer/newCustomerDate 会被 CRM、report、city-analysis 读取。
+        isNewCustomer: true,
+        newCustomerDate,
+        createdDate: newCustomerDate,
+        need: note,
+        designer: "",
+        blockReason: "",
+        nextAction: "电话回访；微信跟进",
+        budget: "待确认",
+        grade: lead.grade || "C类客户",
+        status: "新线索",
+        measuredStatus: "否",
+        measureDate: "",
+        visitCount: 0,
+        quoteCount: 0,
+        owner: lead.assignedSales,
+        nextFollowDate: lead.nextFollowDate || today(),
+        followRecords: [{
+          id: createId(),
+          followTime: now.slice(0, 16),
+          method: "抖音线索转入",
+          content: `从抖音线索池转入CRM：${note}`,
+          nextFollowDate: lead.nextFollowDate || today(),
+          owner: lead.assignedSales,
+          createdAt: now
+        }],
+        createdAt: now,
+        updatedAt: now
+      });
+
+      localStorage.setItem(CRM_KEY, JSON.stringify(customers));
+      updateLead(id, { status: "已转入CRM", crmCustomerId: crmId, transferredAt: now }, "转入CRM");
+      alert("已转入CRM，并自动标记为新客户。");
+    }
+
+    // ================================
+    // 统计与导出
+    // ================================
+    function csvEscape(value) {
+      return `"${String(value || "").replace(/"/g, '""')}"`;
+    }
+
+    function exportCsv() {
+      const headers = [
+        "客户姓名",
+        "电话",
+        "微信",
+        "城市",
+        "区域/小区",
+        "面积",
+        "户型",
+        "装修类型",
+        "线索来源",
+        "素材名称",
+        "关键词",
+        "痛点",
+        "状态",
+        "有效性",
+        "无效原因",
+        "销售",
+        "等级",
+        "下次跟进",
+        "备注"
+      ];
+      const rows = leads.map(lead => [
+        lead.name,
+        lead.phone,
+        lead.wechat,
+        lead.city,
+        lead.area,
+        lead.areaSize,
+        lead.layout,
+        lead.decorateType,
+        lead.source,
+        lead.materialName,
+        (lead.keywords || []).join("、"),
+        (lead.pains || []).join("、"),
+        lead.status,
+        lead.validity,
+        lead.invalidReason,
+        lead.assignedSales,
+        lead.grade,
+        lead.nextFollowDate,
+        lead.note
+      ]);
+
+      downloadFile(
+        `抖音线索池-${today()}.csv`,
+        [headers, ...rows].map(row => row.map(csvEscape).join(",")).join("\n"),
+        "text/csv;charset=utf-8"
+      );
+    }
+
+    function exportJson() {
+      downloadFile(
+        `抖音线索池-${today()}.json`,
+        JSON.stringify(leads, null, 2),
+        "application/json;charset=utf-8"
+      );
+    }
+
+    function downloadFile(name, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // ================================
+    // 页面初始化
+    // ================================
+    function initPage() {
+      el("assignedSales").innerHTML = '<option value="">未分配</option>' + SALES.map(sales => `<option>${sales}</option>`).join("");
+      renderChecks("keywordChecks", keywordOptions);
+      renderChecks("painChecks", painOptions);
+      renderAll();
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
