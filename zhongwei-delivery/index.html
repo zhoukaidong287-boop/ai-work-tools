@@ -7,14 +7,17 @@
   <link rel="stylesheet" href="shared-ui.css" />
   <style>
     :root {
-      --delivery-bg: #f4f6f5;
-      --delivery-card: rgba(255, 255, 255, 0.82);
-      --delivery-text: #15212b;
-      --delivery-muted: #687582;
-      --delivery-border: rgba(31, 41, 51, 0.12);
-      --delivery-accent: #2f5f6f;
+      --delivery-bg: #070b0e;
+      --delivery-card: rgba(17, 24, 31, 0.86);
+      --delivery-card-soft: rgba(23, 32, 41, 0.78);
+      --delivery-text: #f3f6f8;
+      --delivery-muted: #a9b6c2;
+      --delivery-quiet: #7f8d9a;
+      --delivery-border: rgba(214, 224, 232, 0.14);
+      --delivery-border-strong: rgba(214, 224, 232, 0.24);
+      --delivery-accent: #8bb7c7;
       --delivery-dark: #17212b;
-      --delivery-shadow: 0 24px 70px rgba(31, 41, 51, 0.12);
+      --delivery-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
     }
 
     * {
@@ -23,7 +26,9 @@
 
     body {
       background:
-        linear-gradient(90deg, rgba(244, 246, 245, 0.92), rgba(244, 246, 245, 0.70)),
+        radial-gradient(circle at 18% 8%, rgba(91, 130, 145, 0.20), transparent 32%),
+        radial-gradient(circle at 88% 14%, rgba(130, 151, 158, 0.13), transparent 30%),
+        linear-gradient(90deg, rgba(7, 11, 14, 0.94), rgba(7, 11, 14, 0.82)),
         url("assets/hero-water-courtyard.png") center/cover no-repeat fixed,
         var(--delivery-bg);
       color: var(--delivery-text);
@@ -75,13 +80,14 @@
     }
 
     .delivery-nav-links a {
-      background: rgba(255, 255, 255, 0.62);
-      border: 1px solid rgba(31, 41, 51, 0.08);
+      background: rgba(17, 24, 31, 0.72);
+      border: 1px solid var(--delivery-border);
       color: var(--delivery-text);
     }
 
     .delivery-nav-links a:hover,
     .delivery-button:hover {
+      border-color: var(--delivery-border-strong);
       transform: translateY(-2px);
     }
 
@@ -110,7 +116,7 @@
     }
 
     .delivery-lead {
-      color: #344351;
+      color: #dce5ea;
       font-size: clamp(18px, 2.4vw, 27px);
       font-weight: 620;
       line-height: 1.45;
@@ -133,16 +139,16 @@
     }
 
     .delivery-button.primary {
-      background: var(--delivery-dark);
-      border: 1px solid rgba(23, 33, 43, 0.86);
-      box-shadow: 0 18px 44px rgba(31, 41, 51, 0.18);
-      color: #fff;
+      background: #e9eef1;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.30);
+      color: #111a22;
     }
 
     .delivery-button.secondary {
-      background: rgba(255, 255, 255, 0.72);
+      background: rgba(17, 24, 31, 0.78);
       border: 1px solid var(--delivery-border);
-      color: var(--delivery-text);
+      color: #eef3f6;
     }
 
     .delivery-panel {
@@ -174,8 +180,8 @@
 
     .delivery-stat {
       align-items: center;
-      background: rgba(255, 255, 255, 0.68);
-      border: 1px solid rgba(31, 41, 51, 0.08);
+      background: rgba(8, 13, 18, 0.72);
+      border: 1px solid rgba(214, 224, 232, 0.12);
       border-radius: 16px;
       display: flex;
       justify-content: space-between;
@@ -188,6 +194,7 @@
     }
 
     .delivery-stat strong {
+      color: #f7fafb;
       font-size: 22px;
     }
 
@@ -203,10 +210,10 @@
     }
 
     .delivery-card {
-      background: rgba(255, 255, 255, 0.82);
+      background: var(--delivery-card-soft);
       border: 1px solid var(--delivery-border);
       border-radius: 24px;
-      box-shadow: 0 18px 46px rgba(31, 41, 51, 0.08);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.24);
       color: var(--delivery-text);
       min-height: 188px;
       padding: 22px;
@@ -215,8 +222,8 @@
     }
 
     .delivery-card:hover {
-      border-color: rgba(47, 95, 111, 0.26);
-      box-shadow: 0 24px 60px rgba(31, 41, 51, 0.12);
+      border-color: rgba(139, 183, 199, 0.32);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
       transform: translateY(-3px);
     }
 
@@ -227,6 +234,7 @@
     }
 
     .delivery-card h3 {
+      color: #f4f7f9;
       font-size: 22px;
       margin: 18px 0 10px;
     }

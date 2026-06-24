@@ -596,8 +596,138 @@
     }
   </style>
   <link rel="stylesheet" href="shared-ui.css" />
+  <style>
+    body.delivery-review-page {
+      --review-action: #dfe8ec;
+      --review-action-text: #111a22;
+      --review-secondary: rgba(34, 48, 60, 0.92);
+      --review-secondary-text: #edf4f7;
+      --review-neutral: rgba(21, 30, 39, 0.82);
+      --review-neutral-text: #dbe5ea;
+      --review-crm: #bfd7df;
+      --review-crm-text: #10202a;
+      --review-danger-bg: rgba(76, 25, 31, 0.88);
+      --review-danger-text: #ffd9dd;
+      --review-button-border: rgba(224, 235, 240, 0.16);
+      --review-button-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+    }
+
+    body.delivery-review-page button,
+    body.delivery-review-page a.button-link {
+      border: 1px solid var(--review-button-border) !important;
+      border-radius: 12px !important;
+      box-shadow: var(--review-button-shadow) !important;
+      font-weight: 850 !important;
+      letter-spacing: 0 !important;
+      min-height: 40px !important;
+      padding: 9px 15px !important;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease !important;
+    }
+
+    body.delivery-review-page button:hover,
+    body.delivery-review-page a.button-link:hover {
+      filter: none !important;
+      transform: translateY(-1px) !important;
+      border-color: rgba(224, 235, 240, 0.30) !important;
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.30) !important;
+    }
+
+    body.delivery-review-page .btn-primary,
+    body.delivery-review-page #addSalesReviewBtn,
+    body.delivery-review-page #generateReviewBtn {
+      background: var(--review-action) !important;
+      color: var(--review-action-text) !important;
+    }
+
+    body.delivery-review-page .btn-green,
+    body.delivery-review-page #summarizeSalesReviewBtn,
+    body.delivery-review-page #saveReviewBtn,
+    body.delivery-review-page button[data-action="copy"] {
+      background: var(--review-secondary) !important;
+      color: var(--review-secondary-text) !important;
+    }
+
+    body.delivery-review-page .btn-blue,
+    body.delivery-review-page #copyReviewBtn,
+    body.delivery-review-page button[data-sales-action="edit"],
+    body.delivery-review-page button[data-action="view"] {
+      background: rgba(42, 58, 72, 0.92) !important;
+      color: #f0f6f8 !important;
+    }
+
+    body.delivery-review-page .btn-cyan,
+    body.delivery-review-page a.button-link.btn-cyan,
+    body.delivery-review-page button[data-sales-action="crm"] {
+      background: var(--review-crm) !important;
+      color: var(--review-crm-text) !important;
+      border-color: rgba(233, 245, 248, 0.34) !important;
+    }
+
+    body.delivery-review-page .btn-light,
+    body.delivery-review-page #clearDraftBtn,
+    body.delivery-review-page #clearSalesReviewBtn,
+    body.delivery-review-page #cancelSalesEditBtn,
+    body.delivery-review-page .return-home-btn {
+      background: var(--review-neutral) !important;
+      color: var(--review-neutral-text) !important;
+    }
+
+    body.delivery-review-page .btn-red,
+    body.delivery-review-page button[data-sales-action="delete"],
+    body.delivery-review-page button[data-action="delete"] {
+      background: var(--review-danger-bg) !important;
+      border-color: rgba(255, 190, 198, 0.22) !important;
+      color: var(--review-danger-text) !important;
+    }
+
+    body.delivery-review-page .process-action {
+      background: rgba(34, 48, 60, 0.88) !important;
+      border-color: rgba(224, 235, 240, 0.14) !important;
+      color: #dce8ed !important;
+    }
+
+    body.delivery-review-page .button-help {
+      color: rgba(236, 239, 243, 0.66) !important;
+    }
+
+    body.delivery-review-page .sales-summary-title {
+      color: #eef5f8 !important;
+      font-size: 17px;
+      font-weight: 900;
+      margin-top: 18px;
+    }
+
+    body.delivery-review-page .summary-grid {
+      background: rgba(10, 15, 20, 0.76) !important;
+      border-color: rgba(224, 235, 240, 0.14) !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 38px rgba(0, 0, 0, 0.24);
+    }
+
+    body.delivery-review-page .summary-item {
+      background: rgba(24, 34, 43, 0.88) !important;
+      border-color: rgba(224, 235, 240, 0.12) !important;
+      box-shadow: none !important;
+    }
+
+    body.delivery-review-page .summary-item span {
+      color: rgba(236, 239, 243, 0.66) !important;
+    }
+
+    body.delivery-review-page .summary-item strong {
+      color: #f4f8fa !important;
+      text-shadow: none !important;
+    }
+
+    @media (max-width: 560px) {
+      body.delivery-review-page button,
+      body.delivery-review-page a.button-link {
+        justify-content: center !important;
+        white-space: normal !important;
+      }
+    }
+  </style>
 </head>
-<body>
+<body class="delivery-review-page">
   <nav class="gc-shell" aria-label="Growth Command 功能导航">
     <div class="gc-nav">
       <a class="gc-brand" href="index.html">Growth Command</a>
@@ -1437,7 +1567,7 @@
       ];
 
       el("salesSummaryResult").innerHTML = `
-        <div class="section-note" style="margin-top:16px;font-weight:800;color:#172554;">销售复盘汇总结果</div>
+        <div class="section-note sales-summary-title">销售复盘汇总结果</div>
         <div class="summary-grid">
           ${items.map(([label, value]) => `
             <div class="summary-item">
